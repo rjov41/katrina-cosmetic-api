@@ -22,6 +22,8 @@ class AuthenticationController extends Controller
             'password' => bcrypt($attr['password']),
             'email' => $attr['email']
         ]);
+        $user->assignRole('admin');
+        
         return ['token' => $user->createToken('tokens')->plainTextToken];
 
         // return $this->success([
