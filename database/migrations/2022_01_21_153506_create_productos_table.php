@@ -19,7 +19,7 @@ class CreateProductosTable extends Migration
             $table->string("marca",30);
             $table->string("modelo",43);
             $table->integer("stock");
-            $table->integer("minimo")->length(1);
+            // $table->integer("minimo")->length(1);
             $table->double('precio', 7, 2);
             $table->integer('comision');
             $table->string("linea",50);
@@ -29,7 +29,9 @@ class CreateProductosTable extends Migration
             $table->timestamps();
         });
     }
-
+    
+    //  
+     
     /**
      * Reverse the migrations.
      *
