@@ -13,18 +13,26 @@ class AuthenticationController extends Controller
     {
         $attr = $request->validate([
             'name' => 'required|string|max:255',
+            'password' => 'required|string|min:6|confirmed',
             'email' => 'required|string|email|unique:users,email',
-            'password' => 'required|string|min:6|confirmed'
+            'apellido' => 'required|string|max:255',
+            'cargo' => 'required|string|max:255',
+            'estado' => 'required|numeric|max:1',
         ]);
 
         $user = User::create([
             'name' => $attr['name'],
             'password' => bcrypt($attr['password']),
-            'email' => $attr['email']
+            'email' => $attr['email'],
+            'apellido' => $attr['apellido'],
+            'cargo' => $attr['cargo'],
+            'estado' => $attr['estado']
         ]);
+        
         $user->assignRole('admin');
         
-        return ['token' => $user->createToken('tokens')->plainTextToken];
+        // return ['token' => $user->createToken('tokens')->plainTextToken];
+        return response()->json(['token' => $user->createToken('tokens')->plainTextToken], 201);
 
         // return $this->success([
         //     'token' => $user->createToken('tokens')->plainTextToken

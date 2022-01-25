@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthenticationController;
+use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\RoleController;
 
 /*
@@ -42,6 +43,7 @@ Route::group(['middleware' => ['auth:sanctum','role:admin']], function () {
 
 // });
 
+Route::resource('cliente', ClienteController::class);
 Route::resource('roles', RoleController::class);
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

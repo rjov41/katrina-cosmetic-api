@@ -11,6 +11,7 @@ class Cliente extends Model
     
     protected $fillable = [
         'categoria_id',
+        'frecuencia_id',
         'nombre',
         'celular',
         'telefono',
@@ -18,6 +19,7 @@ class Cliente extends Model
         'direccion_negocio',
         'cedula',
         'dias_cobro',
+        'fecha_vencimiento',
         'estado',
     ];
     
