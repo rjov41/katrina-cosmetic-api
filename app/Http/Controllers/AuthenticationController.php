@@ -38,6 +38,7 @@ class AuthenticationController extends Controller
         //     'token' => $user->createToken('tokens')->plainTextToken
         // ]);
     }
+    
     //use this method to signin users
     public function signin(Request $request)
     {
@@ -67,8 +68,9 @@ class AuthenticationController extends Controller
     }
 
     // this method signs out users by removing tokens
-    public function signout()
+    public function signout(Request $request)
     {
+        // dd($request->user()->currentAccessToken());
         $user = Auth::user();
         if ($user instanceof \App\Models\User) {
             $user->tokens()->delete();
