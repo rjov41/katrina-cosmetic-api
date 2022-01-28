@@ -5,7 +5,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthenticationController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\FacturaDetallesController;
 use App\Http\Controllers\FrecuenciaController;
+use App\Http\Controllers\ProductosController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UsuarioController;
 
@@ -51,6 +53,8 @@ Route::resource('roles', RoleController::class);
 Route::resource('usuarios', UsuarioController::class);
 Route::resource('categorias', CategoriaController::class);
 Route::resource('frecuencias', FrecuenciaController::class);
+Route::resource('productos', ProductosController::class);
+Route::resource('factura-detalle', FacturaDetallesController::class);
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
