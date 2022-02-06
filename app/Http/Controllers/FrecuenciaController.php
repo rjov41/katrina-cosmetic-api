@@ -51,6 +51,7 @@ class FrecuenciaController extends Controller
     {
         $validation = Validator::make($request->all() ,[
             'descripcion' => 'required|string',
+            'dias' => 'required|numeric|digits_between:1,3',
             'estado' => 'required|numeric|max:1',
         ]);
         // dd($request->all());
@@ -61,6 +62,7 @@ class FrecuenciaController extends Controller
             
             $frecuencia = Frecuencia::create([
                 'descripcion' => $request['descripcion'],
+                'dias' => $request['dias'],
                 'estado' => $request['estado'],
             ]);
             
@@ -141,6 +143,7 @@ class FrecuenciaController extends Controller
             if($categoria){ 
                 $validation = Validator::make($request->all() ,[
                     'descripcion' => 'required|string',
+                    'dias' => 'required|numeric|max:3',
                     'estado' => 'required|numeric|max:1',
                 ]);
                 
@@ -151,6 +154,7 @@ class FrecuenciaController extends Controller
                     
                     $categoriaUpdate = $categoria->update([
                         'descripcion' => $request['descripcion'],
+                        'dias' => $request['dias'],
                         'estado' => $request['estado'],
                     ]);
 

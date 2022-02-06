@@ -24,14 +24,20 @@ class Cliente extends Model
     ];
     
     // one to many
-    public function factura()
+    public function facturas()
     {
         return $this->hasMany(Factura::class);
     }
 
-    // one to many
+    // one to many inversa
     public function categoria()
     {
         return $this->belongsTo(Categoria::class);
+    }
+
+    // one to many inversa
+    public function frecuencia()
+    {
+        return $this->belongsTo(Frecuencia::class,"frecuencia_id","id");
     }
 }

@@ -19,7 +19,7 @@ class CreateFrecuenciasTable extends Migration
             // $table->unsignedBigInteger("categoria_id");
             // $table->foreign("categoria_id")->references("id")->on("categorias");
             $table->string("descripcion",80);
-            
+            $table->integer("dias")->length(3);
             $table->integer("estado")->length(1);
             
             $table->timestamps();

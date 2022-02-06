@@ -23,13 +23,20 @@ class ClienteController extends Controller
         if($request->input()) $clienteEstado = $request->input("estado");
         
         // dd($clienteEstado);
-        $cliente =  Cliente::where('estado',$clienteEstado)->get();
+        $clientes =  Cliente::where('estado',$clienteEstado)->get();
         
-        if(count($cliente) > 0){
-            $response[] = $cliente;
+        if(count($clientes) > 0){
+            foreach ($clientes as $key => $cliente) {
+                // dd($cliente->frecuencias);
+                $clientes->frecuencia = $cliente->frecuencia;
+                $clientes->categoria = $cliente->categoria;
+                $clientes->facturas = $cliente->facturas;
+            }
+            
+            $response[] = $clientes;
         }
         
-        return response()->json($cliente, $status);
+        return response()->json($clientes, $status);
     }
 
     /**

@@ -11,7 +11,14 @@ class Frecuencia extends Model
     
     protected $fillable = [
         'descripcion',
+        'dias',
         'estado',
     ];
+    
+    // one to many
+    public function clientes()
+    {
+        return $this->hasMany(Cliente::class);
+    }
     
 }
