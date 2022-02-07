@@ -26,6 +26,7 @@ class CreateClientesTable extends Migration
             $table->foreign("frecuencia_id")->references("id")->on("frecuencias");
             
             $table->string("nombre",80);
+            $table->string("apellido",80);
             $table->integer("celular")->length(12);
             $table->integer("telefono")->length(12);
             $table->string("direccion_casa",180);
