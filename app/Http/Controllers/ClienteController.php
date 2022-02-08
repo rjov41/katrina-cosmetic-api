@@ -68,7 +68,7 @@ class ClienteController extends Controller
             'direccion_negocio' => 'required|string|max:180',
             'cedula' => 'required|string|max:22',
             'dias_cobro' => 'required|string|max:20',
-            'fecha_vencimiento' => 'required|date',
+            // 'fecha_vencimiento' => 'required|date',
             'estado' => 'required|numeric|max:1',
         ]);
         // dd($request->all());
@@ -88,7 +88,7 @@ class ClienteController extends Controller
                 'direccion_negocio' => $request['direccion_negocio'],
                 'cedula' => $request['cedula'],
                 'dias_cobro' => $request['dias_cobro'],
-                'fecha_vencimiento' => $request['fecha_vencimiento'],
+                // 'fecha_vencimiento' => $request['fecha_vencimiento'],
                 'estado' => $request['estado'],
             ]);
             
@@ -179,7 +179,7 @@ class ClienteController extends Controller
                     'direccion_negocio' => 'required|string|max:180',
                     'cedula' => 'required|string|max:22',
                     'dias_cobro' => 'required|string|max:20',
-                    'fecha_vencimiento' => 'required|date',
+                    // 'fecha_vencimiento' => 'required|date',
                     'estado' => 'required|numeric|max:1',
                 ]);
                 
@@ -199,7 +199,7 @@ class ClienteController extends Controller
                         'direccion_negocio' => $request['direccion_negocio'],
                         'cedula' => $request['cedula'],
                         'dias_cobro' => $request['dias_cobro'],
-                        'fecha_vencimiento' => $request['fecha_vencimiento'],
+                        // 'fecha_vencimiento' => $request['fecha_vencimiento'],
                         'estado' => $request['estado'],
                     ]);
 
@@ -245,7 +245,7 @@ class ClienteController extends Controller
                 ]);
                 
                 if($clienteDelete){                  
-                    $response[] = 'cliente fue eliminado con exito.';
+                    $response[] = 'El cliente fue eliminado con exito.';
                     $status = 200;
                     
                 }else{

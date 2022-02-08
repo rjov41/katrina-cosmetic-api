@@ -19,7 +19,7 @@ class Cliente extends Model
         'direccion_negocio',
         'cedula',
         'dias_cobro',
-        'fecha_vencimiento',
+        // 'fecha_vencimiento',
         'estado',
     ];
     

@@ -28,12 +28,12 @@ class CreateClientesTable extends Migration
             $table->string("nombre",80);
             $table->string("apellido",80);
             $table->integer("celular")->length(12);
-            $table->integer("telefono")->length(12);
+            $table->integer("telefono")->length(12)->nullable();
             $table->string("direccion_casa",180);
-            $table->string("direccion_negocio",180);
+            $table->string("direccion_negocio",180)->nullable();
             $table->string("cedula",22);
             $table->string("dias_cobro",20);
-            $table->timestamp('fecha_vencimiento');
+            // $table->timestamp('fecha_vencimiento');
             $table->integer("estado")->length(1);
             
             $table->timestamps();
