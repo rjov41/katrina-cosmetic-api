@@ -124,9 +124,14 @@ class ClienteController extends Controller
                 ['estado', '=', $clienteEstado],
             ])->first();
         
-        
+
+            
             // $cliente =  Cliente::find($id);
             if($cliente){
+                $cliente->frecuencia = $cliente->frecuencia;
+                $cliente->categoria = $cliente->categoria;
+                $cliente->facturas = $cliente->facturas;
+                
                 $response = $cliente;
                 $status = 200;
 
@@ -187,7 +192,7 @@ class ClienteController extends Controller
                     $response[] = $validation->errors();
                 } else {
 
-                    
+                    // dd($request->all());
                     $clienteUpdate = $cliente->update([
                         'categoria_id' => $request['categoria_id'],
                         'frecuencia_id' => $request['frecuencia_id'],

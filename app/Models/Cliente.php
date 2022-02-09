@@ -13,6 +13,7 @@ class Cliente extends Model
         'categoria_id',
         'frecuencia_id',
         'nombre',
+        'apellido',
         'celular',
         'telefono',
         'direccion_casa',
