@@ -19,7 +19,7 @@ class ProductosController extends Controller
         $status = 200;
         $productoEstado = 1; // Activo
         
-        if($request->input("estado") != "null") $productoEstado = $request->input("estado");
+        if($request->input("estado") != null) $productoEstado = $request->input("estado");
         
         // dd($clienteEstado);
         $producto =  Producto::where('estado',$productoEstado)->get();
@@ -95,16 +95,16 @@ class ProductosController extends Controller
     {
         $response = [];
         $status = 400;
-        $productoEstado = 1; // Activo
+        // $productoEstado = 1; // Activo
         
         if(is_numeric($id)){
                     
-            if($request->input("estado") != null) $productoEstado = $request->input("estado");
+            // if($request->input("estado") != null) $productoEstado = $request->input("estado");
             // dd($productoEstado);
         
             $producto =  Producto::where([
                 ['id', '=', $id],
-                ['estado', '=', $productoEstado],
+            // ['estado', '=', $productoEstado],
             ])->first();
         
         

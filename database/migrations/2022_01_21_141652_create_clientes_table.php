@@ -32,7 +32,7 @@ class CreateClientesTable extends Migration
             $table->string("direccion_casa",180);
             $table->string("direccion_negocio",180)->nullable();
             $table->string("cedula",22);
-            $table->string("dias_cobro",20);
+            $table->string("dias_cobro",120);
             // $table->timestamp('fecha_vencimiento');
             $table->integer("estado")->length(1);
             

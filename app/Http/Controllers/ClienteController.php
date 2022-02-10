@@ -62,19 +62,20 @@ class ClienteController extends Controller
             'frecuencia_id' => 'required|numeric',
             'nombre' => 'required|string|max:80',
             'apellido' => 'required|string|max:80',
-            'celular' => 'required|numeric',
-            'telefono' => 'required|numeric|unique:clientes,telefono',
+            'celular' => 'required|numeric|unique:clientes,celular|digits_between:1,12',
+            'telefono' => 'nullable|max:12',
             'direccion_casa' => 'required|string|max:180',
-            'direccion_negocio' => 'required|string|max:180',
-            'cedula' => 'required|string|max:22',
-            'dias_cobro' => 'required|string|max:20',
+            'direccion_negocio' => 'nullable|max:180',
+            'cedula' => 'required|string|max:22|unique:clientes,cedula',
+            'dias_cobro' => 'string|max:120',
             // 'fecha_vencimiento' => 'required|date',
             'estado' => 'required|numeric|max:1',
+
         ]);
         // dd($request->all());
         // dd($validation->errors());
         if($validation->fails()) {
-            return response()->json($validation->errors(), 400);
+            return response()->json([$validation->errors()], 400);
         } else {
             
             $user = Cliente::create([
@@ -178,12 +179,12 @@ class ClienteController extends Controller
                     'frecuencia_id' => 'required|numeric',
                     'nombre' => 'required|string|max:80',
                     'apellido' => 'required|string|max:80',
-                    'celular' => 'required|numeric',
-                    'telefono' => 'required|numeric',
+                    'celular' => 'required|numeric|max:12',
+                    'telefono' => 'nullable|max:12',
                     'direccion_casa' => 'required|string|max:180',
-                    'direccion_negocio' => 'required|string|max:180',
+                    'direccion_negocio' => 'nullable|max:180',
                     'cedula' => 'required|string|max:22',
-                    'dias_cobro' => 'required|string|max:20',
+                    'dias_cobro' => 'string|max:120',
                     // 'fecha_vencimiento' => 'required|date',
                     'estado' => 'required|numeric|max:1',
                 ]);
