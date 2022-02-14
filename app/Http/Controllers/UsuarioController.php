@@ -21,11 +21,15 @@ class UsuarioController extends Controller
         // User::whereHas("roles", function($q){ $q->where("name", "admin"); })->get()
                             
         // dd($clienteEstado);
-        $usuario =  User::all();
+        $usuarios =  User::all();
     
         // $cliente =  Cliente::find($id);
-        if(count($usuario) > 0){
-            $response = $usuario;
+        if(count($usuarios) > 0){
+            foreach ($usuarios as $key => $usuario) {
+                $usuario->factura;
+            }
+            
+            $response = $usuarios;
             $status = 200;
 
         }else{
@@ -100,22 +104,23 @@ class UsuarioController extends Controller
     {
         $response = [];
         $status = 400;
-        $clienteEstado = 1; // Activo
+        // $clienteEstado = 1; // Activo
         // User::whereHas("roles", function($q){ $q->where("name", "admin"); })->get()
         
         if(is_numeric($id)){
                     
-            if($request->input("estado") !== null) $clienteEstado = $request->input("estado");
+            // if($request->input("estado") !== null) $clienteEstado = $request->input("estado");
         
             // dd($clienteEstado);
             $usuario =  User::where([
                 ['id', '=', $id],
-                ['estado', '=', $clienteEstado],
+                // ['estado', '=', $clienteEstado],
             ])->first();
         
         
             // $cliente =  Cliente::find($id);
             if($usuario){
+                $usuario->factura;
                 $response = $usuario;
                 $status = 200;
 

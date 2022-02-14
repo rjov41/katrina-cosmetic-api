@@ -30,11 +30,14 @@ class RoleController extends Controller
      */
     public function index(Request $request)
     {
-        $data = Role::orderBy('id','DESC');
+        // $data = Role::orderBy('id','DESC');
+        $response = [];
+        $status = 200;
         
-        return [
-            'data' =>  $data,
-        ];
+        $roles = Role::all();
+        $response = $roles;
+        
+        return response()->json($response, $status);
 
         // return view('roles.index', compact('data'));
     }
