@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Spatie\Permission\Models\Role;
 
 class UsuarioController extends Controller
 {
@@ -79,10 +81,16 @@ class UsuarioController extends Controller
                 'cargo' => $request['cargo'],
                 'estado' => $request['estado']
             ]);
-            
-            $user->assignRole('admin');
+            $role = Role::find($request['role']);
+            // dd($user);
+            $user->assignRole($role->name);
             $status = 201;
-            $response[] = ['token' => $user->createToken('tokens')->plainTextToken];
+            $user->createToken('tokens')->plainTextToken;
+            // $response[] = ['token' => $user->createToken('tokens')->plainTextToken];
+
+            return response()->json([
+                'id' => $user->id,
+            ], 201);
         }
         
         
@@ -116,11 +124,15 @@ class UsuarioController extends Controller
                 ['id', '=', $id],
                 // ['estado', '=', $clienteEstado],
             ])->first();
-        
-        
+            
+            
+            
             // $cliente =  Cliente::find($id);
             if($usuario){
+                $role_id = DB::table('model_has_roles')->where('model_id', $usuario->id)->first();
+                
                 $usuario->factura;
+                $usuario->role_id = $role_id->role_id; 
                 $response = $usuario;
                 $status = 200;
 
@@ -185,7 +197,11 @@ class UsuarioController extends Controller
                         'cargo' => $request['cargo'],
                         'estado' => $request['estado']
                     ]);
+                    
+                    DB::table('model_has_roles')->where('model_id', $usuario->id)->delete();
+                    $role = Role::find($request['role']);
 
+                    $usuario->assignRole($role->name);
                     
                     if($usuarioUpdate){                  
                         $response[] = 'Usuario modificado con exito.';
