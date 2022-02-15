@@ -23,13 +23,19 @@ class FacturaController extends Controller
         if($request->input("estado") != null) $facturaEstado = $request->input("estado");
         
         // dd($clienteEstado);
-        $factura =  Factura::where('estado',$facturaEstado)->get();
+        $facturas =  Factura::where('estado',$facturaEstado)->get();
         
-        if(count($factura) > 0){
-            $response[] = $factura;
+        if(count($facturas) > 0){
+            foreach ($facturas as $key => $factura) {
+                $factura->user;
+                $factura->cliente;
+                $factura->factura_detalle;
+            }
+            
+            $response = $facturas;
         }
         
-        return response()->json($factura, $status);
+        return response()->json($response, $status);
     }
 
     /**

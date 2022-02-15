@@ -18,7 +18,7 @@ class UsuarioController extends Controller
     public function index()
     {
         $response = [];
-        $status = 400;
+        $status = 200;
         $clienteEstado = 1; // Activo
         // User::whereHas("roles", function($q){ $q->where("name", "admin"); })->get()
                             
