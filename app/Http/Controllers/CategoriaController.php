@@ -19,7 +19,7 @@ class CategoriaController extends Controller
         $status = 200;
         $clienteEstado = 1; // Activo
         
-        if($request->input() != null) $clienteEstado = $request->input("estado");
+        // if($request->input() != null) $clienteEstado = $request->input("estado");
         
         // dd($clienteEstado);
         $cliente =  Categoria::where('estado',$clienteEstado)->get();
@@ -89,12 +89,12 @@ class CategoriaController extends Controller
         
         if(is_numeric($id)){
                     
-            if($request->input("estado") != null) $clienteEstado = $request->input("estado");
+            // if($request->input("estado") != null) $clienteEstado = $request->input("estado");
         
             // dd($clienteEstado);
             $categoria =  Categoria::where([
                 ['id', '=', $id],
-                ['estado', '=', $clienteEstado],
+                // ['estado', '=', $clienteEstado],
             ])->first();
         
         

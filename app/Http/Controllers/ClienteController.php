@@ -20,11 +20,11 @@ class ClienteController extends Controller
         $status = 200;
         $clienteEstado = 1; // Activo
         
-        if($request->input()) $clienteEstado = $request->input("estado");
+        //if($request->input() !=null) $clienteEstado = $request->input("estado");
         
         // dd($clienteEstado);
         $clientes =  Cliente::where('estado',$clienteEstado)->get();
-        
+        //dd( $clientes);
         if(count($clientes) > 0){
             foreach ($clientes as $key => $cliente) {
                 // dd($cliente->frecuencias);
@@ -117,12 +117,12 @@ class ClienteController extends Controller
         
         if(is_numeric($id)){
                     
-            if($request->input("estado")) $clienteEstado = $request->input("estado");
+            //if($request->input("estado")) $clienteEstado = $request->input("estado");
         
             // dd($clienteEstado);
             $cliente =  Cliente::where([
                 ['id', '=', $id],
-                ['estado', '=', $clienteEstado],
+                //['estado', '=', $clienteEstado],
             ])->first();
         
 

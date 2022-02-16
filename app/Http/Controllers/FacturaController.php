@@ -20,7 +20,7 @@ class FacturaController extends Controller
         $status = 200;
         $facturaEstado = 1; // Activo
         
-        if($request->input("estado") != null) $facturaEstado = $request->input("estado");
+        // if($request->input("estado") != null) $facturaEstado = $request->input("estado");
         
         // dd($clienteEstado);
         $facturas =  Factura::where('estado',$facturaEstado)->get();
@@ -106,12 +106,12 @@ class FacturaController extends Controller
         
         if(is_numeric($id)){
                     
-            if($request->input("estado") != null) $facturaEstado = $request->input("estado");
+            // if($request->input("estado") != null) $facturaEstado = $request->input("estado");
             // dd($productoEstado);
         
             $factura =  Factura::with('factura_detalle')->where([
                 ['id', '=', $id],
-                ['estado', '=', $facturaEstado],
+                // ['estado', '=', $facturaEstado],
             ])->get();
             
             $factura_detalle =  Factura::find($id)->factura_detalle->first();

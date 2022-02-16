@@ -19,7 +19,7 @@ class FrecuenciaController extends Controller
         $status = 200;
         $frecuenciaEstado = 1; // Activo
         
-        if($request->input() != null) $frecuenciaEstado = $request->input("estado");
+        // if($request->input() != null) $frecuenciaEstado = $request->input("estado");
         
         // dd($clienteEstado);
         $cliente =  Frecuencia::where('estado',$frecuenciaEstado)->get();
@@ -89,12 +89,12 @@ class FrecuenciaController extends Controller
         
         if(is_numeric($id)){
                     
-            if($request->input("estado") != null) $frecuenciaEstado = $request->input("estado");
+            // if($request->input("estado") != null) $frecuenciaEstado = $request->input("estado");
         
             // dd($clienteEstado);
             $frecuencia =  Frecuencia::where([
                 ['id', '=', $id],
-                ['estado', '=', $frecuenciaEstado],
+                // ['estado', '=', $frecuenciaEstado],
             ])->first();
         
         

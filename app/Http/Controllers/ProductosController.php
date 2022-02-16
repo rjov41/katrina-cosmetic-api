@@ -19,7 +19,7 @@ class ProductosController extends Controller
         $status = 200;
         $productoEstado = 1; // Activo
         
-        if($request->input("estado") != null) $productoEstado = $request->input("estado");
+        // if($request->input("estado") != null) $productoEstado = $request->input("estado");
         
         // dd($clienteEstado);
         $producto =  Producto::where('estado',$productoEstado)->get();
