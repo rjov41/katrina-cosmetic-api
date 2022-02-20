@@ -51,12 +51,14 @@ Route::group(['middleware' => ['auth:sanctum','role:admin']], function () {
 
 Route::resource('cliente', ClienteController::class);
 Route::resource('roles', RoleController::class);
+Route::put('update-password/{id}',  [UsuarioController::class, 'updatePassword']);
 Route::resource('usuarios', UsuarioController::class);
 Route::resource('categorias', CategoriaController::class);
 Route::resource('frecuencias', FrecuenciaController::class);
 Route::resource('productos', ProductosController::class);
 Route::resource('factura-detalle', FacturaDetallesController::class);
 Route::resource('facturas', FacturaController::class);
+
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();

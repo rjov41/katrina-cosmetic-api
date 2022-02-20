@@ -21,7 +21,7 @@ class CreateProductosTable extends Migration
             $table->integer("stock");
             // $table->integer("minimo")->length(1);
             $table->double('precio', 7, 2);
-            $table->integer('comision');
+            // $table->integer('comision');
             $table->string("linea",50);
             $table->string("descripcion",200);
             $table->integer("estado")->length(1);

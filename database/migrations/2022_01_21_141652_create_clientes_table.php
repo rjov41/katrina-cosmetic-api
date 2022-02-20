@@ -25,13 +25,16 @@ class CreateClientesTable extends Migration
             $table->unsignedBigInteger("frecuencia_id");
             $table->foreign("frecuencia_id")->references("id")->on("frecuencias");
             
-            $table->string("nombre",80);
-            $table->string("apellido",80);
-            $table->integer("celular")->length(12);
-            $table->integer("telefono")->length(12)->nullable();
+            $table->unsignedBigInteger("user_id")->nullable();
+            $table->foreign("user_id")->references("id")->on("users");
+            
+            $table->string("nombreCompleto",80);
+            $table->string("nombreEmpresa",80);
+            $table->unsignedBigInteger("celular")->length(13);
+            $table->unsignedBigInteger("telefono")->length(13)->nullable();
             $table->string("direccion_casa",180);
             $table->string("direccion_negocio",180)->nullable();
-            $table->string("cedula",22);
+            $table->string("cedula",22); //14 sin guiones
             $table->string("dias_cobro",120);
             // $table->timestamp('fecha_vencimiento');
             $table->integer("estado")->length(1);

@@ -12,8 +12,9 @@ class Cliente extends Model
     protected $fillable = [
         'categoria_id',
         'frecuencia_id',
-        'nombre',
-        'apellido',
+        'user_id',
+        'nombreCompleto',
+        'nombreEmpresa',
         'celular',
         'telefono',
         'direccion_casa',
@@ -40,5 +41,11 @@ class Cliente extends Model
     public function frecuencia()
     {
         return $this->belongsTo(Frecuencia::class,"frecuencia_id","id");
+    }
+
+    // one to many inversa
+    public function usuario()
+    {
+        return $this->belongsTo(User::class);
     }
 }

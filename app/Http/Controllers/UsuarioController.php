@@ -147,12 +147,6 @@ class UsuarioController extends Controller
         return response()->json($response, $status);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\UsuarioController  $usuarioController
-     * @return \Illuminate\Http\Response
-     */
     public function edit(UsuarioController $usuarioController)
     {
         //
@@ -176,8 +170,8 @@ class UsuarioController extends Controller
             if($usuario){ 
                 $validation = Validator::make($request->all() ,[
                     'name' => 'required|string|max:255',
-                    'password' => 'required|string|min:6|confirmed',
-                    'email' => 'required|string|email|unique:users,email',
+                    // 'password' => 'required|string|min:6|confirmed',
+                    'email' => 'required|string|email|unique:users,email,'.$id,
                     'apellido' => 'required|string|max:255',
                     'cargo' => 'required|string|max:255',
                     'estado' => 'required|numeric|max:1',
@@ -191,7 +185,7 @@ class UsuarioController extends Controller
                     
                     $usuarioUpdate = $usuario->update([
                         'name' => $request['name'],
-                        'password' => bcrypt($request['password']),
+                        // 'password' => bcrypt($request['password']),
                         'email' => $request['email'],
                         'apellido' => $request['apellido'],
                         'cargo' => $request['cargo'],
@@ -209,6 +203,55 @@ class UsuarioController extends Controller
                         
                     }else{
                         $response[] = 'Error al modificar los datos.';
+                    }
+
+                }
+
+            }else{
+                $response[] = "El Usuario no existe.";
+            }
+            
+        }else{
+            $response[] = "El Valor de Id debe ser numerico.";
+        }
+        
+        return response()->json($response, $status);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function updatePassword( $id,Request $request)
+    {
+        $response = [];
+        $status = 400;
+        
+        if(is_numeric($id)){
+            $usuario =  User::find($id);
+            // dd($usuario);
+            if($usuario){ 
+                $validation = Validator::make($request->all() ,[
+                    'password' => 'required|string|min:6|confirmed',
+                ]);
+                
+                if($validation->fails()) {
+                    $response[] = $validation->errors();
+                } else {
+
+                    $usuarioUpdate = $usuario->update([
+                        'password' => bcrypt($request['password']),
+                    ]);
+                    
+                    if($usuarioUpdate){                  
+                        $response[] = 'Clave modificada con exito';
+                        $status = 200;
+                        
+                    }else{
+                        $response[] = 'Error al modificar la clave';
                     }
 
                 }

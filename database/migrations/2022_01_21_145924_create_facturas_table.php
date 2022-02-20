@@ -29,7 +29,8 @@ class CreateFacturasTable extends Migration
             $table->dateTime("fecha_vencimiento",$precision = 0);
             $table->double('iva', 7, 2);
             $table->integer("tcambio")->length(1);
-            $table->integer("estado")->length(1);
+            $table->integer("status_pagado")->length(1);
+            $table->integer("status")->length(1);
             $table->timestamps();
             
             

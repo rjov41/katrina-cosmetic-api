@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Cliente;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class ClienteController extends Controller
@@ -20,9 +21,9 @@ class ClienteController extends Controller
         $status = 200;
         $clienteEstado = 1; // Activo
         
-        //if($request->input() !=null) $clienteEstado = $request->input("estado");
+        if(!is_null($request['estado'])) $clienteEstado = $request['estado'];
+        // dd($request['estado']);
         
-        // dd($clienteEstado);
         $clientes =  Cliente::where('estado',$clienteEstado)->get();
         //dd( $clientes);
         if(count($clientes) > 0){
@@ -60,8 +61,9 @@ class ClienteController extends Controller
         $validation = Validator::make($request->all() ,[
             'categoria_id' => 'required|numeric',
             'frecuencia_id' => 'required|numeric',
-            'nombre' => 'required|string|max:80',
-            'apellido' => 'required|string|max:80',
+            'user_id' => 'nullable|numeric',
+            'nombreCompleto' => 'required|string|max:80',
+            'nombreEmpresa' => 'required|string|max:80',
             'celular' => 'required|numeric|unique:clientes,celular|digits_between:10,12',
             'telefono' => 'nullable|digits_between:10,12',
             'direccion_casa' => 'required|string|max:180',
@@ -72,27 +74,28 @@ class ClienteController extends Controller
             'estado' => 'required|numeric|max:1',
 
         ]);
-        // dd($request->all());
-        // dd($validation->errors());
+
         if($validation->fails()) {
             return response()->json([$validation->errors()], 400);
         } else {
-            
+            // DB::enableQueryLog();
             $user = Cliente::create([
                 'categoria_id' => $request['categoria_id'],
                 'frecuencia_id' => $request['frecuencia_id'],
-                'nombre' => $request['nombre'],
-                'apellido' => $request['apellido'],
+                'nombreCompleto' => $request['nombreCompleto'],
+                'nombreEmpresa' => $request['nombreEmpresa'],
                 'celular' => $request['celular'],
                 'telefono' => $request['telefono'],
                 'direccion_casa' => $request['direccion_casa'],
                 'direccion_negocio' => $request['direccion_negocio'],
                 'cedula' => $request['cedula'],
                 'dias_cobro' => $request['dias_cobro'],
+                'user_id' => ($request['user_id']>0)?$request['user_id']:NULL,
                 // 'fecha_vencimiento' => $request['fecha_vencimiento'],
                 'estado' => $request['estado'],
             ]);
-            
+            // $query = DB::getQueryLog();
+            // dd($query);
             return response()->json([
                 // 'success' => 'Usuario Insertado con exito',
                 // 'data' =>[
@@ -117,12 +120,12 @@ class ClienteController extends Controller
         
         if(is_numeric($id)){
                     
-            //if($request->input("estado")) $clienteEstado = $request->input("estado");
+            if(!is_null($request['estado'])) $clienteEstado = $request['estado'];
         
-            // dd($clienteEstado);
+            // dd($request['estado']);
             $cliente =  Cliente::where([
                 ['id', '=', $id],
-                //['estado', '=', $clienteEstado],
+                ['estado', '=', $clienteEstado],
             ])->first();
         
 
@@ -177,13 +180,14 @@ class ClienteController extends Controller
                 $validation = Validator::make($request->all() ,[
                     'categoria_id' => 'required|numeric',
                     'frecuencia_id' => 'required|numeric',
-                    'nombre' => 'required|string|max:80',
-                    'apellido' => 'required|string|max:80',
-                    'celular' => 'required|numeric|digits_between:10,12',
+                    'user_id' => 'nullable|numeric',
+                    'nombreCompleto' => 'required|string|max:80',
+                    'nombreEmpresa' => 'required|string|max:80',
+                    'celular' => 'required|numeric|unique:clientes,celular,'.$id.'|digits_between:10,12',
                     'telefono' => 'nullable|digits_between:10,12',
                     'direccion_casa' => 'required|string|max:180',
                     'direccion_negocio' => 'nullable|max:180',
-                    'cedula' => 'required|string|max:22',
+                    'cedula' => 'required|string|max:22|unique:clientes,cedula,'.$id,
                     'dias_cobro' => 'string|max:120',
                     // 'fecha_vencimiento' => 'required|date',
                     'estado' => 'required|numeric|max:1',
@@ -197,14 +201,15 @@ class ClienteController extends Controller
                     $clienteUpdate = $cliente->update([
                         'categoria_id' => $request['categoria_id'],
                         'frecuencia_id' => $request['frecuencia_id'],
-                        'nombre' => $request['nombre'],
-                        'apellido' => $request['apellido'],
+                        'nombreCompleto' => $request['nombreCompleto'],
+                        'nombreEmpresa' => $request['nombreEmpresa'],
                         'celular' => $request['celular'],
                         'telefono' => $request['telefono'],
                         'direccion_casa' => $request['direccion_casa'],
                         'direccion_negocio' => $request['direccion_negocio'],
                         'cedula' => $request['cedula'],
                         'dias_cobro' => $request['dias_cobro'],
+                        'user_id' => ($request['user_id']>0)?$request['user_id']:NULL,
                         // 'fecha_vencimiento' => $request['fecha_vencimiento'],
                         'estado' => $request['estado'],
                     ]);

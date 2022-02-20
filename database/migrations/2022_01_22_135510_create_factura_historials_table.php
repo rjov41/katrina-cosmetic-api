@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateFacturaDetallesTable extends Migration
+class CreateFacturaHistorialsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,21 +13,14 @@ class CreateFacturaDetallesTable extends Migration
      */
     public function up()
     {
-        Schema::create('factura_detalles', function (Blueprint $table) {
+        Schema::create('factura_historials', function (Blueprint $table) {
             $table->id();
             
-            
-            // productos
-            $table->unsignedBigInteger("producto_id");
-            $table->foreign("producto_id")->references("id")->on("productos");
-
             // Facturas
             $table->unsignedBigInteger("factura_id");
             $table->foreign("factura_id")->references("id")->on("facturas");
-            
-            $table->integer("cantidad")->length(5);
             $table->double('precio', 7, 2);
-            $table->integer("porcentaje");
+            
             
             $table->timestamps();
         });
@@ -40,6 +33,6 @@ class CreateFacturaDetallesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('factura_detalles');
+        Schema::dropIfExists('factura_historials');
     }
 }
