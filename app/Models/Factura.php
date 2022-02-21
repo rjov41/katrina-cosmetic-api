@@ -17,7 +17,8 @@ class Factura extends Model
         'fecha_vencimiento',
         'iva',
         'tcambio',
-        'estado',
+        'status_pagado',
+        'status',
     ];
 
 

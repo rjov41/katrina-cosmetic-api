@@ -20,10 +20,10 @@ class FacturaController extends Controller
         $status = 200;
         $facturaEstado = 1; // Activo
         
-        // if($request->input("estado") != null) $facturaEstado = $request->input("estado");
+        if(!is_null($request['estado'])) $facturaEstado = $request['estado'];
         
-        // dd($clienteEstado);
-        $facturas =  Factura::where('estado',$facturaEstado)->get();
+        // dd($facturaEstado);
+        $facturas =  Factura::where('status',$facturaEstado)->get();
         
         if(count($facturas) > 0){
             foreach ($facturas as $key => $factura) {
