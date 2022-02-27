@@ -27,7 +27,7 @@ class CreateFacturaDetallesTable extends Migration
             
             $table->integer("cantidad")->length(5);
             $table->double('precio', 7, 2);
-            $table->integer("porcentaje");
+            // $table->integer("porcentaje");
             
             $table->timestamps();
         });

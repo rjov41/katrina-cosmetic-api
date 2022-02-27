@@ -16,7 +16,9 @@ class Factura extends Model
         'nruc',
         'fecha_vencimiento',
         'iva',
-        'tcambio',
+        // 'tcambio',
+        // 'monto_cambio',
+        // 'tipo_venta',
         'status_pagado',
         'status',
     ];

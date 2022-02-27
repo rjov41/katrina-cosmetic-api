@@ -25,10 +25,12 @@ class CreateFacturasTable extends Migration
             $table->foreign("cliente_id")->references("id")->on("clientes");
             
             $table->double('monto', 7, 2);
-            $table->string("nruc",20);
+            // $table->string("nruc",20);
             $table->dateTime("fecha_vencimiento",$precision = 0);
             $table->double('iva', 7, 2);
-            $table->integer("tcambio")->length(1);
+            // $table->integer("tcambio")->length(1); //1 usd 2 nica
+            // $table->double("monto_cambio", 7, 2);
+            $table->integer("tipo_venta")->length(1); //1 credito 2 contado
             $table->integer("status_pagado")->length(1);
             $table->integer("status")->length(1);
             $table->timestamps();
