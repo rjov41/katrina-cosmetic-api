@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Factura;
 use App\Models\Factura_Detalle;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -69,61 +70,54 @@ class FacturaController extends Controller
             'status_pagado' => 'required|boolean',
             'iva' => 'required|numeric',
             'estado' => 'required|numeric|max:1',
-            'factura_detalle' => 'required|array'
+            
+            'factura_detalle' => 'required|array',
+            'factura_detalle.*.producto_id' => 'required|numeric',
+            'factura_detalle.*.cantidad' => 'required|numeric',
+            'factura_detalle.*.precio' => 'required|numeric',
         ]);    
         
         if($validation->fails()) {
             return response()->json($validation->errors(), 400);
         } 
-        
-        foreach ($request['factura_detalle'] as $key => $factura_detalle) {
-            
-            $validation2 = Validator::make($request['factura_detalle'] ,[
-                $factura_detalle['producto_id'] => 'required|numeric',
-                $factura_detalle['factura_id'] => 'required|numeric',
-                $factura_detalle['cantidad'] => 'required|numeric',
-                $factura_detalle['precio'] => 'required|numeric',
-                // 'porcentaje' => 'required|numeric',
-            ]);
-            
-            if($validation2->fails()) {
-                return response()->json($validation->errors(), 400);
-            } 
-        }
-        
-        
-        $response=[];
-        DB::transaction(function($request){
-            $user = Factura::create([
+
+        DB::beginTransaction();
+        try {
+            $currentDate = Carbon::now('utc')->toDateTimeString();
+            $factura = Factura::create([
                 'user_id' => $request['user_id'],
                 'cliente_id' => $request['cliente_id'],
                 'monto' => $request['monto'],
                 // 'nruc' => $request['nruc'],
                 'fecha_vencimiento' => $request['fecha_vencimiento'],
                 'iva' => $request['iva'],
-                'tcambio' => $request['tcambio'],
-                'estado' => $request['estado'],
+                // 'tcambio' => $request['tcambio'],
+                'tipo_venta' => $request['tipo_venta'],
+                'status_pagado' => $request['status_pagado'],
+                'status' => $request['estado'],
             ]);
             
-            $factura_Detalle = Factura_Detalle::create([
-                'producto_id' => $request['producto_id'],
-                'factura_id' => $user->id,
-                'cantidad' => $request['cantidad'],
-                'precio' => $request['precio'],
-                'porcentaje' => $request['porcentaje'],
-            ]);
-            
-            
-        });
-
+            foreach ($request['factura_detalle'] as $key => $value) {
+                $fDetalles[] = [
+                    
+                    'producto_id' => $value['producto_id'],
+                    'factura_id' => $factura->id,
+                    'cantidad' => $value['cantidad'],
+                    'precio' => $value['precio'],
+                    'created_at'=> $currentDate,
+                    'updated_at'=> $currentDate
+                    // 'porcentaje' => $request['porcentaje'],
+                ];
+            }
+            // dd($fDetalles);
+            $factura_Detalle = Factura_Detalle::insert($fDetalles);
         
-        // return response()->json([
-        //     // 'success' => 'Usuario Insertado con exito',
-        //     // 'data' =>[
-        //         'id' => $user->id,
-        //     // ]
-        // ], 201);
-        return response()->json($response, 201);
+            DB::commit();
+            return response()->json($factura_Detalle, 201);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json("Error al insertar el pedido", 400);
+        }
     }
 
     /**

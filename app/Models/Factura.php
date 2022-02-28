@@ -18,7 +18,7 @@ class Factura extends Model
         'iva',
         // 'tcambio',
         // 'monto_cambio',
-        // 'tipo_venta',
+        'tipo_venta',
         'status_pagado',
         'status',
     ];
