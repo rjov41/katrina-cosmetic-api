@@ -22,10 +22,10 @@ INSERT INTO `categorias` (`id`, `tipo`, `descripcion`, `estado`, `created_at`, `
 -- Volcando datos para la tabla api_maquillaje.clientes: ~14 rows (aproximadamente)
 /*!40000 ALTER TABLE `clientes` DISABLE KEYS */;
 INSERT INTO `clientes` (`id`, `categoria_id`, `frecuencia_id`, `user_id`, `nombreCompleto`, `nombreEmpresa`, `celular`, `telefono`, `direccion_casa`, `direccion_negocio`, `cedula`, `dias_cobro`, `estado`, `created_at`, `updated_at`) VALUES
-	(1, 1, 1, NULL, 'weefwfwe', 'ewfewefw', 1131905210, 1131905210, 'Av.francisco beiro 3360', 'Av.francisco beiro 3360', '23223232323233', 'jueves,miércoles,viernes,sábado', 1, '2022-02-19 22:59:13', '2022-02-20 00:05:05'),
-	(2, 1, 2, NULL, 'asfasfas', 'asfasf', 1131905212, 1131905210, 'Av.francisco beiro 3360', 'Av.francisco beiro 3360', '13133113131314', 'jueves', 1, '2022-02-19 23:01:34', '2022-02-19 23:01:34'),
-	(3, 7, 2, NULL, 'asfassfa', 'bffbfffb', 433343343434, 344334433434, 'Av.francisco beiro 3360', 'Av.francisco beiro 3360', '34343434433434', 'jueves,miércoles', 1, '2022-02-19 23:07:05', '2022-02-19 23:07:05'),
-	(4, 1, 1, NULL, 'refegqfweqdwqwd', 'fafasfasfasreggeweg', 4344343344, 533535533543, 'Av.Francisco Beiró 3360', 'Av.Francisco Beiró 3360', '12213343434554', 'viernes', 1, '2022-02-19 23:10:57', '2022-02-19 23:10:57'),
+	(1, 1, 1, 18, 'weefwfwe', 'ewfewefw', 1131905210, 1131905210, 'Av.francisco beiro 3360', 'Av.francisco beiro 3360', '23223232323233', 'jueves,miércoles,viernes,sábado', 1, '2022-02-19 22:59:13', '2022-02-20 00:05:05'),
+	(2, 1, 2, 4, 'asfasfas', 'asfasf', 1131905212, 1131905210, 'Av.francisco beiro 3360', 'Av.francisco beiro 3360', '13133113131314', 'jueves', 1, '2022-02-19 23:01:34', '2022-02-19 23:01:34'),
+	(3, 7, 2, 7, 'asfassfa', 'bffbfffb', 433343343434, 344334433434, 'Av.francisco beiro 3360', 'Av.francisco beiro 3360', '34343434433434', 'jueves,miércoles', 1, '2022-02-19 23:07:05', '2022-02-19 23:07:05'),
+	(4, 1, 1, 12, 'refegqfweqdwqwd', 'fafasfasfasreggeweg', 4344343344, 533535533543, 'Av.Francisco Beiró 3360', 'Av.Francisco Beiró 3360', '12213343434554', 'viernes', 1, '2022-02-19 23:10:57', '2022-02-19 23:10:57'),
 	(5, 1, 1, NULL, 'weeftbr', 'gwegwe', 13133113313, 434343434433, '3360 Francisco Bei', '3360 Francisco Beiró', '12233113311313', 'viernes', 1, '2022-02-19 23:12:17', '2022-02-19 23:12:17'),
 	(6, 1, 1, NULL, 'weeftbr', 'gwegwe', 13133113416, 434343434433, '3360 Francisco Bei', '3360 Francisco Beiró', '19933113311313', 'viernes', 1, '2022-02-19 23:14:52', '2022-02-19 23:14:52'),
 	(7, 1, 1, NULL, 'weeftbr', 'gwegwe', 13138113416, 434343434433, '3360 Francisco Bei', '3360 Francisco Beiró', '19939113311313', 'viernes', 1, '2022-02-19 23:19:06', '2022-02-19 23:19:06'),
@@ -38,12 +38,20 @@ INSERT INTO `clientes` (`id`, `categoria_id`, `frecuencia_id`, `user_id`, `nombr
 	(14, 1, 1, 8, 'cliente 2', 'afasfa', 123443435454, 123443435454, 'afsfasfasfas', 'asfaasasf', '12344343545466', 'viernes', 1, '2022-02-19 23:54:54', '2022-02-19 23:54:54');
 /*!40000 ALTER TABLE `clientes` ENABLE KEYS */;
 
--- Volcando datos para la tabla api_maquillaje.facturas: ~0 rows (aproximadamente)
+-- Volcando datos para la tabla api_maquillaje.facturas: ~2 rows (aproximadamente)
 /*!40000 ALTER TABLE `facturas` DISABLE KEYS */;
+INSERT INTO `facturas` (`id`, `user_id`, `cliente_id`, `monto`, `fecha_vencimiento`, `iva`, `tipo_venta`, `status_pagado`, `status`, `created_at`, `updated_at`) VALUES
+	(8, 18, 4, 4350.00, '2022-04-30 12:00:00', 0.00, 2, 1, 1, '2022-02-28 16:25:40', '2022-02-28 16:25:40'),
+	(12, 18, 2, 2850.00, '2022-04-30 12:00:00', 0.00, 2, 1, 1, '2022-02-28 17:14:17', '2022-02-28 17:14:17');
 /*!40000 ALTER TABLE `facturas` ENABLE KEYS */;
 
--- Volcando datos para la tabla api_maquillaje.factura_detalles: ~0 rows (aproximadamente)
+-- Volcando datos para la tabla api_maquillaje.factura_detalles: ~4 rows (aproximadamente)
 /*!40000 ALTER TABLE `factura_detalles` DISABLE KEYS */;
+INSERT INTO `factura_detalles` (`id`, `producto_id`, `factura_id`, `cantidad`, `precio`, `created_at`, `updated_at`) VALUES
+	(7, 2, 8, 3, 3600.00, '2022-02-28 16:25:40', '2022-02-28 16:25:40'),
+	(8, 1, 8, 5, 750.00, '2022-02-28 16:25:40', '2022-02-28 16:25:40'),
+	(9, 3, 12, 3, 2400.00, '2022-02-28 17:14:17', '2022-02-28 17:14:17'),
+	(10, 1, 12, 3, 450.00, '2022-02-28 17:14:17', '2022-02-28 17:14:17');
 /*!40000 ALTER TABLE `factura_detalles` ENABLE KEYS */;
 
 -- Volcando datos para la tabla api_maquillaje.factura_historials: ~0 rows (aproximadamente)
@@ -61,7 +69,7 @@ INSERT INTO `frecuencias` (`id`, `descripcion`, `dias`, `estado`, `created_at`, 
 	(2, 'mensual', 30, 1, '2022-01-27 01:28:49', '2022-02-08 18:35:49');
 /*!40000 ALTER TABLE `frecuencias` ENABLE KEYS */;
 
--- Volcando datos para la tabla api_maquillaje.migrations: ~36 rows (aproximadamente)
+-- Volcando datos para la tabla api_maquillaje.migrations: ~48 rows (aproximadamente)
 /*!40000 ALTER TABLE `migrations` DISABLE KEYS */;
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 	(110, '2014_10_12_000000_create_users_table', 1),
@@ -99,7 +107,19 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 	(142, '2022_01_21_145924_create_facturas_table', 1),
 	(143, '2022_01_21_153506_create_productos_table', 1),
 	(144, '2022_01_21_161644_create_factura_detalles_table', 1),
-	(145, '2022_01_22_135510_create_factura_historials_table', 1);
+	(145, '2022_01_22_135510_create_factura_historials_table', 1),
+	(206, '2014_10_12_000000_create_users_table', 1),
+	(207, '2014_10_12_100000_create_password_resets_table', 1),
+	(208, '2019_08_19_000000_create_failed_jobs_table', 1),
+	(209, '2019_12_14_000001_create_personal_access_tokens_table', 1),
+	(210, '2022_01_20_233955_create_permission_tables', 1),
+	(211, '2022_01_21_011111_create_categorias_table', 1),
+	(212, '2022_01_21_011120_create_frecuencias_table', 1),
+	(213, '2022_01_21_141652_create_clientes_table', 1),
+	(214, '2022_01_21_145924_create_facturas_table', 1),
+	(215, '2022_01_21_153506_create_productos_table', 1),
+	(216, '2022_01_21_161644_create_factura_detalles_table', 1),
+	(217, '2022_01_22_135510_create_factura_historials_table', 1);
 /*!40000 ALTER TABLE `migrations` ENABLE KEYS */;
 
 -- Volcando datos para la tabla api_maquillaje.model_has_permissions: ~0 rows (aproximadamente)
@@ -122,7 +142,7 @@ INSERT INTO `model_has_roles` (`role_id`, `model_type`, `model_id`) VALUES
 /*!40000 ALTER TABLE `permissions` DISABLE KEYS */;
 /*!40000 ALTER TABLE `permissions` ENABLE KEYS */;
 
--- Volcando datos para la tabla api_maquillaje.personal_access_tokens: ~4 rows (aproximadamente)
+-- Volcando datos para la tabla api_maquillaje.personal_access_tokens: ~5 rows (aproximadamente)
 /*!40000 ALTER TABLE `personal_access_tokens` DISABLE KEYS */;
 INSERT INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `name`, `token`, `abilities`, `last_used_at`, `created_at`, `updated_at`) VALUES
 	(1, 'App\\Models\\User', 18, 'tokens', '542377f36a759959b225a9d1050fc73b3f9b1d628a188c58c4cb96d7954eb1ba', '["*"]', NULL, '2022-02-20 01:08:49', '2022-02-20 01:08:49'),
@@ -145,14 +165,15 @@ INSERT INTO `productos` (`id`, `marca`, `modelo`, `stock`, `precio`, `linea`, `d
 /*!40000 ALTER TABLE `roles` DISABLE KEYS */;
 INSERT INTO `roles` (`id`, `name`, `guard_name`, `created_at`, `updated_at`) VALUES
 	(2, 'administrador', 'web', '2022-01-25 00:27:11', '2022-01-25 00:27:11'),
-	(3, 'vendedor', 'web', '2022-02-13 23:31:21', '2022-02-13 23:31:21');
+	(3, 'vendedor', 'web', '2022-02-13 23:31:21', '2022-02-13 23:31:21'),
+	(4, 'supervisor', 'web', '2022-03-02 09:23:04', '2022-03-02 09:23:06');
 /*!40000 ALTER TABLE `roles` ENABLE KEYS */;
 
 -- Volcando datos para la tabla api_maquillaje.role_has_permissions: ~0 rows (aproximadamente)
 /*!40000 ALTER TABLE `role_has_permissions` DISABLE KEYS */;
 /*!40000 ALTER TABLE `role_has_permissions` ENABLE KEYS */;
 
--- Volcando datos para la tabla api_maquillaje.users: ~14 rows (aproximadamente)
+-- Volcando datos para la tabla api_maquillaje.users: ~16 rows (aproximadamente)
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
 INSERT INTO `users` (`id`, `name`, `apellido`, `cargo`, `email`, `email_verified_at`, `password`, `remember_token`, `estado`, `created_at`, `updated_at`) VALUES
 	(4, 'PEPE', 'sanchez', 'vendedor', 'alejosb16@gmail.com', NULL, '$2y$10$.mU3bdHHOSKWSwA88D2IHebkZx4MLi.0vhLiuO3HiGlx6PC/VLeGG', NULL, 1, '2022-01-25 00:29:44', '2022-02-15 01:20:55'),
