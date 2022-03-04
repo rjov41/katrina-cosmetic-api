@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AuthenticationController extends Controller
 {
@@ -49,7 +50,7 @@ class AuthenticationController extends Controller
 
         if (!Auth::attempt($attr)) {
             // return $this->error('Credentials not match', 401);
-            return ['error' => "problemas"];
+            return response()->json(['error' => "problemas"], 400);
         }
         
         $user = Auth::user();
@@ -58,10 +59,29 @@ class AuthenticationController extends Controller
             // return $this->success([
             //     'token' => $user->createToken($request->device_name)->plainTextToken,
             // ]);
-            return ['token' => $user->createToken('tokens')->plainTextToken];
+            $token = $user->createToken('tokens')->plainTextToken;
+            $newUser = DB::table('users')
+                ->select('users.id as userId', 'users.name as nombre ', 'users.apellido as apellido', 'users.cargo as cargo', 'users.email as email', 'users.email_verified_at as email_verified_at', 'users.estado as user_estado', 'users.created_at as user_created_at', 'users.updated_at as user_updated_at','roles.id as roleId','roles.name as roleName')
+
+                ->join('model_has_roles', 'model_has_roles.model_id', '=', 'users.id')
+                ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
+                ->where('model_has_roles.model_id', $user->id)
+                ->first();    
+            
+            
+            // DB::table('model_has_roles')->where('model_id', $user->id)
+            return response()->json([
+                'token' => $token,
+                'user' => $newUser,    
+            ], 200);
+            // return [
+            //     'token' => $token,
+            //     'user' => $newUser,    
+            // ];
         } else {
             // return $this->error('Error', 401);
-            return ['error' => "problemas"];
+            // return ['error' => "problemas"];
+            return response()->json(['error' => "problemas"], 400);
         }
         
 

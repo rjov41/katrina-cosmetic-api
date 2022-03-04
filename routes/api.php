@@ -31,7 +31,7 @@ Route::post('/create-account', [AuthenticationController::class, 'createAccount'
 Route::post('/signin', [AuthenticationController::class, 'signin']);
 
 //using middleware
-Route::group(['middleware' => ['auth:sanctum','role:admin']], function () {
+Route::group(['middleware' => ['auth:sanctum','role:administrador|vendedor|supervisor']], function () {
     Route::post('/sign-out', [AuthenticationController::class, 'signout']);
     Route::get('/profile', function(Request $request) {
         return auth()->user();

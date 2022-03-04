@@ -52,7 +52,7 @@ class ProductosController extends Controller
         $validation = Validator::make($request->all() ,[
             'marca' => 'required|string',
             'modelo' => 'required|string',
-            'stock' => 'required|numeric|max:11',
+            'stock' => 'required|numeric',
             'precio' => 'required|numeric',
             // 'comision' => 'required|numeric',
             'linea' => 'required|string',
@@ -154,7 +154,7 @@ class ProductosController extends Controller
                 $validation = Validator::make($request->all() ,[
                     'marca' => 'required|string',
                     'modelo' => 'required|string',
-                    'stock' => 'required|numeric|max:11',
+                    'stock' => 'required|numeric',
                     'precio' => 'required|numeric',
                     // 'comision' => 'required|numeric',
                     'linea' => 'required|string',
