@@ -15,6 +15,7 @@ class Factura_Detalle extends Model
         'factura_id',
         'cantidad',
         'precio',
+        'estado',
         // 'porcentaje',
     ];
     

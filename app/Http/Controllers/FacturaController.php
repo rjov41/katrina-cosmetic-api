@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Factura;
 use App\Models\Factura_Detalle;
+use App\Models\FacturaHistorial;
+use App\Models\Producto;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -59,64 +62,84 @@ class FacturaController extends Controller
     public function store(Request $request)
     {
         $validation = Validator::make($request->all() ,[
-            'user_id' => 'required|numeric',
-            'cliente_id' => 'required|numeric',
-            'monto' => 'required|numeric',
-            // 'tcambio' => 'required|numeric',
-            // 'monto_cambio' => 'required|numeric',
-            // 'nruc' => 'required|string',
+            'user_id'           => 'required|numeric',
+            'cliente_id'        => 'required|numeric',
+            'monto'             => 'required|numeric',
             'fecha_vencimiento' => 'required|date',
-            'tipo_venta' => 'required|numeric',
-            'status_pagado' => 'required|boolean',
-            'iva' => 'required|numeric',
-            'estado' => 'required|numeric|max:1',
+            'tipo_venta'        => 'required|numeric',
+            'status_pagado'     => 'required|boolean',
+            'iva'               => 'required|numeric',
+            'estado'            => 'required|numeric|max:1',
             
-            'factura_detalle' => 'required|array',
+            'factura_detalle'               => 'required|array',
             'factura_detalle.*.producto_id' => 'required|numeric',
-            'factura_detalle.*.cantidad' => 'required|numeric',
-            'factura_detalle.*.precio' => 'required|numeric',
+            'factura_detalle.*.cantidad'    => 'required|numeric',
+            'factura_detalle.*.precio'      => 'required|numeric',
+            'factura_detalle.*.estado'      => 'required|numeric',
         ]);    
         
         if($validation->fails()) {
             return response()->json($validation->errors(), 400);
         } 
+    
 
         DB::beginTransaction();
         try {
-            $currentDate = Carbon::now('utc')->toDateTimeString();
-            $factura = Factura::create([
-                'user_id' => $request['user_id'],
-                'cliente_id' => $request['cliente_id'],
-                'monto' => $request['monto'],
-                // 'nruc' => $request['nruc'],
+            $facturaInsert = [
+                'user_id'           => $request['user_id'],
+                'cliente_id'        => $request['cliente_id'],
+                'monto'             => $request['monto'],
                 'fecha_vencimiento' => $request['fecha_vencimiento'],
-                'iva' => $request['iva'],
-                // 'tcambio' => $request['tcambio'],
-                'tipo_venta' => $request['tipo_venta'],
-                'status_pagado' => $request['status_pagado'],
-                'status' => $request['estado'],
-            ]);
+                'iva'               => $request['iva'],
+                'tipo_venta'        => $request['tipo_venta'],
+                'status_pagado'     => $request['status_pagado'],
+                'status'            => $request['estado'],
+            ];
+            $factura = Factura::create($facturaInsert); // inserto factura
             
-            foreach ($request['factura_detalle'] as $key => $value) {
+            $currentDate = Carbon::now('utc')->toDateTimeString();
+            foreach ($request['factura_detalle'] as $key => $productoDetalle) {
+                $producto = Producto::firstWhere('id', $productoDetalle['producto_id']);
+    
+                if(!$producto){
+                    return response()->json(["mensaje"=> "El producto no existe o fue removido"], 400);
+                }
+                
+                if($producto->estado == 0  ){
+                    return response()->json(["mensaje" => "El producto {$producto->descripcion} esta inactivo o eliminado"], 400);
+                }
+                
+                if($producto->stock < $productoDetalle["cantidad"]){
+                    return response()->json(["mensaje" => "El producto {$producto->descripcion} solo posee {$producto->stock} en stock"], 400);
+                }
+                
+                $producto->stock = $producto->stock - $productoDetalle['cantidad'];
+                $producto->save();
+                
                 $fDetalles[] = [
                     
-                    'producto_id' => $value['producto_id'],
-                    'factura_id' => $factura->id,
-                    'cantidad' => $value['cantidad'],
-                    'precio' => $value['precio'],
-                    'created_at'=> $currentDate,
-                    'updated_at'=> $currentDate
-                    // 'porcentaje' => $request['porcentaje'],
+                    'producto_id' => $productoDetalle['producto_id'],
+                    'factura_id'  => $factura->id,
+                    'cantidad'    => $productoDetalle['cantidad'],
+                    'precio'      => $productoDetalle['precio'],
+                    'created_at'  => $currentDate,
+                    'updated_at'  => $currentDate,
+                    'estado'      => $productoDetalle['estado']
                 ];
             }
-            // dd($fDetalles);
-            $factura_Detalle = Factura_Detalle::insert($fDetalles);
+            
+
+            $factura_Detalle = Factura_Detalle::insert($fDetalles); // inserto detalle de factura
         
             DB::commit();
-            return response()->json($factura_Detalle, 201);
+            return response()->json([
+                "factura_id" => $factura->id,
+                "status" => $factura_Detalle,
+            ], 201);
         } catch (\Exception $e) {
             DB::rollback();
-            return response()->json("Error al insertar el pedido", 400);
+            // dd($e);
+            return response()->json(["mensaje" => "Error al insertar el pedido"], 400);
         }
     }
 
@@ -137,10 +160,35 @@ class FacturaController extends Controller
             // if($request->input("estado") != null) $facturaEstado = $request->input("estado");
             // dd($productoEstado);
         
-            $factura =  Factura::with('factura_detalle','cliente')->where([
+            $factura =  Factura::with('factura_detalle','cliente','factura_historial')->where([
                 ['id', '=', $id],
                 // ['estado', '=', $facturaEstado],
             ])->first();
+            
+            if(count($factura->factura_detalle)>0){
+                foreach ($factura->factura_detalle as $key => $productoDetalle) {
+                    $producto = Producto::find($productoDetalle["producto_id"]);
+                    // dd($productoDetalle["id"]);
+                    $productoDetalle["marca"]       = $producto->marca; 
+                    $productoDetalle["modelo"]      = $producto->modelo; 
+                    // $productoDetalle["stock"]       = $producto->stock; 
+                    // $productoDetalle["precio"]      = $producto->precio; 
+                    $productoDetalle["linea"]       = $producto->linea; 
+                    $productoDetalle["descripcion"] = $producto->descripcion; 
+                    // $productoDetalle["estado"]      = $producto->estado; 
+                }
+            }
+            
+            if(count($factura->factura_historial)>0){
+                foreach ($factura->factura_historial as $key => $itemHistorial) {
+                    $user = User::find($itemHistorial["user_id"]);
+
+                    $itemHistorial["name"]      = $user->name; 
+                    $itemHistorial["apellido"]  = $user->apellido; 
+                }
+            }
+
+            
             
             if($factura){
                 $response = $factura;

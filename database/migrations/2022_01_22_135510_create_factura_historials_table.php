@@ -19,8 +19,12 @@ class CreateFacturaHistorialsTable extends Migration
             // Facturas
             $table->unsignedBigInteger("factura_id");
             $table->foreign("factura_id")->references("id")->on("facturas");
-            $table->double('precio', 7, 2);
             
+            $table->unsignedBigInteger("user_id");
+            $table->foreign("user_id")->references("id")->on("users");
+            
+            $table->double('precio', 7, 2);
+            $table->integer("estado")->length(1);
             
             $table->timestamps();
         });

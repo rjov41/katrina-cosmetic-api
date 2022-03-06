@@ -8,4 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 class FacturaHistorial extends Model
 {
     use HasFactory;
+    
+    protected $fillable = [
+        'factura_id',
+        'user_id',
+        'precio',
+        'estado',
+    ];
+    
+
 }
