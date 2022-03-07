@@ -7,6 +7,7 @@ use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\FacturaController;
 use App\Http\Controllers\FacturaDetallesController;
+use App\Http\Controllers\FacturaHistorial;
 use App\Http\Controllers\FrecuenciaController;
 use App\Http\Controllers\ProductosController;
 use App\Http\Controllers\RoleController;
@@ -60,6 +61,7 @@ Route::resource('frecuencias', FrecuenciaController::class);
 Route::resource('productos', ProductosController::class);
 Route::resource('factura-detalle', FacturaDetallesController::class);
 Route::resource('facturas', FacturaController::class);
+Route::resource('abonos', FacturaHistorial::class);
 
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

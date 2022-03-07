@@ -24,17 +24,20 @@ class FacturaController extends Controller
         $response = [];
         $status = 200;
         $facturaEstado = 1; // Activo
+        $parametros = [];
         
-        if(!is_null($request['estado'])) $facturaEstado = $request['estado'];
+        if(!is_null($request['estado'])) $parametros[] = ["status", $request['estado']];
+        if(!is_null($request['tipo_venta'])) $parametros[] = ["tipo_venta", $request['tipo_venta']];
         
         // dd($facturaEstado);
-        $facturas =  Factura::where('status',$facturaEstado)->get();
+        $facturas =  Factura::where($parametros)->get();
         
         if(count($facturas) > 0){
             foreach ($facturas as $key => $factura) {
                 $factura->user;
                 $factura->cliente;
                 $factura->factura_detalle;
+                $factura->factura_historial;
             }
             
             $response = $facturas;
