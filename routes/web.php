@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,4 +17,20 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     abort(404);
     // return view('welcome');
+});
+Route::get('/pdf', function () {
+    
+    $data = [
+        'titulo' => 'Styde.net'
+    ];
+
+    $pdf = PDF::loadView('pdf', $data);
+
+    return $pdf->download('archivo.pdf');
+   
+});
+Route::get('/pdf_vista', function () {
+    
+    return view('pdf');
+   
 });
