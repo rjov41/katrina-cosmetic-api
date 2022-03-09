@@ -51,6 +51,8 @@ Route::group(['middleware' => ['auth:sanctum','role:administrador|vendedor|super
 // });
 
 Route::resource('cliente', ClienteController::class);
+Route::get('cliente/factura/{id}',  [ClienteController::class, 'clienteToFactura']);
+
 Route::resource('roles', RoleController::class);
 
 Route::resource('usuarios', UsuarioController::class);

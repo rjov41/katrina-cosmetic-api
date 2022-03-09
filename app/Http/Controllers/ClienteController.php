@@ -273,4 +273,35 @@ class ClienteController extends Controller
         
         return response()->json($response, $status);
     }
+    
+    
+    function clienteToFactura($id){
+        $response = [];
+        $status = 400;
+        
+        if(is_numeric($id)){
+            $cliente =  Cliente::find($id);
+            
+            if($cliente){ 
+                $facturas = $cliente->facturas;
+                foreach ($facturas as $key => $factura) {
+                    $factura->user;
+                    $factura->cliente;
+                    $factura->factura_detalle;
+                    $factura->factura_historial;
+                }
+
+                $response = $facturas;
+                $status = 200;
+                
+            }else{
+                $response[] = "El cliente no existe.";
+            }
+            
+        }else{
+            $response[] = "El Valor de Id debe ser numerico.";
+        }
+        
+        return response()->json($response, $status);
+    }
 }
