@@ -7,21 +7,25 @@
     <title>pdf</title>
 </head>
 <style>
-    /* body{
-        height: 100vh;
-        padding: 8px
-    } */
+    body{
+        position: relative;
+    }
     .content-titulo{
         display: flex;
         flex-direction: column;
         text-align: center;
+        margin-left: -40px; 
+    }
+    h4{
+        line-height: 1;
     }
     .border{
-        width: 100%;
+        width: 95%;
         display: block;
-        height: 80%;
+        height: 60%;
         border: 2px solid #000;
-        border-radius: 30px;
+        border-top-left-radius: 30px;
+        border-top-right-radius: 30px;
         padding: 10px
     }
     .seccion_supeior{
@@ -30,10 +34,10 @@
         width: 100%;
         margin-top: 15px;
         border-bottom: 2px solid #000;
+        padding-bottom: 15px
     }
     .left{
         display: inline-block;
-        /* flex-direction: column; */
     }
     .left span{
         display: block;
@@ -49,34 +53,80 @@
     }
     .detail{
         width: 100%;
+        margin: 5px;
     }
     .detail table th{
         text-align: left;
     }
-    
+    .footer{
+        display: flex;
+        justify-content: space-between;
+        margin-top: 75px;
+        width: 100%
+    }
+
+    .firmas{
+        width: 150px;
+        display: inline-block;
+        border-top: 1px solid #000;
+        margin: 0 40px;
+        text-align: center;
+    }
+    .firmas span{
+        display: block;
+        font-size: 15px
+    }
+    .logo{
+        position: absolute;
+        float: left;
+        display: block;
+        width: 70px;
+        height: 70px;
+    }
+    .total{
+        display: block;
+        width: 95%;
+        border: 2px solid #000;
+        border-bottom-left-radius: 30px;
+        border-bottom-right-radius: 30px;
+        padding: 10px   
+    }
+    .total .monto{
+        float: right;
+    }
+    .item{
+        display: block;
+        width: 95%;
+        border: 2px solid #000;
+        padding: 10px   
+    }
+    .item .monto{
+        float: right;
+    }
 </style>
 <body>
+    
+    <img class="logo" src="lib/img/logo_png.png" alt="">
     <div class="content-titulo">
-        <h4>IMPORTACIONES CLIO NICARAGUA</h4>
-        <h5>ALTAMIRA DE DONDE FUE EL BDF 1C A LAGO 1C ARRIBA CONTIGUO A ETIRROL</h5>
-        <h5>81562409784214465</h5>
+        <h5>IMPORTACIONES CLIO NICARAGUA <br> ALTAMIRA DE DONDE FUE EL BDF 1C A LAGO 1C ARRIBA CONTIGUO A ETIRROL <br> 81562409784214465</h5>
     </div>
     <div class="border">
         <div class="seccion_supeior">
             <div class="left">
-                <span><b>Nombre Completo:</b>Cliente Prueba</span>
-                <span><b>Nombre salon:</b>Salon de prueba</span>
-                <span><b>Cedula:</b> 00012563950125</span>
-                <span><b>Dirección:</b> Arenes 1917</span>
-                <span><b>Dirección salon:</b> Arenes 1917</span>
-                <span><b>Teléfono:</b> 1234567896</span>
-                <span><b>Teléfono salon:</b> 4121212121</span>
+                <span><b>Nombre Completo:</b> {{$data->cliente->nombreCompleto}}</span>
+                <span><b>Nombre salon:</b> {{$data->cliente->nombreEmpresa}}</span>
+                <span><b>Cedula:</b> {{$data->cliente->cedula}}</span>
+                <span><b>Dirección:</b> {{$data->cliente->direccion_casa}}</span>
+                <span><b>Dirección salon:</b> {{$data->cliente->direccion_negocio}}</span>
+                <span><b>Teléfono:</b> {{$data->cliente->celular}}</span>
+                <span><b>Teléfono salon:</b> {{$data->cliente->telefono}}</span>
             </div>
             <div class="right">
-                <span><b>factura:</b> #3</span>
-                <span><b>Fecha:</b> 08-03-2022</span>
-                <span><b>Fecha vencimiento:</b> 31-05-2022</span>
-                <span><b>Estado:</b> En proceso</span>
+                <span><b>factura:</b> #{{$data->id}}</span>
+                <span><b>Fecha:</b> {{ date("d/m/Y", strtotime($data->created_at)) }}</span>
+                <span><b>Fecha vencimiento:</b> {{ date("d/m/Y", strtotime($data->fecha_vencimiento)) }}</span>
+                <span><b>Tipo Operacion:</b> {{ ($data->tipo_venta == 1)? 'Credito' : 'Contado'}}</span>
+                <span><b>Estado:</b> {{ ($data->status_pagado == 0)? 'En proceso' : 'Finalizado'}}</span>
             </div>
         </div>
 
@@ -90,19 +140,49 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @foreach($data->factura_detalle as $producto)
                     <tr>
-                        <td>plancha ultra 500</td>
-                        <td>1 Ud</td>
-                        <td>$155.00</td>
+                        <td>{{ $producto->descripcion }}</td>
+                        <td>{{ ($producto->cantidad > 1) ? $producto->cantidad.'Uds' : $producto->cantidad.'Ud' }}</td>
+                        <td>${{ $producto->precio }}.00</td>
                     </tr>
-                    <tr>
+                    @endforeach
+                    {{-- <tr>
                         <td colspan="2">Total</td>
-                        <td>$155.00</td>
-                    </tr>
+                        <td>${{ $data->monto }}.00</td>
+                    </tr> --}}
+                </tbody>
+            </table>
+            <table>
+                <tbody>
+                    
                 </tbody>
             </table>
         </div>
     </div>
-
+    <div class="item">
+        <span>Diferencia</span>
+        <span class="monto">$50.00</span>
+    </div>
+    <div class="item">
+        <span>Abonado</span>
+        <span class="monto">$105.00</span>
+    </div>
+    <div class="total">
+        <span>Total</span>
+        <span class="monto">${{ $data->monto }}.00</span>
+    </div>
+    <div class="footer">
+        
+        <div class="firmas">
+            <span>Firma Entrega</span>
+        </div>
+        <div class="firmas">
+            <span>Firma Vendedor</span>
+        </div>
+        <div class="firmas">
+            <span>Firma Recibo</span>
+        </div>
+    </div>
 </body>
 </html>
