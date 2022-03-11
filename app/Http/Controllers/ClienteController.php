@@ -116,16 +116,16 @@ class ClienteController extends Controller
     {
         $response = [];
         $status = 400;
-        $clienteEstado = 1; // Activo
+        // $clienteEstado = 1; // Activo
         
         if(is_numeric($id)){
                     
-            if(!is_null($request['estado'])) $clienteEstado = $request['estado'];
+            // if(!is_null($request['estado'])) $clienteEstado = $request['estado'];
         
             // dd($request['estado']);
             $cliente =  Cliente::where([
                 ['id', '=', $id],
-                ['estado', '=', $clienteEstado],
+                // ['estado', '=', $clienteEstado],
             ])->first();
         
 
