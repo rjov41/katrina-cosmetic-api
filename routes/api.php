@@ -13,6 +13,7 @@ use App\Http\Controllers\ProductosController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UsuarioController;
 
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -62,6 +63,7 @@ Route::resource('productos', ProductosController::class);
 Route::resource('factura-detalle', FacturaDetallesController::class);
 Route::resource('facturas', FacturaController::class);
 Route::get('pdf/{id}', [PdfController::class,'facturaPago']);
+Route::get('mail/{id}', [PdfController::class,'SendMail']);
 
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

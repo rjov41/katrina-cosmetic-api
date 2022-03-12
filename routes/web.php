@@ -19,3 +19,8 @@ Route::get('/', function () {
     // return view('welcome');
 });
 
+
+Route::get('/archivo', function () {
+    echo asset('storage/factura_1.pdf');
+});
+
