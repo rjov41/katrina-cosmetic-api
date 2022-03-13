@@ -69,6 +69,8 @@ Route::resource('facturas', FacturaController::class);
 Route::resource('abonos', FacturaHistorial::class);
 
 Route::get('pdf/{id}', [PdfController::class,'facturaPago']);
+Route::post('pdf', [PdfController::class,'generar']);
+
 Route::get('mail/{id}', [PdfController::class,'SendMail']);
 
 

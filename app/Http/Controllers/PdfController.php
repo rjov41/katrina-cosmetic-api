@@ -158,4 +158,11 @@ class PdfController extends Controller
         
         return 'Mail enviado';
     }
+    
+    function generar(Request $request){
+        dd($request);
+        
+        
+        // aqui colocar lo mismo que en facturaPago
+    }
 }
