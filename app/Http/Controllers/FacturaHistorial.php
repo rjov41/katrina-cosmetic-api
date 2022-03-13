@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cliente;
+use App\Models\Factura;
 use App\Models\FacturaHistorial as Factura_Historial;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -22,13 +25,18 @@ class FacturaHistorial extends Controller
         if(!is_null($request['estado'])) $facturaEstado = $request['estado'];
         
         // dd($facturaEstado);
-        $facturas =  Factura_Historial::where('estado',$facturaEstado)->get();
+        $facturas =  Factura_Historial::where('estado',$facturaEstado)->orderBy('id',"desc")->get();
         
         if(count($facturas) > 0){
-            foreach ($facturas as $key => $factura) {
-                $factura->user;
-                $factura->cliente;
-                $factura->factura_detalle;
+            foreach ($facturas as $key => $facturaHistorial) {
+                $facturaHistorial->factura;
+                
+                $cliente = Cliente::find($facturaHistorial->factura->cliente_id);
+                $usuario = User::find($facturaHistorial->user_id);
+                
+                $facturaHistorial->cliente = $cliente;
+                $facturaHistorial->usuario = $usuario;
+                // $factura->cliente = $abonoFactura->cliente;
             }
             
             $response = $facturas;
@@ -73,6 +81,8 @@ class FacturaHistorial extends Controller
                 'estado' => $request['estado'],
             ]);
 
+            $this->validarStatusPagado($abono->id);
+            
             return response()->json([
                 // 'success' => 'Usuario Insertado con exito',
                 // 'data' =>[
@@ -172,6 +182,7 @@ class FacturaHistorial extends Controller
                         'estado' => $request['estado'],
                     ]);
 
+                    $this->validarStatusPagado($id,$request['factura_id']);
                     
                     if($abonoUpdate){                  
                         $response[] = 'Abono modificado con exito.';
@@ -213,6 +224,8 @@ class FacturaHistorial extends Controller
                     'estado' => 0,
                 ]);
                 
+                $this->validarStatusPagado($id);
+                
                 if($abonoDelete){                  
                     $response[] = 'El abono fue eliminado con exito.';
                     $status = 200;
@@ -230,5 +243,34 @@ class FacturaHistorial extends Controller
         }
         
         return response()->json($response, $status);
+    }
+    
+    
+    private function validarStatusPagado($abonoId){
+        // $abono = Factura_Historial::find($abonoId);
+        
+        $facturaHistorial = Factura_Historial::find($abonoId);
+        $factura = Factura::find($facturaHistorial->factura_id);
+        $factura->factura_historial;
+        
+        
+        if(count($factura->factura_historial)>0){
+            $acum = 0 ;
+            foreach ($factura->factura_historial as $key => $itemHistorial) {
+                if($itemHistorial["estado"] == 1){
+                    
+                    $acum += $itemHistorial["precio"] ;
+                }
+                
+            }
+            
+            if($acum >= $factura->monto){
+                $factura->status_pagado  = 1;
+                $factura->update();
+            }else{
+                $factura->status_pagado  = 0;
+                $factura->update();
+            }
+        }
     }
 }

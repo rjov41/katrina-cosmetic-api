@@ -16,5 +16,9 @@ class FacturaHistorial extends Model
         'estado',
     ];
     
-
+    // one to many
+    public function factura()
+    {
+        return $this->belongsTo(Factura::class);
+    }
 }

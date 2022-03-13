@@ -17,6 +17,7 @@ class CreateCategoriasTable extends Migration
             $table->id();
             $table->string("tipo",20);
             $table->string("descripcion",80);
+            $table->integer("valor_dias");
             $table->integer("estado")->length(1);
             
             $table->timestamps();

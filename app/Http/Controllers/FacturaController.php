@@ -28,6 +28,7 @@ class FacturaController extends Controller
         
         if(!is_null($request['estado'])) $parametros[] = ["status", $request['estado']];
         if(!is_null($request['tipo_venta'])) $parametros[] = ["tipo_venta", $request['tipo_venta']];
+        if(!is_null($request['status_pagado'])) $parametros[] = ["status_pagado", $request['status_pagado']];
         
         // dd($facturaEstado);
         $facturas =  Factura::where($parametros)->get();
