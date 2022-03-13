@@ -9,9 +9,11 @@ use App\Http\Controllers\FacturaController;
 use App\Http\Controllers\FacturaDetallesController;
 use App\Http\Controllers\FacturaHistorial;
 use App\Http\Controllers\FrecuenciaController;
+use App\Http\Controllers\PdfController;
 use App\Http\Controllers\ProductosController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UsuarioController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -63,7 +65,11 @@ Route::resource('frecuencias', FrecuenciaController::class);
 Route::resource('productos', ProductosController::class);
 Route::resource('factura-detalle', FacturaDetallesController::class);
 Route::resource('facturas', FacturaController::class);
+
 Route::resource('abonos', FacturaHistorial::class);
+
+Route::get('pdf/{id}', [PdfController::class,'facturaPago']);
+Route::get('mail/{id}', [PdfController::class,'SendMail']);
 
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

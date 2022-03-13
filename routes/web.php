@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,3 +18,9 @@ Route::get('/', function () {
     abort(404);
     // return view('welcome');
 });
+
+
+Route::get('/archivo', function () {
+    echo asset('storage/factura_1.pdf');
+});
+
