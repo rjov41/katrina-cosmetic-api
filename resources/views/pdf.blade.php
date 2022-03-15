@@ -160,14 +160,14 @@
             </table>
         </div>
     </div>
-    <div class="item">
+    <!-- <div class="item">
         <span>Diferencia</span>
         <span class="monto">$50.00</span>
     </div>
     <div class="item">
         <span>Abonado</span>
         <span class="monto">$105.00</span>
-    </div>
+    </div> -->
     <div class="total">
         <span>Total</span>
         <span class="monto">${{ $data->monto }}.00</span>

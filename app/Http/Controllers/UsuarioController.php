@@ -62,7 +62,7 @@ class UsuarioController extends Controller
          
         $validation = Validator::make($request->all() ,[
             'name' => 'required|string|max:255',
-            'password' => 'required|string|min:6|confirmed',
+            'password' => 'required|string|confirmed',
             'email' => 'required|string|email|unique:users,email',
             'apellido' => 'required|string|max:255',
             'cargo' => 'required|string|max:255',
@@ -235,7 +235,7 @@ class UsuarioController extends Controller
             // dd($usuario);
             if($usuario){ 
                 $validation = Validator::make($request->all() ,[
-                    'password' => 'required|string|min:6|confirmed',
+                    'password' => 'required|string|confirmed',
                 ]);
                 
                 if($validation->fails()) {
