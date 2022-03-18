@@ -14,7 +14,7 @@
         display: flex;
         flex-direction: column;
         text-align: center;
-        margin-left: -40px; 
+        margin-left: -40px;
     }
     h4{
         line-height: 1;
@@ -41,7 +41,7 @@
     }
     .left span{
         display: block;
-  
+
     }
     .right{
         display: inline-block;
@@ -49,7 +49,7 @@
     }
     .right span{
         display: block;
-  
+
     }
     .detail{
         width: 100%;
@@ -89,7 +89,7 @@
         border: 2px solid #000;
         border-bottom-left-radius: 30px;
         border-bottom-right-radius: 30px;
-        padding: 10px   
+        padding: 10px
     }
     .total .monto{
         float: right;
@@ -98,17 +98,18 @@
         display: block;
         width: 95%;
         border: 2px solid #000;
-        padding: 10px   
+        padding: 10px
     }
     .item .monto{
         float: right;
     }
 </style>
 <body>
-    
+
     <img class="logo" src="lib/img/logo_png.png" alt="">
     <div class="content-titulo">
-        <h5>IMPORTACIONES CLIO NICARAGUA <br> ALTAMIRA DE DONDE FUE EL BDF 1C A LAGO 1C ARRIBA CONTIGUO A ETIRROL <br> 81562409784214465</h5>
+        {{-- <h5>IMPORTACIONES CLIO NICARAGUA <br> ALTAMIRA DE DONDE FUE EL BDF 1C A LAGO 1C ARRIBA CONTIGUO A ETIRROL <br> 81562409784214465</h5> --}}
+        <h5>M&R Cosmetics <br> ALTAMIRA DE DONDE FUE EL BDF 1C A LAGO 1C ARRIBA CONTIGUO A ETIRROL <br> Teléfonos: 84220028-88071569-81562408</h5>
     </div>
     <div class="border">
         <div class="seccion_supeior">
@@ -116,8 +117,8 @@
                 <span><b>Nombre Completo:</b> {{$data->cliente->nombreCompleto}}</span>
                 <span><b>Nombre salon:</b> {{$data->cliente->nombreEmpresa}}</span>
                 <span><b>Cedula:</b> {{$data->cliente->cedula}}</span>
-                <span><b>Dirección:</b> {{$data->cliente->direccion_casa}}</span>
-                <span><b>Dirección salon:</b> {{$data->cliente->direccion_negocio}}</span>
+                {{-- <span><b>Dirección:</b> {{$data->cliente->direccion_casa}}</span>
+                <span><b>Dirección salon:</b> {{$data->cliente->direccion_negocio}}</span> --}}
                 <span><b>Teléfono:</b> {{$data->cliente->celular}}</span>
                 <span><b>Teléfono salon:</b> {{$data->cliente->telefono}}</span>
             </div>
@@ -155,7 +156,7 @@
             </table>
             <table>
                 <tbody>
-                    
+
                 </tbody>
             </table>
         </div>
@@ -173,7 +174,7 @@
         <span class="monto">${{ $data->monto }}.00</span>
     </div>
     <div class="footer">
-        
+
         <div class="firmas">
             <span>Firma Entrega</span>
         </div>

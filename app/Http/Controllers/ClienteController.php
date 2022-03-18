@@ -20,23 +20,23 @@ class ClienteController extends Controller
         $response = [];
         $status = 200;
         $clienteEstado = 1; // Activo
-        
-        if(!is_null($request['estado'])) $clienteEstado = $request['estado'];
+
+        if (!is_null($request['estado'])) $clienteEstado = $request['estado'];
         // dd($request['estado']);
-        
-        $clientes =  Cliente::where('estado',$clienteEstado)->get();
+
+        $clientes =  Cliente::where('estado', $clienteEstado)->get();
         //dd( $clientes);
-        if(count($clientes) > 0){
+        if (count($clientes) > 0) {
             foreach ($clientes as $key => $cliente) {
                 // dd($cliente->frecuencias);
                 $clientes->frecuencia = $cliente->frecuencia;
                 $clientes->categoria = $cliente->categoria;
                 $clientes->facturas = $cliente->facturas;
             }
-            
+
             $response[] = $clientes;
         }
-        
+
         return response()->json($clientes, $status);
     }
 
@@ -58,7 +58,7 @@ class ClienteController extends Controller
      */
     public function store(Request $request)
     {
-        $validation = Validator::make($request->all() ,[
+        $validation = Validator::make($request->all(), [
             'categoria_id' => 'required|numeric',
             'frecuencia_id' => 'required|numeric',
             'user_id' => 'nullable|numeric',
@@ -77,7 +77,7 @@ class ClienteController extends Controller
 
         ]);
 
-        if($validation->fails()) {
+        if ($validation->fails()) {
             return response()->json([$validation->errors()], 400);
         } else {
             // DB::enableQueryLog();
@@ -92,7 +92,7 @@ class ClienteController extends Controller
                 'direccion_negocio' => $request['direccion_negocio'],
                 'cedula' => $request['cedula'],
                 'dias_cobro' => $request['dias_cobro'],
-                'user_id' => ($request['user_id']>0)?$request['user_id']:NULL,
+                'user_id' => ($request['user_id'] > 0) ? $request['user_id'] : NULL,
                 // 'fecha_vencimiento' => $request['fecha_vencimiento'],
                 'estado' => $request['estado'],
             ]);
@@ -101,11 +101,10 @@ class ClienteController extends Controller
             return response()->json([
                 // 'success' => 'Usuario Insertado con exito',
                 // 'data' =>[
-                    'id' => $user->id,
+                'id' => $user->id,
                 // ]
             ], 201);
         }
-        
     }
 
     /**
@@ -114,41 +113,39 @@ class ClienteController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id,Request $request)
+    public function show($id, Request $request)
     {
         $response = [];
         $status = 400;
         // $clienteEstado = 1; // Activo
-        
-        if(is_numeric($id)){
-                    
+
+        if (is_numeric($id)) {
+
             // if(!is_null($request['estado'])) $clienteEstado = $request['estado'];
-        
+
             // dd($request['estado']);
             $cliente =  Cliente::where([
                 ['id', '=', $id],
                 // ['estado', '=', $clienteEstado],
             ])->first();
-        
 
-            
+
+
             // $cliente =  Cliente::find($id);
-            if($cliente){
+            if ($cliente) {
                 $cliente->frecuencia = $cliente->frecuencia;
                 $cliente->categoria = $cliente->categoria;
                 $cliente->facturas = $cliente->facturas;
-                
+
                 $response = $cliente;
                 $status = 200;
-
-            }else{
+            } else {
                 $response[] = "El cliente no existe o fue eliminado.";
             }
-            
-        }else{
+        } else {
             $response[] = "El Valor de Id debe ser numerico.";
         }
-        
+
         return response()->json($response, $status);
     }
 
@@ -174,12 +171,12 @@ class ClienteController extends Controller
     {
         $response = [];
         $status = 400;
-        
-        if(is_numeric($id)){
+
+        if (is_numeric($id)) {
             $cliente =  Cliente::find($id);
-            
-            if($cliente){ 
-                $validation = Validator::make($request->all() ,[
+
+            if ($cliente) {
+                $validation = Validator::make($request->all(), [
                     'categoria_id' => 'required|numeric',
                     'frecuencia_id' => 'required|numeric',
                     'user_id' => 'nullable|numeric',
@@ -188,16 +185,16 @@ class ClienteController extends Controller
                     // 'celular' => 'required|numeric|unique:clientes,celular,'.$id.'|digits_between:10,12',
                     // 'telefono' => 'nullable|digits_between:10,12',
                     'celular' => 'required|numeric',
-                    'telefono' => 'nullable',
+                    'telefono' => 'nullable|numeric',
                     'direccion_casa' => 'required|string|max:180',
                     'direccion_negocio' => 'nullable|max:180',
-                    'cedula' => 'required|string|max:22|unique:clientes,cedula,'.$id,
+                    'cedula' => 'required|string|max:22|unique:clientes,cedula,' . $id,
                     'dias_cobro' => 'string|max:120',
                     // 'fecha_vencimiento' => 'required|date',
                     'estado' => 'required|numeric|max:1',
                 ]);
-                
-                if($validation->fails()) {
+
+                if ($validation->fails()) {
                     $response[] = $validation->errors();
                 } else {
 
@@ -213,30 +210,26 @@ class ClienteController extends Controller
                         'direccion_negocio' => $request['direccion_negocio'],
                         'cedula' => $request['cedula'],
                         'dias_cobro' => $request['dias_cobro'],
-                        'user_id' => ($request['user_id']>0)?$request['user_id']:NULL,
+                        'user_id' => ($request['user_id'] > 0) ? $request['user_id'] : NULL,
                         // 'fecha_vencimiento' => $request['fecha_vencimiento'],
                         'estado' => $request['estado'],
                     ]);
 
-                    
-                    if($clienteUpdate){                  
+
+                    if ($clienteUpdate) {
                         $response[] = 'Cliente modificado con exito.';
                         $status = 200;
-                        
-                    }else{
+                    } else {
                         $response[] = 'Error al modificar los datos.';
                     }
-
                 }
-
-            }else{
+            } else {
                 $response[] = "El cliente no existe.";
             }
-            
-        }else{
+        } else {
             $response[] = "El Valor de Id debe ser numerico.";
         }
-        
+
         return response()->json($response, $status);
     }
 
@@ -250,43 +243,41 @@ class ClienteController extends Controller
     {
         $response = [];
         $status = 400;
-        
-        if(is_numeric($id)){
+
+        if (is_numeric($id)) {
             $cliente =  Cliente::find($id);
-            
-            if($cliente){ 
+
+            if ($cliente) {
                 $clienteDelete = $cliente->update([
                     'estado' => 0,
                 ]);
-                
-                if($clienteDelete){                  
+
+                if ($clienteDelete) {
                     $response[] = 'El cliente fue eliminado con exito.';
                     $status = 200;
-                    
-                }else{
+                } else {
                     $response[] = 'Error al eliminar el cliente.';
                 }
-
-            }else{
+            } else {
                 $response[] = "El cliente no existe.";
             }
-            
-        }else{
+        } else {
             $response[] = "El Valor de Id debe ser numerico.";
         }
-        
+
         return response()->json($response, $status);
     }
-    
-    
-    function clienteToFactura($id){
+
+
+    function clienteToFactura($id)
+    {
         $response = [];
         $status = 400;
-        
-        if(is_numeric($id)){
+
+        if (is_numeric($id)) {
             $cliente =  Cliente::find($id);
-            
-            if($cliente){ 
+
+            if ($cliente) {
                 $facturas = $cliente->facturas;
                 foreach ($facturas as $key => $factura) {
                     $factura->user;
@@ -297,15 +288,13 @@ class ClienteController extends Controller
 
                 $response = $facturas;
                 $status = 200;
-                
-            }else{
+            } else {
                 $response[] = "El cliente no existe.";
             }
-            
-        }else{
+        } else {
             $response[] = "El Valor de Id debe ser numerico.";
         }
-        
+
         return response()->json($response, $status);
     }
 }
