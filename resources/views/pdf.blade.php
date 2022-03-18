@@ -103,6 +103,9 @@
     .item .monto{
         float: right;
     }
+    .direccion{
+        width: 400px;
+    }
 </style>
 <body>
 
@@ -119,6 +122,8 @@
                 <span><b>Cedula:</b> {{$data->cliente->cedula}}</span>
                 {{-- <span><b>Dirección:</b> {{$data->cliente->direccion_casa}}</span>
                 <span><b>Dirección salon:</b> {{$data->cliente->direccion_negocio}}</span> --}}
+                <span class="direccion"><b>Dirección:</b> {{$data->cliente->direccion_casa}}</span>
+                <span class="direccion"><b>Dirección salon:</b> {{$data->cliente->direccion_negocio}}</span>
                 <span><b>Teléfono:</b> {{$data->cliente->celular}}</span>
                 <span><b>Teléfono salon:</b> {{$data->cliente->telefono}}</span>
             </div>
