@@ -49,7 +49,7 @@
     }
     .right span{
         display: block;
-
+        width: 220px;
     }
     .detail{
         width: 100%;
@@ -117,15 +117,15 @@
     <div class="border">
         <div class="seccion_supeior">
             <div class="left">
-                <span><b>Nombre Completo:</b> {{$data->cliente->nombreCompleto}}</span>
-                <span><b>Nombre salon:</b> {{$data->cliente->nombreEmpresa}}</span>
-                <span><b>Cedula:</b> {{$data->cliente->cedula}}</span>
+                <span class="direccion"><b>Nombre Completo:</b> {{$data->cliente->nombreCompleto}}</span>
+                <span class="direccion"><b>Nombre salon:</b> {{$data->cliente->nombreEmpresa}}</span>
+                <span class="direccion"><b>Cedula:</b> {{$data->cliente->cedula}}</span>
                 {{-- <span><b>Dirección:</b> {{$data->cliente->direccion_casa}}</span>
                 <span><b>Dirección salon:</b> {{$data->cliente->direccion_negocio}}</span> --}}
                 <span class="direccion"><b>Dirección:</b> {{$data->cliente->direccion_casa}}</span>
                 <span class="direccion"><b>Dirección salon:</b> {{$data->cliente->direccion_negocio}}</span>
-                <span><b>Teléfono:</b> {{$data->cliente->celular}}</span>
-                <span><b>Teléfono salon:</b> {{$data->cliente->telefono}}</span>
+                <span class="direccion"><b>Teléfono:</b> {{$data->cliente->celular}}</span>
+                <span class="direccion"><b>Teléfono salon:</b> {{$data->cliente->telefono}}</span>
             </div>
             <div class="right">
                 <span><b>factura:</b> #{{$data->id}}</span>
