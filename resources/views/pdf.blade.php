@@ -22,7 +22,7 @@
     .border{
         width: 95%;
         display: block;
-        height: 60%;
+        height: 70%;
         border: 2px solid #000;
         border-top-left-radius: 30px;
         border-top-right-radius: 30px;
