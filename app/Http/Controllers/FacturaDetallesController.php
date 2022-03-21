@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Factura;
 use App\Models\Factura_Detalle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -18,16 +19,16 @@ class FacturaDetallesController extends Controller
         $response = [];
         $status = 200;
         // $facturaDetalleEstado = 1; // Activo
-        
+
         // if($request->input("estado") != "null") $facturaDetalleEstado = $request->input("estado");
-        
+
         // dd($clienteEstado);
         $facturaDetalle =  Factura_Detalle::all();
-        
+
         if(count($facturaDetalle) > 0){
             $response[] = $facturaDetalle;
         }
-        
+
         return response()->json($facturaDetalle, $status);
     }
 
@@ -62,7 +63,7 @@ class FacturaDetallesController extends Controller
         if($validation->fails()) {
             return response()->json($validation->errors(), 400);
         } else {
-            
+
             $user = Factura_Detalle::create([
                 'producto_id' => $request['producto_id'],
                 'factura_id' => $request['factura_id'],
@@ -70,7 +71,7 @@ class FacturaDetallesController extends Controller
                 'precio' => $request['precio'],
                 'porcentaje' => $request['porcentaje'],
             ]);
-            
+
             return response()->json([
                 // 'success' => 'Usuario Insertado con exito',
                 // 'data' =>[
@@ -91,15 +92,15 @@ class FacturaDetallesController extends Controller
         $response = [];
         $status = 400;
         // $productoEstado = 1; // Activo
-        
+
         if(is_numeric($id)){
-                    
+
             // if($request->input("estado") != null) $productoEstado = $request->input("estado");
             // dd($productoEstado);
-        
+
             $producto =  Factura_Detalle::find($id);
-        
-        
+
+
             // $cliente =  Cliente::find($id);
             if($producto){
                 $response = $producto;
@@ -108,11 +109,11 @@ class FacturaDetallesController extends Controller
             }else{
                 $response[] = "El detalle no existe o fue eliminado.";
             }
-            
+
         }else{
             $response[] = "El Valor de Id debe ser numerico.";
         }
-        
+
         return response()->json($response, $status);
     }
 
@@ -138,11 +139,11 @@ class FacturaDetallesController extends Controller
     {
         $response = [];
         $status = 400;
-        
+
         if(is_numeric($id)){
             $producto =  Factura_Detalle::find($id);
-            
-            if($producto){ 
+
+            if($producto){
                 $validation = Validator::make($request->all() ,[
                     'producto_id' => 'required|numeric',
                     'factura_id' => 'required|numeric',
@@ -150,12 +151,12 @@ class FacturaDetallesController extends Controller
                     'precio' => 'required|numeric',
                     'porcentaje' => 'required|numeric',
                 ]);
-                
+
                 if($validation->fails()) {
                     $response[] = $validation->errors();
                 } else {
 
-                    
+
                     $productoUpdate = $producto->update([
                         'producto_id' => $request['producto_id'],
                         'factura_id' => $request['factura_id'],
@@ -164,11 +165,43 @@ class FacturaDetallesController extends Controller
                         'porcentaje' => $request['porcentaje'],
                     ]);
 
-                    
-                    if($productoUpdate){                  
+
+
+                    if($productoUpdate){
+
+                        $factura = Factura::find($request['factura_id']);
+                        $factura->factura_detalle;
+
+                        if(count($factura->factura_detalle)>0){
+                            $total = 0;
+
+                            foreach ($factura->factura_detalle as $key => $productoDetalle) {
+                                // $producto = Producto::find($productoDetalle["producto_id"]);
+                                // dd($productoDetalle["id"]);
+                                // $productoDetalle["marca"]       = $producto->marca;
+                                // $productoDetalle["modelo"]      = $producto->modelo;
+                                // $productoDetalle["stock"]       = $producto->stock;
+                                $total += ($productoDetalle["precio"] * $productoDetalle["cantidad"]);
+                                // $productoDetalle["linea"]       = $producto->linea;
+
+                                // $productoDetalle["estado"]      = $producto->estado;
+                            }
+
+
+                            if($total > 0 ){
+                                $factura->monto = $total;
+                                $factura->update();
+                            }
+                            // echo "<pre>";
+                            // print_r (json_encode($factura));
+                            // echo "</pre>";
+                        }
+
+
+
                         $response[] = 'El detalle fue modificado con exito.';
                         $status = 200;
-                        
+
                     }else{
                         $response[] = 'Error al modificar los datos.';
                     }
@@ -178,11 +211,11 @@ class FacturaDetallesController extends Controller
             }else{
                 $response[] = "El detalle no existe.";
             }
-            
+
         }else{
             $response[] = "El Valor de Id debe ser numerico.";
         }
-        
+
         return response()->json($response, $status);
     }
 
@@ -196,19 +229,19 @@ class FacturaDetallesController extends Controller
     {
         // $response = [];
         // $status = 400;
-        
+
         // if(is_numeric($id)){
         //     $producto =  Factura_Detalle::find($id);
         //     // dd($producto);
-        //     if(!empty($producto)){ 
+        //     if(!empty($producto)){
         //         $productoDelete = $producto->update([
         //             'estado' => 0,
         //         ]);
-                
-        //         if($productoDelete){                  
+
+        //         if($productoDelete){
         //             $response[] = 'El producto fue eliminado con exito.';
         //             $status = 200;
-                    
+
         //         }else{
         //             $response[] = 'Error al eliminar el producto.';
         //         }
@@ -216,11 +249,11 @@ class FacturaDetallesController extends Controller
         //     }else{
         //         $response[] = "El producto no existe.";
         //     }
-            
+
         // }else{
         //     $response[] = "El Valor de Id debe ser numerico.";
         // }
-        
+
         // return response()->json($response, $status);
     }
 }
