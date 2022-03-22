@@ -176,15 +176,7 @@ class FacturaDetallesController extends Controller
                             $total = 0;
 
                             foreach ($factura->factura_detalle as $key => $productoDetalle) {
-                                // $producto = Producto::find($productoDetalle["producto_id"]);
-                                // dd($productoDetalle["id"]);
-                                // $productoDetalle["marca"]       = $producto->marca;
-                                // $productoDetalle["modelo"]      = $producto->modelo;
-                                // $productoDetalle["stock"]       = $producto->stock;
                                 $total += ($productoDetalle["precio"] * $productoDetalle["cantidad"]);
-                                // $productoDetalle["linea"]       = $producto->linea;
-
-                                // $productoDetalle["estado"]      = $producto->estado;
                             }
 
 
@@ -196,8 +188,6 @@ class FacturaDetallesController extends Controller
                             // print_r (json_encode($factura));
                             // echo "</pre>";
                         }
-
-
 
                         $response[] = 'El detalle fue modificado con exito.';
                         $status = 200;
