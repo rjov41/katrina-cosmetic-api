@@ -150,7 +150,7 @@
                     <tr>
                         <td>{{ $producto->descripcion }}</td>
                         <td>{{ ($producto->cantidad > 1) ? $producto->cantidad.'Uds' : $producto->cantidad.'Ud' }}</td>
-                        <td>${{ $producto->precio }}.00</td>
+                        <td>${{ $producto->precio }}</td>
                     </tr>
                     @endforeach
                     {{-- <tr>
