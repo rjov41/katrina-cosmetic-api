@@ -149,7 +149,7 @@
                     @foreach($data->factura_detalle as $producto)
                     <tr>
                         <td>{{ $producto->descripcion }}</td>
-                        <td>{{ ($producto->cantidad > 1) ? $producto->cantidad.'Uds' : $producto->cantidad.'Ud' }}</td>
+                        <td>{{ ($producto->cantidad > 1) ? $producto->cantidad.' Uds' : $producto->cantidad.' Ud' }}</td>
                         <td>${{ bcdiv($producto->precio, 1, 2) }}</td>
                     </tr>
                     @endforeach
@@ -176,7 +176,7 @@
     </div> -->
     <div class="total">
         <span>Total</span>
-        <span class="monto">${{ $data->monto }}.00</span>
+        <span class="monto">${{ bcdiv($data->monto, 1, 2) }}</span>
     </div>
     <div class="footer">
 
