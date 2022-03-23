@@ -176,9 +176,12 @@ class FacturaDetallesController extends Controller
                             $total = 0;
 
                             foreach ($factura->factura_detalle as $key => $productoDetalle) {
-                                $total += ($productoDetalle["precio"] * $productoDetalle["cantidad"]);
+                                // print_r($productoDetalle["cantidad"]);
+                                // $total += ($productoDetalle["precio"] * $productoDetalle["cantidad"]);
+                                $total +=  $productoDetalle["precio"];
                             }
 
+                            // print_r($total);
 
                             if($total > 0 ){
                                 $factura->monto = $total;
