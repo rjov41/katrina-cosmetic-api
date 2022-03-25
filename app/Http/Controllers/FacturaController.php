@@ -305,6 +305,21 @@ class FacturaController extends Controller
                 ]);
 
                 if($facturaDelete){
+
+                    $factura->factura_detalle;
+                    // print_r(json_encode($factura));
+                    foreach ($factura->factura_detalle as $key => $productoDetalle) {
+                        $producto =  Producto::find($productoDetalle["producto_id"]);
+                        // print_r(json_encode($producto));
+                        if($producto){
+                            $producto->stock += $productoDetalle["cantidad"];
+                            $producto->update();
+                        }
+                        // print_r(json_encode($producto));
+                        // print_r("------------------------");
+                    }
+                    // print_r(json_encode($factura));
+
                     $response[] = 'La factura fue eliminada con exito.';
                     $status = 200;
 
