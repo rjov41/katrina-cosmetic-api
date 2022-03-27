@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Factura;
 use App\Models\Factura_Detalle;
-use App\Models\FacturaHistorial;
 use App\Models\Producto;
 use App\Models\User;
 use Carbon\Carbon;
@@ -29,6 +28,7 @@ class FacturaController extends Controller
         if(!is_null($request['estado'])) $parametros[] = ["status", $request['estado']];
         if(!is_null($request['tipo_venta'])) $parametros[] = ["tipo_venta", $request['tipo_venta']];
         if(!is_null($request['status_pagado'])) $parametros[] = ["status_pagado", $request['status_pagado']];
+        if(!is_null($request['despachado'])) $parametros[] = ["despachado", $request['despachado']];
 
         // dd($facturaEstado);
         $facturas =  Factura::where($parametros)->get();
@@ -73,6 +73,7 @@ class FacturaController extends Controller
             'tipo_venta'        => 'required|numeric',
             'status_pagado'     => 'required|boolean',
             'iva'               => 'required|numeric',
+            'despachado'        => 'required|numeric|max:1',
             'estado'            => 'required|numeric|max:1',
 
             'factura_detalle'               => 'required|array',
@@ -97,6 +98,7 @@ class FacturaController extends Controller
                 'iva'               => $request['iva'],
                 'tipo_venta'        => $request['tipo_venta'],
                 'status_pagado'     => $request['status_pagado'],
+                'despachado'        => $request['despachado'],
                 'status'            => $request['estado'],
             ];
             $factura = Factura::create($facturaInsert); // inserto factura
@@ -325,6 +327,38 @@ class FacturaController extends Controller
 
                 }else{
                     $response[] = 'Error al eliminar la factura.';
+                }
+
+            }else{
+                $response[] = "La factura no existe.";
+            }
+
+        }else{
+            $response[] = "El Valor de Id debe ser numerico.";
+        }
+
+        return response()->json($response, $status);
+    }
+
+
+    public function despachar($id,Request $request)
+    {
+        $response = [];
+        $status = 400;
+
+        if(is_numeric($id)){
+            $factura =  Factura::find($id);
+
+            if($factura){
+                if(!is_null($request['despachado'])) $factura->despachado = $request['despachado'];
+
+                $factura->update();
+                $status = 200;
+
+                if($request['despachado'] == 1){
+                    $response[] = 'La factura fue despachada con exito.';
+                }else{
+                    $response[] = 'La factura ha sido devuelta a la sección de facturas despachadas.';
                 }
 
             }else{

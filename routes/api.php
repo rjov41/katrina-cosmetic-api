@@ -39,7 +39,7 @@ Route::group(['middleware' => ['auth:sanctum','role:administrador|vendedor|super
     Route::get('/profile', function(Request $request) {
         return auth()->user();
     });
-    
+
 });
 
 // Route::middleware(
@@ -58,13 +58,19 @@ Route::get('cliente/factura/{id}',  [ClienteController::class, 'clienteToFactura
 Route::resource('roles', RoleController::class);
 
 Route::resource('usuarios', UsuarioController::class);
+
 Route::put('update-password/{id}',  [UsuarioController::class, 'updatePassword']);
 
 Route::resource('categorias', CategoriaController::class);
+
 Route::resource('frecuencias', FrecuenciaController::class);
+
 Route::resource('productos', ProductosController::class);
+
 Route::resource('factura-detalle', FacturaDetallesController::class);
+
 Route::resource('facturas', FacturaController::class);
+Route::put('facturas/despachar/{id}', [FacturaController::class,'despachar']);
 
 Route::resource('abonos', FacturaHistorial::class);
 

@@ -15,7 +15,7 @@ class CreateFacturasTable extends Migration
     {
         Schema::create('facturas', function (Blueprint $table) {
             $table->id();
-            
+
             // users
             $table->unsignedBigInteger("user_id");
             $table->foreign("user_id")->references("id")->on("users");
@@ -23,7 +23,7 @@ class CreateFacturasTable extends Migration
             // clientes
             $table->unsignedBigInteger("cliente_id");
             $table->foreign("cliente_id")->references("id")->on("clientes");
-            
+
             $table->double('monto', 7, 2);
             // $table->string("nruc",20);
             $table->dateTime("fecha_vencimiento",$precision = 0);
@@ -31,15 +31,16 @@ class CreateFacturasTable extends Migration
             // $table->integer("tcambio")->length(1); //1 usd 2 nica
             // $table->double("monto_cambio", 7, 2);
             $table->integer("tipo_venta")->length(1); //1 credito 2 contado
-            $table->integer("status_pagado")->length(1);
-            $table->integer("status")->length(1);
+            $table->integer("status_pagado")->length(1); // define si se pago una factura fue pagada en su totalidad, 0= en proceso y 1 = pagado
+            $table->integer("status")->length(1);  // define si la factura esta activa o no (eliminada o no) 0 = eliminada, 1= activa
+            $table->integer("despachado")->length(1)->default(0); // esta seccion la maneja el admin para saber si fue despachada o no la factura
             $table->timestamps();
-            
-            
+
+
             // $table->string("nombre_cliente",20);
             // $table->string("credito",5);
             // $table->integer("numero_factura")->length(11);
-            
+
         });
     }
 
