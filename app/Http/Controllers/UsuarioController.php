@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Recibo;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,23 +22,27 @@ class UsuarioController extends Controller
         $status = 200;
         $clienteEstado = 1; // Activo
         // User::whereHas("roles", function($q){ $q->where("name", "admin"); })->get()
-                            
+
         // dd($clienteEstado);
         $usuarios =  User::all();
-    
+
         // $cliente =  Cliente::find($id);
         if(count($usuarios) > 0){
-            foreach ($usuarios as $key => $usuario) {
+            foreach ($usuarios as $usuario) {
                 $usuario->factura;
+                $usuario->recibo;
+
+                $role_id = DB::table('model_has_roles')->where('model_id', $usuario->id)->first();
+                $usuario->role_id = $role_id->role_id;
             }
-            
+
             $response = $usuarios;
             $status = 200;
 
         }else{
             $response[] = "El usuario no existe o fue eliminado.";
         }
-        
+
         return response()->json($response, $status);
     }
 
@@ -56,10 +61,10 @@ class UsuarioController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {   
+    {
         $response = [];
         $status = 400;
-         
+
         $validation = Validator::make($request->all() ,[
             'name' => 'required|string|max:255',
             'password' => 'required|string|confirmed',
@@ -69,7 +74,7 @@ class UsuarioController extends Controller
             'estado' => 'required|numeric|max:1',
             'role' => 'required|numeric',
         ]);
-        
+
         if($validation->fails()) {
             $response[] = $validation->errors();
         }else {
@@ -92,10 +97,10 @@ class UsuarioController extends Controller
                 'id' => $user->id,
             ], 201);
         }
-        
-        
-        
-        
+
+
+
+
         return response()->json($response, $status);
         // return $this->success([
         //     'to
@@ -114,36 +119,36 @@ class UsuarioController extends Controller
         $status = 400;
         // $clienteEstado = 1; // Activo
         // User::whereHas("roles", function($q){ $q->where("name", "admin"); })->get()
-        
+
         if(is_numeric($id)){
-                    
+
             // if($request->input("estado") !== null) $clienteEstado = $request->input("estado");
-        
+
             // dd($clienteEstado);
             $usuario =  User::where([
                 ['id', '=', $id],
                 // ['estado', '=', $clienteEstado],
             ])->first();
-            
-            
-            
+
+
+
             // $cliente =  Cliente::find($id);
             if($usuario){
                 $role_id = DB::table('model_has_roles')->where('model_id', $usuario->id)->first();
-                
+
                 $usuario->factura;
-                $usuario->role_id = $role_id->role_id; 
+                $usuario->role_id = $role_id->role_id;
                 $response = $usuario;
                 $status = 200;
 
             }else{
                 $response[] = "El usuario no existe o fue eliminado.";
             }
-            
+
         }else{
             $response[] = "El usuario de Id debe ser numerico.";
         }
-        
+
         return response()->json($response, $status);
     }
 
@@ -163,11 +168,11 @@ class UsuarioController extends Controller
     {
         $response = [];
         $status = 400;
-        
+
         if(is_numeric($id)){
             $usuario =  User::find($id);
-            
-            if($usuario){ 
+
+            if($usuario){
                 $validation = Validator::make($request->all() ,[
                     'name' => 'required|string|max:255',
                     // 'password' => 'required|string|min:6|confirmed',
@@ -177,12 +182,12 @@ class UsuarioController extends Controller
                     'estado' => 'required|numeric|max:1',
                     'role' => 'required|numeric',
                 ]);
-                
+
                 if($validation->fails()) {
                     $response[] = $validation->errors();
                 } else {
 
-                    
+
                     $usuarioUpdate = $usuario->update([
                         'name' => $request['name'],
                         // 'password' => bcrypt($request['password']),
@@ -191,16 +196,16 @@ class UsuarioController extends Controller
                         'cargo' => $request['cargo'],
                         'estado' => $request['estado']
                     ]);
-                    
+
                     DB::table('model_has_roles')->where('model_id', $usuario->id)->delete();
                     $role = Role::find($request['role']);
 
                     $usuario->assignRole($role->name);
-                    
-                    if($usuarioUpdate){                  
+
+                    if($usuarioUpdate){
                         $response[] = 'Usuario modificado con exito.';
                         $status = 200;
-                        
+
                     }else{
                         $response[] = 'Error al modificar los datos.';
                     }
@@ -210,11 +215,11 @@ class UsuarioController extends Controller
             }else{
                 $response[] = "El Usuario no existe.";
             }
-            
+
         }else{
             $response[] = "El Valor de Id debe ser numerico.";
         }
-        
+
         return response()->json($response, $status);
     }
 
@@ -229,15 +234,15 @@ class UsuarioController extends Controller
     {
         $response = [];
         $status = 400;
-        
+
         if(is_numeric($id)){
             $usuario =  User::find($id);
             // dd($usuario);
-            if($usuario){ 
+            if($usuario){
                 $validation = Validator::make($request->all() ,[
                     'password' => 'required|string|confirmed',
                 ]);
-                
+
                 if($validation->fails()) {
                     $response[] = $validation->errors();
                 } else {
@@ -245,11 +250,11 @@ class UsuarioController extends Controller
                     $usuarioUpdate = $usuario->update([
                         'password' => bcrypt($request['password']),
                     ]);
-                    
-                    if($usuarioUpdate){                  
+
+                    if($usuarioUpdate){
                         $response[] = 'Clave modificada con exito';
                         $status = 200;
-                        
+
                     }else{
                         $response[] = 'Error al modificar la clave';
                     }
@@ -259,11 +264,11 @@ class UsuarioController extends Controller
             }else{
                 $response[] = "El Usuario no existe.";
             }
-            
+
         }else{
             $response[] = "El Valor de Id debe ser numerico.";
         }
-        
+
         return response()->json($response, $status);
     }
 
@@ -277,19 +282,19 @@ class UsuarioController extends Controller
     {
         $response = [];
         $status = 400;
-        
+
         if(is_numeric($id)){
             $cliente =  User::find($id);
-            
-            if($cliente){ 
+
+            if($cliente){
                 $clienteDelete = $cliente->update([
                     'estado' => 0,
                 ]);
-                
-                if($clienteDelete){                  
+
+                if($clienteDelete){
                     $response[] = 'El usuario fue eliminado con exito.';
                     $status = 200;
-                    
+
                 }else{
                     $response[] = 'Error al eliminar el usuario.';
                 }
@@ -297,11 +302,11 @@ class UsuarioController extends Controller
             }else{
                 $response[] = "El usuario no existe.";
             }
-            
+
         }else{
             $response[] = "El Valor de Id debe ser numerico.";
         }
-        
+
         return response()->json($response, $status);
     }
 }

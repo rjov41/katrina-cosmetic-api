@@ -14,14 +14,14 @@
 
 -- Volcando datos para la tabla api_maquillaje.categorias: ~4 rows (aproximadamente)
 /*!40000 ALTER TABLE `categorias` DISABLE KEYS */;
-INSERT INTO `categorias` (`id`, `tipo`, `descripcion`, `estado`, `valor_dias`, `created_at`, `updated_at`) VALUES
-	(1, 'A', '65 dias', 1, 65, '2022-03-04 20:38:04', '2022-03-04 20:38:05'),
-	(2, 'B', '45 dias', 1, 45, '2022-03-04 20:38:04', '2022-03-04 20:38:05'),
-	(3, 'C', '35 dias', 1, 35, '2022-03-04 20:38:04', '2022-03-04 20:38:05'),
-	(4, 'E', 'desce', 0, 10, '2022-03-13 20:16:49', '2022-03-13 20:34:48');
+INSERT INTO `categorias` (`id`, `tipo`, `descripcion`, `valor_dias`, `estado`, `created_at`, `updated_at`) VALUES
+	(1, 'A', '65 dias', 65, 1, '2022-03-04 20:38:04', '2022-03-04 20:38:05'),
+	(2, 'B', '45 dias', 45, 1, '2022-03-04 20:38:04', '2022-03-04 20:38:05'),
+	(3, 'C', '35 dias', 35, 1, '2022-03-04 20:38:04', '2022-03-04 20:38:05'),
+	(4, 'E', 'desce', 10, 0, '2022-03-13 20:16:49', '2022-03-13 20:34:48');
 /*!40000 ALTER TABLE `categorias` ENABLE KEYS */;
 
--- Volcando datos para la tabla api_maquillaje.clientes: ~3 rows (aproximadamente)
+-- Volcando datos para la tabla api_maquillaje.clientes: ~4 rows (aproximadamente)
 /*!40000 ALTER TABLE `clientes` DISABLE KEYS */;
 INSERT INTO `clientes` (`id`, `categoria_id`, `frecuencia_id`, `user_id`, `nombreCompleto`, `nombreEmpresa`, `celular`, `telefono`, `direccion_casa`, `direccion_negocio`, `cedula`, `dias_cobro`, `estado`, `created_at`, `updated_at`) VALUES
 	(1, 2, 1, 20, 'Cliente perfecto', 'Salon PR', 1131905210, 1131905212, 'Av.francisco beiro 3360', 'Av.francisco beiro 3360', '12142412221344', 'viernes,jueves,miércoles', 1, '2022-03-06 17:55:37', '2022-03-11 14:28:45'),
@@ -30,19 +30,22 @@ INSERT INTO `clientes` (`id`, `categoria_id`, `frecuencia_id`, `user_id`, `nombr
 	(4, 2, 2, 21, 'Alejandro', 'test 334234', 11221412141212000000, 11221412141212000000, 'qwqwr', 'arasffas', '0011909880050T', 'miércoles', 1, '2022-03-18 16:15:49', '2022-03-18 16:15:49');
 /*!40000 ALTER TABLE `clientes` ENABLE KEYS */;
 
--- Volcando datos para la tabla api_maquillaje.facturas: ~5 rows (aproximadamente)
+-- Volcando datos para la tabla api_maquillaje.facturas: ~10 rows (aproximadamente)
 /*!40000 ALTER TABLE `facturas` DISABLE KEYS */;
-INSERT INTO `facturas` (`id`, `user_id`, `cliente_id`, `monto`, `fecha_vencimiento`, `iva`, `tipo_venta`, `status_pagado`, `status`,`despachado`, `created_at`, `updated_at`) VALUES
-	(1, 20, 1, 3500.00, '2022-05-07 12:00:00', 0.00, 1, 1, 0,null, '2022-03-06 17:55:53', '2022-03-25 16:33:20'),
-	(2, 20, 1, 6000.00, '2022-05-07 12:00:00', 0.00, 2, 1, 1,null, '2022-03-06 18:26:12', '2022-03-06 18:26:12'),
-	(3, 20, 1, 1085.00, '2022-05-10 12:00:00', 0.00, 1, 1, 1,null, '2022-03-09 00:18:01', '2022-03-12 23:46:59'),
-	(4, 20, 2, 80.00, '2022-04-25 12:00:00', 0.00, 2, 1, 1,null, '2022-03-14 12:47:04', '2022-03-14 12:47:04'),
-	(5, 20, 2, 2760.00, '2022-04-25 12:00:00', 0.00, 1, 0, 0,null, '2022-03-14 14:21:36', '2022-03-25 16:34:27'),
-	(6, 20, 1, 50.00, '2022-04-07 12:00:00', 0.00, 2, 1, 1,null, '2022-03-18 00:53:34', '2022-03-24 21:13:51'),
-	(7, 20, 3, 200.00, '2022-04-14 12:00:00', 0.00, 2, 1, 0,null, '2022-03-24 23:57:40', '2022-03-25 16:32:20');
+INSERT INTO `facturas` (`id`, `user_id`, `cliente_id`, `monto`, `fecha_vencimiento`, `iva`, `tipo_venta`, `status_pagado`, `status`, `despachado`, `created_at`, `updated_at`) VALUES
+	(1, 20, 1, 3500.00, '2022-05-07 12:00:00', 0.00, 1, 1, 1, 1, '2022-03-06 17:55:53', '2022-03-27 15:37:55'),
+	(2, 20, 1, 6000.00, '2022-05-07 12:00:00', 0.00, 2, 1, 1, 0, '2022-03-06 18:26:12', '2022-03-06 18:26:12'),
+	(3, 20, 1, 1085.00, '2022-05-10 12:00:00', 0.00, 1, 1, 1, 0, '2022-03-09 00:18:01', '2022-03-12 23:46:59'),
+	(4, 20, 2, 80.00, '2022-04-25 12:00:00', 0.00, 2, 1, 1, 0, '2022-03-14 12:47:04', '2022-03-14 12:47:04'),
+	(5, 20, 2, 2760.00, '2022-04-25 12:00:00', 0.00, 1, 0, 1, 0, '2022-03-14 14:21:36', '2022-03-25 16:34:27'),
+	(6, 20, 1, 50.00, '2022-04-07 12:00:00', 0.00, 2, 1, 1, 0, '2022-03-18 00:53:34', '2022-03-24 21:13:51'),
+	(7, 20, 3, 200.00, '2022-04-14 12:00:00', 0.00, 2, 1, 1, 0, '2022-03-24 23:57:40', '2022-03-27 15:50:23'),
+	(8, 20, 3, 400.00, '2022-04-15 12:00:00', 0.00, 2, 1, 1, 0, '2022-03-27 15:55:56', '2022-03-27 15:55:56'),
+	(10, 20, 2, 800.00, '2022-05-06 12:00:00', 0.00, 1, 0, 1, 0, '2022-03-27 16:02:39', '2022-03-27 16:03:40'),
+	(11, 20, 2, 800.00, '2022-05-06 12:00:00', 0.00, 1, 0, 1, 0, '2022-03-27 20:46:03', '2022-03-27 20:46:03');
 /*!40000 ALTER TABLE `facturas` ENABLE KEYS */;
 
--- Volcando datos para la tabla api_maquillaje.factura_detalles: ~7 rows (aproximadamente)
+-- Volcando datos para la tabla api_maquillaje.factura_detalles: ~14 rows (aproximadamente)
 /*!40000 ALTER TABLE `factura_detalles` DISABLE KEYS */;
 INSERT INTO `factura_detalles` (`id`, `producto_id`, `factura_id`, `cantidad`, `precio`, `estado`, `created_at`, `updated_at`) VALUES
 	(1, 5, 1, 2, 300.00, 1, '2022-03-06 17:55:53', '2022-03-23 02:18:29'),
@@ -53,7 +56,12 @@ INSERT INTO `factura_detalles` (`id`, `producto_id`, `factura_id`, `cantidad`, `
 	(6, 7, 5, 3, 120.00, 1, '2022-03-14 14:21:36', '2022-03-23 01:31:00'),
 	(7, 8, 5, 4, 600.00, 1, '2022-03-14 14:21:36', '2022-03-23 01:32:36'),
 	(8, 7, 6, 1, 50.00, 1, '2022-03-18 00:53:34', '2022-03-18 00:53:34'),
-	(9, 8, 7, 1, 200.00, 1, '2022-03-24 23:57:40', '2022-03-24 23:57:40');
+	(9, 8, 7, 1, 200.00, 1, '2022-03-24 23:57:40', '2022-03-24 23:57:40'),
+	(10, 7, 8, 10, 400.00, 1, '2022-03-27 15:55:56', '2022-03-27 15:55:56'),
+	(13, 7, 10, 5, 200.00, 1, '2022-03-27 16:02:39', '2022-03-27 16:02:39'),
+	(14, 8, 10, 3, 600.00, 1, '2022-03-27 16:02:39', '2022-03-27 16:02:39'),
+	(15, 7, 11, 5, 200.00, 1, '2022-03-27 20:46:03', '2022-03-27 20:46:03'),
+	(16, 8, 11, 3, 600.00, 1, '2022-03-27 20:46:03', '2022-03-27 20:46:03');
 /*!40000 ALTER TABLE `factura_detalles` ENABLE KEYS */;
 
 -- Volcando datos para la tabla api_maquillaje.factura_historials: ~18 rows (aproximadamente)
@@ -91,15 +99,11 @@ INSERT INTO `frecuencias` (`id`, `descripcion`, `dias`, `estado`, `created_at`, 
 	(3, 'Anual', 365, 1, '2022-03-14 12:11:23', '2022-03-14 12:24:15');
 /*!40000 ALTER TABLE `frecuencias` ENABLE KEYS */;
 
--- Volcando datos para la tabla api_maquillaje.migrations: ~0 rows (aproximadamente)
-/*!40000 ALTER TABLE `migrations` DISABLE KEYS */;
-/*!40000 ALTER TABLE `migrations` ENABLE KEYS */;
-
 -- Volcando datos para la tabla api_maquillaje.model_has_permissions: ~0 rows (aproximadamente)
 /*!40000 ALTER TABLE `model_has_permissions` DISABLE KEYS */;
 /*!40000 ALTER TABLE `model_has_permissions` ENABLE KEYS */;
 
--- Volcando datos para la tabla api_maquillaje.model_has_roles: ~4 rows (aproximadamente)
+-- Volcando datos para la tabla api_maquillaje.model_has_roles: ~5 rows (aproximadamente)
 /*!40000 ALTER TABLE `model_has_roles` DISABLE KEYS */;
 INSERT INTO `model_has_roles` (`role_id`, `model_type`, `model_id`) VALUES
 	(2, 'App\\Models\\User', 20),
@@ -117,7 +121,7 @@ INSERT INTO `model_has_roles` (`role_id`, `model_type`, `model_id`) VALUES
 /*!40000 ALTER TABLE `permissions` DISABLE KEYS */;
 /*!40000 ALTER TABLE `permissions` ENABLE KEYS */;
 
--- Volcando datos para la tabla api_maquillaje.personal_access_tokens: ~19 rows (aproximadamente)
+-- Volcando datos para la tabla api_maquillaje.personal_access_tokens: ~23 rows (aproximadamente)
 /*!40000 ALTER TABLE `personal_access_tokens` DISABLE KEYS */;
 INSERT INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `name`, `token`, `abilities`, `last_used_at`, `created_at`, `updated_at`) VALUES
 	(1, 'App\\Models\\User', 18, 'tokens', '542377f36a759959b225a9d1050fc73b3f9b1d628a188c58c4cb96d7954eb1ba', '["*"]', NULL, '2022-02-20 05:08:49', '2022-02-20 05:08:49'),
@@ -150,9 +154,19 @@ INSERT INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `n
 INSERT INTO `productos` (`id`, `marca`, `modelo`, `stock`, `precio`, `linea`, `descripcion`, `estado`, `created_at`, `updated_at`) VALUES
 	(5, 'Lizz Professional', '0000001', 3, 155.00, 'Planchas', 'Plancha Ultra 500', 0, '2022-03-03 19:54:15', '2022-03-25 16:33:20'),
 	(6, 'test', 'test', 11, 3000.00, 'blanca', 'test nada mas', 0, '2022-03-04 03:06:00', '2022-03-25 16:33:20'),
-	(7, 'Adidas', '200', 297, 40.00, 'recta', 'desc', 1, '2022-03-11 12:41:48', '2022-03-25 16:34:27'),
-	(8, 'Titan', 'colosal', 16, 200.00, 'Roja', 'Acorazado', 1, '2022-03-14 14:19:12', '2022-03-25 16:34:27');
+	(7, 'Adidas', '200', 272, 40.00, 'recta', 'desc', 1, '2022-03-11 12:41:48', '2022-03-27 20:46:03'),
+	(8, 'Titan', 'colosal', 9, 200.00, 'Roja', 'Acorazado', 1, '2022-03-14 14:19:12', '2022-03-27 20:46:03');
 /*!40000 ALTER TABLE `productos` ENABLE KEYS */;
+
+-- Volcando datos para la tabla api_maquillaje.recibos: ~1 rows (aproximadamente)
+/*!40000 ALTER TABLE `recibos` DISABLE KEYS */;
+INSERT INTO `recibos` (`id`, `min`, `max`, `user_id`, `recibo_cerrado`, `estado`, `created_at`, `updated_at`) VALUES
+	(1, 1, 50, 22, 0, 1, '2022-03-27 21:07:26', '2022-03-27 21:07:26');
+/*!40000 ALTER TABLE `recibos` ENABLE KEYS */;
+
+-- Volcando datos para la tabla api_maquillaje.recibo_historials: ~0 rows (aproximadamente)
+/*!40000 ALTER TABLE `recibo_historials` DISABLE KEYS */;
+/*!40000 ALTER TABLE `recibo_historials` ENABLE KEYS */;
 
 -- Volcando datos para la tabla api_maquillaje.roles: ~3 rows (aproximadamente)
 /*!40000 ALTER TABLE `roles` DISABLE KEYS */;
@@ -166,7 +180,7 @@ INSERT INTO `roles` (`id`, `name`, `guard_name`, `created_at`, `updated_at`) VAL
 /*!40000 ALTER TABLE `role_has_permissions` DISABLE KEYS */;
 /*!40000 ALTER TABLE `role_has_permissions` ENABLE KEYS */;
 
--- Volcando datos para la tabla api_maquillaje.users: ~4 rows (aproximadamente)
+-- Volcando datos para la tabla api_maquillaje.users: ~5 rows (aproximadamente)
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
 INSERT INTO `users` (`id`, `name`, `apellido`, `cargo`, `email`, `email_verified_at`, `password`, `remember_token`, `estado`, `created_at`, `updated_at`) VALUES
 	(20, 'Alejandro', 'sanchez', 'Programador', 'alejosb13@gmail.com', NULL, '$2y$10$ycLD6AVSbqAZmd/qgpuy0OfiHeL7d8vDmsO.xo2OR6o8gV8xlqwZ.', NULL, 0, '2022-03-04 19:27:40', '2022-03-11 12:56:38'),

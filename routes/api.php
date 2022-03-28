@@ -11,6 +11,7 @@ use App\Http\Controllers\FacturaHistorial;
 use App\Http\Controllers\FrecuenciaController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\ProductosController;
+use App\Http\Controllers\ReciboController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UsuarioController;
 
@@ -73,6 +74,8 @@ Route::resource('facturas', FacturaController::class);
 Route::put('facturas/despachar/{id}', [FacturaController::class,'despachar']);
 
 Route::resource('abonos', FacturaHistorial::class);
+
+Route::resource('recibos', ReciboController::class);
 
 Route::get('pdf/{id}', [PdfController::class,'facturaPago']);
 Route::post('pdf', [PdfController::class,'generar']);

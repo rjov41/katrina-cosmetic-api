@@ -45,7 +45,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-    
+
     public function authorizeRoles($roles){
         // abort_unless($this->hasAnyRole($roles), 401);
         if($this->hasAnyRole($roles)){
@@ -76,10 +76,16 @@ class User extends Authenticatable
         }
         return false;
     }
-    
+
     // one to many
     public function factura()
     {
         return $this->hasMany(Factura::class);
+    }
+
+    // one to one
+    public function recibo()
+    {
+        return $this->hasOne(Recibo::class);
     }
 }
