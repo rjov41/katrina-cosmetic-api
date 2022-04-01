@@ -12,6 +12,7 @@ use App\Http\Controllers\FrecuenciaController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\ProductosController;
 use App\Http\Controllers\ReciboController;
+use App\Http\Controllers\ReciboHistorialController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UsuarioController;
 
@@ -76,9 +77,12 @@ Route::put('facturas/despachar/{id}', [FacturaController::class,'despachar']);
 Route::resource('abonos', FacturaHistorial::class);
 
 Route::resource('recibos', ReciboController::class);
+Route::get('recibos/number/{id}', [ReciboController::class,'getNumeroRecibo']);
+
+Route::resource('recibosHistorial', ReciboHistorialController::class);
 
 Route::get('pdf/{id}', [PdfController::class,'facturaPago']);
-Route::post('pdf', [PdfController::class,'generar']);
+Route::post('pdf', );
 
 Route::get('mail/{id}', [PdfController::class,'SendMail']);
 

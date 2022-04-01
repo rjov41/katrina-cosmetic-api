@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Recibo;
-use Illuminate\Http\Request;
+use App\Models\ReciboHistorial;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Request;
 
-class ReciboController extends Controller
+class ReciboHistorialController extends Controller
 {
-    /**
+ /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
@@ -21,16 +21,16 @@ class ReciboController extends Controller
         $parametros = [];
 
         if(!is_null($request['estado'])) $parametros[] = ["estado", $request['estado']];
-        if(!is_null($request['recibo_cerrado'])) $parametros[] = ["recibo_cerrado", $request['recibo_cerrado']];
+        // if(!is_null($request['recibo_cerrado'])) $parametros[] = ["recibo_cerrado", $request['recibo_cerrado']];
 
 
         // dd($facturaEstado);
-        $recibos =  Recibo::where($parametros)->get();
+        $recibos =  ReciboHistorial::where($parametros)->get();
 
         if(count($recibos) > 0){
             foreach ($recibos as $recibo) {
-                $recibo->user;
-                $recibo->recibo_historial;
+                $recibo->recibo;
+                $recibo->factura_historial;
 
             }
 
@@ -72,7 +72,7 @@ class ReciboController extends Controller
             $error = 401;
 
             if($this->validNumberRange($request['min'],$request['max'],false)){
-                $response = Recibo::create([
+                $response = ReciboHistorial::create([
                     'max' => $request['max'],
                     'min' => $request['min'],
                     'user_id' => $request['user_id'],
@@ -107,7 +107,7 @@ class ReciboController extends Controller
             // if($request->input("estado") !== null) $clienteEstado = $request->input("estado");
 
             // dd($clienteEstado);
-            $recibo =  Recibo::where([
+            $recibo =  ReciboHistorial::where([
                 ['id', '=', $id],
                 // ['estado', '=', $clienteEstado],
             ])->first();
@@ -116,77 +116,14 @@ class ReciboController extends Controller
 
             // $cliente =  Cliente::find($id);
             if($recibo){
-                $recibo->user;
-                $recibo->recibo_historial;
+                $recibo->recibo;
+                $recibo->factura_historial;
 
                 $response = $recibo;
                 $status = 200;
 
             }else{
                 $response[] = "El recibo no existe o fue eliminado.";
-            }
-
-        }else{
-            $response[] = "El recibo de Id debe ser numerico.";
-        }
-
-        return response()->json($response, $status);
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function getNumeroRecibo(Request $request,$id)
-    {
-        $response = [];
-        $status = 400;
-
-        if(is_numeric($id)){
-            $parametros[] = ["user_id", $id];
-            $parametros[] = ["recibo_cerrado", 0];
-            $parametros[] = ["estado", 1];
-
-            $recibo =  Recibo::where($parametros)->first();
-
-            if($recibo){
-                // print_r (json_encode($recibo));
-                $posiblesNumerosRecibos = [];
-
-                $i = $recibo->min;
-                while ($i <= $recibo->max ) {
-                    $posiblesNumerosRecibos[] = $i;
-                    $i++;
-                }
-                // print_r (json_encode($posiblesNumerosRecibos));
-
-                $recibo->recibo_historial = $recibo->recibo_historial()->where([
-                    ['estado', '=', 1],
-                ])->get();
-
-                if(count($recibo->recibo_historial) >0){
-                    foreach ($recibo->recibo_historial as $itemHistorial) {
-                        $posicionReciboExistente = array_search($itemHistorial->numero, $posiblesNumerosRecibos);
-
-                        if($posicionReciboExistente !== FALSE) array_splice($posiblesNumerosRecibos, $posicionReciboExistente,1); // Elimino de la lista de numeros validos los recibos existentes
-
-                    }
-
-                }
-
-                if(count($posiblesNumerosRecibos) > 0){ // si aun tiene numeros disponibles retorno el numero
-                    $response = ["numero"=> $posiblesNumerosRecibos[0]];
-                    $status = 200;
-                }else{
-                    $response[] = "Error generando el recibo";
-                }
-
-                // print_r (json_encode($recibo));
-
-            }else{
-                $response[] = "Pide que asignen un talonario de recibos.";
             }
 
         }else{
@@ -220,15 +157,15 @@ class ReciboController extends Controller
         $status = 400;
 
         if(is_numeric($id)){
-            $recibo =  Recibo::find($id);
+            $recibo =  ReciboHistorial::find($id);
 
             if($recibo){
                 $validation = Validator::make($request->all() ,[
-                    'user_id'        => 'required|numeric',
-                    'max'            => 'numeric|required',
-                    'min'            => 'numeric|required',
-                    'recibo_cerrado' => 'required|numeric|max:1',
-                    'estado'         => 'required|numeric|max:1',
+                    'numero'       => 'required|numeric',
+                    'recibo_id'           => 'numeric|required',
+                    'factura_historial_id'           => 'numeric|required',
+                    'rango'             => 'required|string',
+                    'estado'        => 'required|numeric|max:1',
                 ]);
 
                 if($validation->fails()) {
@@ -236,9 +173,10 @@ class ReciboController extends Controller
                 } else {
                     if($this->validNumberRange($request['min'],$request['max'],$id)){
                         $reciboUpdate = $recibo->update([
-                            'max' => $request['max'],
-                            'min' => $request['min'],
-                            'user_id' => $request['user_id'],
+                            'numero' => $request['numero'],
+                            'recibo_id' => $request['recibo_id'],
+                            'factura_historial_id' => $request['factura_historial_id'],
+                            'rango' => $request['rango'],
                             'estado' => $request['estado'],
                         ]);
 
@@ -277,7 +215,7 @@ class ReciboController extends Controller
         $status = 400;
 
         if(is_numeric($id)){
-            $recibo =  Recibo::find($id);
+            $recibo =  ReciboHistorial::find($id);
 
             if($recibo){
                 $reciboDelete = $recibo->update([

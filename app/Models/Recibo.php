@@ -24,4 +24,9 @@ class Recibo extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function recibo_historial()
+    {
+        return $this->hasMany(ReciboHistorial::class);
+    }
+
 }

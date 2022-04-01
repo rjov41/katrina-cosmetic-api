@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Cliente extends Model
 {
     use HasFactory;
-    
+
     protected $fillable = [
         'categoria_id',
         'frecuencia_id',
@@ -24,11 +24,17 @@ class Cliente extends Model
         // 'fecha_vencimiento',
         'estado',
     ];
-    
+
     // one to many
     public function facturas()
     {
         return $this->hasMany(Factura::class);
+    }
+
+    // one to many
+    public function factura_historial()
+    {
+        return $this->hasMany(FacturaHistorial::class);
     }
 
     // one to many inversa

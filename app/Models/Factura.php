@@ -20,6 +20,7 @@ class Factura extends Model
         // 'monto_cambio',
         'tipo_venta',
         'status_pagado',
+        'saldo_restante',
         'status',
     ];
 
@@ -31,22 +32,26 @@ class Factura extends Model
         return $this->belongsTo(Cliente::class);
     }
 
-    // one to many inversa 
+    // one to many inversa
     public function user()
     {
         return $this->belongsTo(User::class);
     }
-    
+
     // one to many
     public function factura_detalle()
     {
         return $this->hasMany(Factura_Detalle::class);
-    }
-
-    // one to many
+    }    // one to many
     public function factura_historial()
     {
         return $this->hasMany(FacturaHistorial::class);
     }
+
+    // // one to many
+    // public function factura_historial()
+    // {
+    //     return $this->hasMany(FacturaHistorial::class);
+    // }
 }
 

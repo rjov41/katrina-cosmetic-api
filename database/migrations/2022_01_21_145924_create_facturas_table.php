@@ -25,6 +25,7 @@ class CreateFacturasTable extends Migration
             $table->foreign("cliente_id")->references("id")->on("clientes");
 
             $table->double('monto', 7, 2);
+            $table->double("saldo_restante", 7, 2); // es un contador de lo que falta por pagar de la factura (este sera igual al total y va ir disminuyendo hasta llegar a 0)
             // $table->string("nruc",20);
             $table->dateTime("fecha_vencimiento",$precision = 0);
             $table->double('iva', 7, 2);
@@ -32,8 +33,8 @@ class CreateFacturasTable extends Migration
             // $table->double("monto_cambio", 7, 2);
             $table->integer("tipo_venta")->length(1); //1 credito 2 contado
             $table->integer("status_pagado")->length(1); // define si se pago una factura fue pagada en su totalidad, 0= en proceso y 1 = pagado
-            $table->integer("status")->length(1);  // define si la factura esta activa o no (eliminada o no) 0 = eliminada, 1= activa
             $table->integer("despachado")->length(1)->default(0); // esta seccion la maneja el admin para saber si fue despachada o no la factura
+            $table->integer("status")->length(1);  // define si la factura esta activa o no (eliminada o no) 0 = eliminada, 1= activa
             $table->timestamps();
 
 

@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cliente;
+use App\Models\Factura;
+use App\Models\FacturaHistorial;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class ClienteController extends Controller
@@ -133,9 +134,18 @@ class ClienteController extends Controller
 
             // $cliente =  Cliente::find($id);
             if ($cliente) {
-                $cliente->frecuencia = $cliente->frecuencia;
-                $cliente->categoria = $cliente->categoria;
-                $cliente->facturas = $cliente->facturas;
+                $cliente->frecuencia;
+                $cliente->categoria;
+
+                $cliente->factura_historial = $cliente->factura_historial()->where([
+                    ['estado', '=', 1],
+                    ['debitado', '=', 0] // 0 = aun no usado el abono | 1 = ya se uso el abono,
+                ])->get();
+
+                $cliente->facturas = $cliente->facturas()->where([
+                    ['status', '=', 1],
+                    ['status_pagado', '=', 0] // 0 = en proceso | 1 = Finalizado,
+                ])->get();
 
                 $response = $cliente;
                 $status = 200;

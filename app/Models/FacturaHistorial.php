@@ -8,17 +8,23 @@ use Illuminate\Database\Eloquent\Model;
 class FacturaHistorial extends Model
 {
     use HasFactory;
-    
+
     protected $fillable = [
-        'factura_id',
+        'cliente_id',
         'user_id',
         'precio',
+        'debitado',
         'estado',
     ];
-    
+
     // one to many
-    public function factura()
+    // public function factura()
+    // {
+    //     return $this->belongsTo(Factura::class);
+    // }
+
+    public function cliente()
     {
-        return $this->belongsTo(Factura::class);
+        return $this->belongsTo(Cliente::class);
     }
 }

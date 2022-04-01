@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Cliente;
 use App\Models\Factura;
 use App\Models\FacturaHistorial as Factura_Historial;
+use App\Models\ReciboHistorial;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class FacturaHistorial extends Controller
@@ -21,27 +24,27 @@ class FacturaHistorial extends Controller
         $response = [];
         $status = 200;
         $facturaEstado = 1; // Activo
-        
+
         if(!is_null($request['estado'])) $facturaEstado = $request['estado'];
-        
+
         // dd($facturaEstado);
         $facturas =  Factura_Historial::where('estado',$facturaEstado)->orderBy('id',"desc")->get();
-        
+
         if(count($facturas) > 0){
             foreach ($facturas as $key => $facturaHistorial) {
                 $facturaHistorial->factura;
-                
+
                 $cliente = Cliente::find($facturaHistorial->factura->cliente_id);
                 $usuario = User::find($facturaHistorial->user_id);
-                
+
                 $facturaHistorial->cliente = $cliente;
                 $facturaHistorial->usuario = $usuario;
                 // $factura->cliente = $abonoFactura->cliente;
             }
-            
+
             $response = $facturas;
         }
-        
+
         return response()->json($response, $status);
     }
 
@@ -64,31 +67,64 @@ class FacturaHistorial extends Controller
     public function store(Request $request)
     {
         $validation = Validator::make($request->all() ,[
-            'factura_id' => 'required|numeric',
+            'cliente_id' => 'required|numeric',
             'user_id' => 'required|numeric',
             'precio' => 'required|numeric',
-            'estado' => 'required|numeric|max:1',
+            // 'estado' => 'required|numeric|max:1',
+
+            'numero'       => 'required|numeric|unique:recibo_historials,numero',
+            'recibo_id'           => 'numeric|required',
+            // 'factura_historial_id'           => 'numeric|required',
+            'rango'             => 'required|string',
         ]);
 
         if($validation->fails()) {
             return response()->json([$validation->errors()], 400);
         } else {
             // DB::enableQueryLog();
-            $abono = Factura_Historial::create([
-                'factura_id' => $request['factura_id'],
-                'user_id' => $request['user_id'],
-                'precio' => $request['precio'],
-                'estado' => $request['estado'],
-            ]);
 
-            $this->validarStatusPagado($abono->id);
-            
-            return response()->json([
-                // 'success' => 'Usuario Insertado con exito',
-                // 'data' =>[
-                    'id' => $abono->id,
-                // ]
-            ], 201);
+            DB::beginTransaction();
+            try {
+
+                $abono = Factura_Historial::create([
+                    'cliente_id' => $request['cliente_id'],
+                    'user_id'    => $request['user_id'],
+                    'precio'     => $request['precio'],
+                    'debitado'   => 0,
+                    'estado'     => 1,
+                ]);
+
+                $this->validarStatusPagado($request['cliente_id']); // logica para calcular el saldo restante de una factura y si se cierra la factura
+
+                $recibo = ReciboHistorial::create([
+                    'numero'                => $request['numero'],
+                    'recibo_id'             => $request['recibo_id'],
+                    'factura_historial_id'  => $abono->id,
+                    'rango'                 => $request['rango'],
+                    'estado'                => 1,
+                ]);
+
+
+                // print_r (json_encode( ["abono" => $abono, "recibo"=>$recibo ]));
+                // print_r (json_encode($abono));
+                DB::rollback();
+                // DB::commit();
+                return response()->json([
+                    // 'success' => 'Usuario Insertado con exito',
+                    // 'data' =>[
+                        'id' => $abono->id,
+                    // ]
+                ], 201);
+            } catch (Exception $e) {
+                DB::rollback();
+
+
+                // print_r (json_encode($e));
+
+                return response()->json(["mensaje" => "Error al insertar el abono"], 400);
+            }
+
+
         }
     }
 
@@ -103,19 +139,17 @@ class FacturaHistorial extends Controller
         $response = [];
         $status = 400;
         $clienteEstado = 1; // Activo
-        
+
         if(is_numeric($id)){
-                    
+
             if(!is_null($request['estado'])) $clienteEstado = $request['estado'];
-        
+
             // dd($request['estado']);
             $abono =  Factura_Historial::where([
                 ['id', '=', $id],
                 // ['estado', '=', $clienteEstado],
             ])->first();
-        
 
-            
             // $cliente =  Cliente::find($id);
             // dd($abono);
             if($abono){
@@ -128,11 +162,11 @@ class FacturaHistorial extends Controller
             }else{
                 $response[] = "El Abono no existe o fue eliminado.";
             }
-            
+
         }else{
             $response[] = "El Valor de Id debe ser numerico.";
         }
-        
+
         return response()->json($response, $status);
     }
 
@@ -158,18 +192,19 @@ class FacturaHistorial extends Controller
     {
         $response = [];
         $status = 400;
-        
+
         if(is_numeric($id)){
             $abono =  Factura_Historial::find($id);
-            
-            if($abono){ 
+
+            if($abono){
                 $validation = Validator::make($request->all() ,[
                     'factura_id' => 'required|numeric',
                     'user_id' => 'required|numeric',
                     'precio' => 'required|numeric',
+                    'debitado' => 'required|numeric|max:1',
                     'estado' => 'required|numeric|max:1',
                 ]);
-                
+
                 if($validation->fails()) {
                     $response[] = $validation->errors();
                 } else {
@@ -179,15 +214,16 @@ class FacturaHistorial extends Controller
                         'factura_id' => $request['factura_id'],
                         'user_id' => $request['user_id'],
                         'precio' => $request['precio'],
+                        'debitado' => $request['debitado'],
                         'estado' => $request['estado'],
                     ]);
 
-                    $this->validarStatusPagado($id,$request['factura_id']);
-                    
-                    if($abonoUpdate){                  
+                    // $this->validarStatusPagado($id,$request['factura_id']);
+
+                    if($abonoUpdate){
                         $response[] = 'Abono modificado con exito.';
                         $status = 200;
-                        
+
                     }else{
                         $response[] = 'Error al modificar los datos.';
                     }
@@ -197,11 +233,11 @@ class FacturaHistorial extends Controller
             }else{
                 $response[] = "El abono no existe.";
             }
-            
+
         }else{
             $response[] = "El Valor de Id debe ser numerico.";
         }
-        
+
         return response()->json($response, $status);
     }
 
@@ -215,21 +251,21 @@ class FacturaHistorial extends Controller
     {
         $response = [];
         $status = 400;
-        
+
         if(is_numeric($id)){
             $abono =  Factura_Historial::find($id);
-            
-            if($abono){ 
+
+            if($abono){
                 $abonoDelete = $abono->update([
                     'estado' => 0,
                 ]);
-                
-                $this->validarStatusPagado($id);
-                
-                if($abonoDelete){                  
+
+                // $this->validarStatusPagado($id);
+
+                if($abonoDelete){
                     $response[] = 'El abono fue eliminado con exito.';
                     $status = 200;
-                    
+
                 }else{
                     $response[] = 'Error al eliminar el abono.';
                 }
@@ -237,40 +273,120 @@ class FacturaHistorial extends Controller
             }else{
                 $response[] = "El abono no existe.";
             }
-            
+
         }else{
             $response[] = "El Valor de Id debe ser numerico.";
         }
-        
+
         return response()->json($response, $status);
     }
-    
-    
-    private function validarStatusPagado($abonoId){
-        // $abono = Factura_Historial::find($abonoId);
-        
-        $facturaHistorial = Factura_Historial::find($abonoId);
-        $factura = Factura::find($facturaHistorial->factura_id);
-        $factura->factura_historial;
-        
-        
-        if(count($factura->factura_historial)>0){
-            $acum = 0 ;
-            foreach ($factura->factura_historial as $key => $itemHistorial) {
-                if($itemHistorial["estado"] == 1){
-                    
-                    $acum += $itemHistorial["precio"] ;
-                }
-                
+
+
+    private function validarStatusPagadoGlobal($clienteID){
+
+        // $cliente = $abono->cliente;
+        $cliente = Cliente::find(1);
+
+        $cliente->factura = $cliente->facturas()->where([
+            ['status', '=', 1],
+            // ['status_pagado', '=', 0] // 0 = en proceso | 1 = Finalizado,
+        ])->get();
+
+        $cliente->factura_historial = $cliente->factura_historial()->where([
+            ['estado', '=', 1],
+            // ['debitado', '=', 0] // 0 = aun no usado el abono | 1 = ya se uso el abono,
+        ])->get();
+
+        if(count($cliente->factura_historial)>0){
+            $totalAbonos = 0 ;
+            foreach ($cliente->factura_historial as $itemHistorial) {
+                $totalAbonos += $itemHistorial["precio"] ;
+
+                $itemHistorial["debitado"] = 1; // coloco como debitado los abonos que ya fuy sumando al acumulador
+                $itemHistorial->update();
+
             }
-            
-            if($acum >= $factura->monto){
-                $factura->status_pagado  = 1;
-                $factura->update();
-            }else{
-                $factura->status_pagado  = 0;
+        }
+
+        if(count($cliente->factura)>0){
+            $tieneSaldo = TRUE; // Bandera para saber cuando debo de dejar ajustar el calculo de saldo restante de las facturas
+
+            foreach ($cliente->factura as $factura) {
+                if($tieneSaldo){
+                    // print_r (json_encode( ["monto" => $factura["monto"] , "totalAbonos"=>$totalAbonos ]));
+                    $totalAbonos =  $totalAbonos - $factura["monto"];
+                    if($totalAbonos < 0){ // si el precio es mas alto que el total de abonos (dejo la factura abierta y ajusto el saldo_restante)
+                        $tieneSaldo = FALSE;
+                        $factura["saldo_restante"] = abs($totalAbonos);
+
+                    }else{// cierro la factura y el saldo restante lo dejo 0
+                        $factura["saldo_restante"] = 0;
+                        $factura["status_pagado"] = 1;
+                    }
+
+                }else{ // si no tiene saldo reinicio la factura
+                    $factura["saldo_restante"] = $factura["monto"];
+                    $factura["status_pagado"] = 0;
+                }
+
                 $factura->update();
             }
         }
+
+        print_r (json_encode( ["cliente" => $cliente, "totalAbonos"=>$totalAbonos ]));
+
+    }
+
+    private function validarStatusPagado($abono){
+        $cliente = Cliente::find(1);
+        // $cliente = $abono->cliente;
+
+        $cliente->factura = $cliente->facturas()->where([
+            ['status', '=', 1],
+            ['status_pagado', '=', 0] // 0 = en proceso | 1 = Finalizado,
+        ])->get();
+
+        $cliente->factura_historial = $cliente->factura_historial()->where([
+            ['estado', '=', 1],
+            ['debitado', '=', 0] // 0 = aun no usado el abono | 1 = ya se uso el abono,
+        ])->get();
+
+        if(count($cliente->factura_historial)>0){
+            $totalAbonos = 0 ;
+            foreach ($cliente->factura_historial as $itemHistorial) {
+                $totalAbonos += $itemHistorial["precio"] ;
+
+                $itemHistorial["debitado"] = 1; // coloco como debitado los abonos que ya fuy sumando al acumulador
+                $itemHistorial->update();
+
+            }
+        }
+
+        if(count($cliente->factura)>0){
+            $tieneSaldo = TRUE; // Bandera para saber cuando debo de dejar ajustar el calculo de saldo restante de las facturas
+
+            foreach ($cliente->factura as $factura) {
+                if($tieneSaldo){
+                    // 200 - 500 = -300 ajusta el restante
+                    // 500 - 500 = 0  cierra factura y ajusta restante
+                    $totalAbonos =  $totalAbonos - $factura["monto"];
+
+                    if($totalAbonos < 0){ // si el precio es mas alto que el total de abonos (dejo la factura abierta y ajusto el saldo_restante)
+                        $tieneSaldo = FALSE;
+                        $factura["saldo_restante"] = abs($totalAbonos) ;
+
+                    }else{// cierro la factura y el saldo restante lo dejo 0
+                        $factura["saldo_restante"] = 0;
+                        $factura["status_pagado"] = 1;
+                    }
+
+                }
+
+                $factura->update();
+            }
+        }
+
+        // print_r (json_encode( ["cliente" => $cliente, "totalAbonos"=>$totalAbonos ]));
+
     }
 }

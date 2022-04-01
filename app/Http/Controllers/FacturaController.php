@@ -94,6 +94,7 @@ class FacturaController extends Controller
                 'user_id'           => $request['user_id'],
                 'cliente_id'        => $request['cliente_id'],
                 'monto'             => $request['monto'],
+                'saldo_restante'    => $request['monto'],
                 'fecha_vencimiento' => $request['fecha_vencimiento'],
                 'iva'               => $request['iva'],
                 'tipo_venta'        => $request['tipo_venta'],
@@ -174,7 +175,7 @@ class FacturaController extends Controller
             if(count($factura->factura_detalle)>0){
                 foreach ($factura->factura_detalle as $key => $productoDetalle) {
                     $producto = Producto::find($productoDetalle["producto_id"]);
-                    // dd($productoDetalle["id"]);
+
                     $productoDetalle["marca"]       = $producto->marca;
                     $productoDetalle["modelo"]      = $producto->modelo;
                     // $productoDetalle["stock"]       = $producto->stock;

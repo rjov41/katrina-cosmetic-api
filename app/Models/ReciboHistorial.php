@@ -13,6 +13,7 @@ class ReciboHistorial extends Model
         'numero',
         'recibo_id',
         'factura_historial_id',
+        'rango',
         'estado',
     ];
 
@@ -23,4 +24,14 @@ class ReciboHistorial extends Model
         return $this->belongsTo(Recibo::class);
     }
 
+    // one to many inversa
+    public function factura_historial()
+    {
+        return $this->belongsTo(FacturaHistorial::class);
+    }
+
+    // public function factura_historial()
+    // {
+    //     return $this->hasMany(FacturaHistorial::class);
+    // }
 }

@@ -138,6 +138,8 @@ class UsuarioController extends Controller
 
                 $usuario->factura;
                 $usuario->role_id = $role_id->role_id;
+                $usuario->recibo;
+
                 $response = $usuario;
                 $status = 200;
 
