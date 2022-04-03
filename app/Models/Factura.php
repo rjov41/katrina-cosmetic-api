@@ -43,6 +43,7 @@ class Factura extends Model
     {
         return $this->hasMany(Factura_Detalle::class);
     }    // one to many
+
     public function factura_historial()
     {
         return $this->hasMany(FacturaHistorial::class);

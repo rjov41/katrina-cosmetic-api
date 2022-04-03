@@ -22,7 +22,7 @@ class FacturaController extends Controller
     {
         $response = [];
         $status = 200;
-        $facturaEstado = 1; // Activo
+        // $facturaEstado = 1; // Activo
         $parametros = [];
 
         if(!is_null($request['estado'])) $parametros[] = ["status", $request['estado']];
@@ -36,9 +36,9 @@ class FacturaController extends Controller
         if(count($facturas) > 0){
             foreach ($facturas as $key => $factura) {
                 $factura->user;
-                $factura->cliente;
+                $factura->cliente->factura_historial;
                 $factura->factura_detalle;
-                $factura->factura_historial;
+                // $factura->factura_historial;
             }
 
             $response = $facturas;
@@ -166,11 +166,16 @@ class FacturaController extends Controller
 
             // if($request->input("estado") != null) $facturaEstado = $request->input("estado");
             // dd($productoEstado);
-
-            $factura =  Factura::with('factura_detalle','cliente','factura_historial')->where([
+            $factura =  Factura::with('factura_detalle','cliente')->where([
                 ['id', '=', $id],
                 // ['estado', '=', $facturaEstado],
             ])->first();
+            // validarStatusPagadoGlobal($factura->cliente->id);
+
+            $factura->cliente->factura_historial = $factura->cliente->factura_historial()->where([
+                ['estado', '=', 1],
+                ['debitado', '=', 1] // 0 = en proceso | 1 = Finalizado,
+            ])->get();
 
             if(count($factura->factura_detalle)>0){
                 foreach ($factura->factura_detalle as $key => $productoDetalle) {
@@ -186,14 +191,14 @@ class FacturaController extends Controller
                 }
             }
 
-            if(count($factura->factura_historial)>0){
-                foreach ($factura->factura_historial as $key => $itemHistorial) {
-                    $user = User::find($itemHistorial["user_id"]);
+            // if(count($factura->factura_historial)>0){
+            //     foreach ($factura->factura_historial as $key => $itemHistorial) {
+            //         $user = User::find($itemHistorial["user_id"]);
 
-                    $itemHistorial["name"]      = $user->name;
-                    $itemHistorial["apellido"]  = $user->apellido;
-                }
-            }
+            //         $itemHistorial["name"]      = $user->name;
+            //         $itemHistorial["apellido"]  = $user->apellido;
+            //     }
+            // }
 
 
 

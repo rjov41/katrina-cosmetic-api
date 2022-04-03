@@ -56,6 +56,7 @@ Route::group(['middleware' => ['auth:sanctum','role:administrador|vendedor|super
 
 Route::resource('cliente', ClienteController::class);
 Route::get('cliente/factura/{id}',  [ClienteController::class, 'clienteToFactura']);
+Route::get('cliente/abono/{id}',  [ClienteController::class, 'calcularAbono']);
 
 Route::resource('roles', RoleController::class);
 
@@ -78,6 +79,7 @@ Route::resource('abonos', FacturaHistorial::class);
 
 Route::resource('recibos', ReciboController::class);
 Route::get('recibos/number/{id}', [ReciboController::class,'getNumeroRecibo']);
+// Route::get('recibos/number/{id}', [ReciboController::class,'validarStatusPagadoGlobal']);
 
 Route::resource('recibosHistorial', ReciboHistorialController::class);
 

@@ -293,10 +293,34 @@ class ClienteController extends Controller
                     $factura->user;
                     $factura->cliente;
                     $factura->factura_detalle;
-                    $factura->factura_historial;
+                    // $factura->factura_historial;
                 }
 
                 $response = $facturas;
+                $status = 200;
+            } else {
+                $response[] = "El cliente no existe.";
+            }
+        } else {
+            $response[] = "El Valor de Id debe ser numerico.";
+        }
+
+        return response()->json($response, $status);
+    }
+
+    function calcularAbono($id)
+    {
+        $response = [];
+        $status = 400;
+
+        if (is_numeric($id)) {
+            $cliente =  Cliente::find($id);
+
+            if ($cliente) {
+                // validarStatusPagadoGlobal($cliente->id);
+                $dataAbono = calcularDeudaFacturaCliente($cliente->id);
+
+                $response = $dataAbono;
                 $status = 200;
             } else {
                 $response[] = "El cliente no existe.";

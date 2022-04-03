@@ -139,7 +139,7 @@ class ReciboController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function getNumeroRecibo(Request $request,$id)
+    public function getNumeroRecibo($id)
     {
         $response = [];
         $status = 400;
@@ -161,6 +161,7 @@ class ReciboController extends Controller
                     $i++;
                 }
                 // print_r (json_encode($posiblesNumerosRecibos));
+                // validarStatusPagadoGlobal(4); // logica para calcular el saldo restante de una factura y si se cierra la factura
 
                 $recibo->recibo_historial = $recibo->recibo_historial()->where([
                     ['estado', '=', 1],
