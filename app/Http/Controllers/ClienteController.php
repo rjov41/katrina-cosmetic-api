@@ -30,6 +30,7 @@ class ClienteController extends Controller
         if (count($clientes) > 0) {
             foreach ($clientes as $key => $cliente) {
                 // dd($cliente->frecuencias);
+                // validarStatusPagadoGlobal($cliente->id);
                 $clientes->frecuencia = $cliente->frecuencia;
                 $clientes->categoria = $cliente->categoria;
                 $clientes->facturas = $cliente->facturas;
