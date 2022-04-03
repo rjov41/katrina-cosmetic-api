@@ -18,16 +18,16 @@ class CategoriaController extends Controller
         $response = [];
         $status = 200;
         $clienteEstado = 1; // Activo
-        
+
         // if($request->input() != null) $clienteEstado = $request->input("estado");
-        
+
         // dd($clienteEstado);
         $cliente =  Categoria::where('estado',$clienteEstado)->get();
-        
+
         if(count($cliente) > 0){
             $response[] = $cliente;
         }
-        
+
         return response()->json($cliente, $status);
     }
 
@@ -49,6 +49,9 @@ class CategoriaController extends Controller
      */
     public function store(Request $request)
     {
+        $response = [];
+        $status = 400;
+
         $validation = Validator::make($request->all() ,[
             'tipo' => 'required|string|unique:categorias,tipo',
             'descripcion' => 'required|string',
@@ -58,23 +61,20 @@ class CategoriaController extends Controller
         // dd($request->all());
         // dd($validation->errors());
         if($validation->fails()) {
-            return response()->json($validation->errors(), 400);
+            $response[] =  $validation->errors();
         } else {
-            
+
             $categoria = Categoria::create([
                 'tipo' => $request['tipo'],
                 'descripcion' => $request['descripcion'],
                 'valor_dias' => $request['valor_dias'],
                 'estado' => $request['estado'],
             ]);
-            
-            return response()->json([
-                // 'success' => 'Usuario Insertado con exito',
-                // 'data' =>[
-                    'id' => $categoria->id,
-                // ]
-            ], 201);
+
+            $response['id'] =  $categoria->id;
+            $status = 201;
         }
+        return response()->json($response, $status);
     }
 
     /**
@@ -88,18 +88,18 @@ class CategoriaController extends Controller
         $response = [];
         $status = 400;
         $clienteEstado = 1; // Activo
-        
+
         if(is_numeric($id)){
-                    
+
             // if($request->input("estado") != null) $clienteEstado = $request->input("estado");
-        
+
             // dd($clienteEstado);
             $categoria =  Categoria::where([
                 ['id', '=', $id],
                 // ['estado', '=', $clienteEstado],
             ])->first();
-        
-        
+
+
             // $cliente =  Cliente::find($id);
             if($categoria){
                 $response = $categoria;
@@ -108,11 +108,11 @@ class CategoriaController extends Controller
             }else{
                 $response[] = "La categoria no existe o fue eliminado.";
             }
-            
+
         }else{
             $response[] = "El Valor de Id debe ser numerico.";
         }
-        
+
         return response()->json($response, $status);
     }
 
@@ -138,11 +138,11 @@ class CategoriaController extends Controller
     {
         $response = [];
         $status = 400;
-        
+
         if(is_numeric($id)){
             $categoria =  Categoria::find($id);
-            
-            if($categoria){ 
+
+            if($categoria){
                 $validation = Validator::make($request->all() ,[
                     'tipo' => 'required|string|unique:categorias,tipo,'.$id,
                     'descripcion' => 'required|string',
@@ -154,7 +154,7 @@ class CategoriaController extends Controller
                     $response[] = $validation->errors();
                 } else {
 
-                    
+
                     $categoriaUpdate = $categoria->update([
                         'tipo' => $request['tipo'],
                         'descripcion' => $request['descripcion'],
@@ -162,11 +162,11 @@ class CategoriaController extends Controller
                         'estado' => $request['estado'],
                     ]);
 
-                    
-                    if($categoriaUpdate){                  
+
+                    if($categoriaUpdate){
                         $response[] = 'Categoria modificada con exito.';
                         $status = 200;
-                        
+
                     }else{
                         $response[] = 'Error al modificar los datos.';
                     }
@@ -176,11 +176,11 @@ class CategoriaController extends Controller
             }else{
                 $response[] = "La categoria no existe.";
             }
-            
+
         }else{
             $response[] = "El Valor de Id debe ser numerico.";
         }
-        
+
         return response()->json($response, $status);
     }
 
@@ -194,19 +194,19 @@ class CategoriaController extends Controller
     {
         $response = [];
         $status = 400;
-        
+
         if(is_numeric($id)){
             $cliente =  Categoria::find($id);
-            
-            if($cliente){ 
+
+            if($cliente){
                 $clienteDelete = $cliente->update([
                     'estado' => 0,
                 ]);
-                
-                if($clienteDelete){                  
+
+                if($clienteDelete){
                     $response[] = 'La Categoria fue eliminado con exito.';
                     $status = 200;
-                    
+
                 }else{
                     $response[] = 'Error al eliminar la categoria.';
                 }
@@ -214,11 +214,11 @@ class CategoriaController extends Controller
             }else{
                 $response[] = "La categoria no existe.";
             }
-            
+
         }else{
             $response[] = "El Valor de Id debe ser numerico.";
         }
-        
+
         return response()->json($response, $status);
     }
 }
