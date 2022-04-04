@@ -54,7 +54,7 @@ use App\Models\Cliente;
             }
         }
 
-        print_r (json_encode( ["cliente" => $cliente, "totalAbonos"=>$totalAbonos ]));
+        // print_r (json_encode( ["cliente" => $cliente, "totalAbonos"=>$totalAbonos ]));
 
     }
 
