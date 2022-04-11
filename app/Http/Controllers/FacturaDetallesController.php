@@ -183,10 +183,13 @@ class FacturaDetallesController extends Controller
 
                             // print_r($total);
 
-                            if($total > 0 ){
+                            // if($total > 0 ){
                                 $factura->monto = $total;
+                                $factura->saldo_restante = $total;
                                 $factura->update();
-                            }
+
+                                validarStatusPagadoGlobal($factura->cliente_id);
+                            // }
                             // echo "<pre>";
                             // print_r (json_encode($factura));
                             // echo "</pre>";

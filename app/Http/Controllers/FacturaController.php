@@ -166,7 +166,7 @@ class FacturaController extends Controller
 
             // if($request->input("estado") != null) $facturaEstado = $request->input("estado");
             // dd($productoEstado);
-            $factura =  Factura::with('factura_detalle','cliente')->where([
+            $factura =  Factura::with('factura_detalle','cliente','user')->where([
                 ['id', '=', $id],
                 // ['estado', '=', $facturaEstado],
             ])->first();
