@@ -9,17 +9,18 @@ class Factura_Detalle extends Model
 {
     protected $table = "factura_detalles";// <-- El nombre personalizado
     use HasFactory;
-    
+
     protected $fillable = [
         'producto_id',
         'factura_id',
         'cantidad',
         'precio',
+        'precio_unidad',
         'estado',
         // 'porcentaje',
     ];
-    
-    
+
+
     public function producto()
     {
         return $this->belongsTo(Producto::class);
@@ -29,5 +30,5 @@ class Factura_Detalle extends Model
     {
         return $this->belongsTo(Factura::class);
     }
-    
+
 }

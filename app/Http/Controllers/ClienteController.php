@@ -332,4 +332,44 @@ class ClienteController extends Controller
 
         return response()->json($response, $status);
     }
+
+    function calcularDeudaVendedorCliente($id)
+    {
+        $response = ["deuda" => 0];
+        $status = 200;
+
+        if (is_numeric($id)) {
+            $cliente =  Cliente::find($id);
+
+            if ($cliente) {
+                // validarStatusPagadoGlobal($cliente->id);
+                $dataAbono = calcularDeudaFacturasGlobal($cliente->id);
+
+                $response["deuda"] = $dataAbono;
+                $response["deuda_vendedor"] = ($dataAbono > 0) ? TRUE: FALSE;
+            }
+        }
+
+        return response()->json($response, $status);
+    }
+
+    function calcularDeudaVendedorTodosClientes()
+    {// negativo es que debe el cliente y positivo es que le debemos al cliente
+        $response = [];
+        $status = 200;
+
+        $clientes =  Cliente::all();
+
+        foreach ($clientes as $cliente) {
+            // print_r(json_encode($cliente));
+            $dataAbono = calcularDeudaFacturasGlobal($cliente->id);
+            array_push($response, [
+                "cliente_id" => $cliente->id,
+                "deuda" => $dataAbono,
+                "deudaVendedor" => ($dataAbono > 0) ? TRUE: FALSE,
+            ]);
+        }
+
+        return response()->json($response, $status);
+    }
 }

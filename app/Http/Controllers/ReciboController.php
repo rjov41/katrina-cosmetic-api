@@ -181,6 +181,21 @@ class ReciboController extends Controller
 
                 }
 
+                // Historial de recivos de Facturas Contado
+                $recibo->recibo_historial_contado = $recibo->recibo_historial_contado()->where([
+                    ['estado', '=', 1],
+                ])->get();
+
+                if(count($recibo->recibo_historial_contado) >0){
+                    foreach ($recibo->recibo_historial_contado as $itemHistorialContado) {
+                        $posicionReciboExistenteContado = array_search($itemHistorialContado->numero, $posiblesNumerosRecibos);
+
+                        if($posicionReciboExistenteContado !== FALSE) array_splice($posiblesNumerosRecibos, $posicionReciboExistenteContado,1); // Elimino de la lista de numeros validos los recibos existentes
+
+                    }
+
+                }
+
                 if(count($posiblesNumerosRecibos) > 0){ // si aun tiene numeros disponibles retorno el numero
                     $response = ["numero"=> $posiblesNumerosRecibos[0]];
                     $status = 200;

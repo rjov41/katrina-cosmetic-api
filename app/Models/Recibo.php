@@ -29,4 +29,9 @@ class Recibo extends Model
         return $this->hasMany(ReciboHistorial::class);
     }
 
+    public function recibo_historial_contado()
+    {
+        return $this->hasMany(ReciboHistorialContado::class);
+    }
+
 }

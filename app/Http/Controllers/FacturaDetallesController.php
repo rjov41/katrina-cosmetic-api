@@ -149,6 +149,7 @@ class FacturaDetallesController extends Controller
                     'factura_id' => 'required|numeric',
                     'cantidad' => 'required|numeric',
                     'precio' => 'required|numeric',
+                    'precio_unidad' => 'required|numeric',
                     'porcentaje' => 'required|numeric',
                 ]);
 
@@ -162,6 +163,7 @@ class FacturaDetallesController extends Controller
                         'factura_id' => $request['factura_id'],
                         'cantidad' => $request['cantidad'],
                         'precio' => $request['precio'],
+                        'precio_unidad' => $request['precio_unidad'],
                         'porcentaje' => $request['porcentaje'],
                     ]);
 

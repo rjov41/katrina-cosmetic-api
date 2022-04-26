@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateFacturaDetallesTable extends Migration
+class ReciboHistorialContado extends Migration
 {
     /**
      * Run the migrations.
@@ -13,23 +13,26 @@ class CreateFacturaDetallesTable extends Migration
      */
     public function up()
     {
-        Schema::create('factura_detalles', function (Blueprint $table) {
+        Schema::create('recibo_historial_contado', function (Blueprint $table) {
             $table->id();
 
+            $table->bigInteger("numero",false,true);
 
-            // productos
-            $table->unsignedBigInteger("producto_id");
-            $table->foreign("producto_id")->references("id")->on("productos");
+            $table->unsignedBigInteger("recibo_id");
+            $table->foreign("recibo_id")->references("id")->on("recibos");
+
+            // $table->unsignedBigInteger("factura_historial_id");
+            // $table->foreign("factura_historial_id")->references("id")->on("factura_historials");
 
             // Facturas
             $table->unsignedBigInteger("factura_id");
             $table->foreign("factura_id")->references("id")->on("facturas");
 
-            $table->integer("cantidad")->length(5);
-            $table->double('precio', 7, 2);
-            $table->double('precio_unidad', 7, 2)->default(0);
-            // $table->integer("porcentaje");
+            $table->string("rango",200);
+
             $table->integer("estado")->length(1);
+
+
             $table->timestamps();
         });
     }
@@ -41,6 +44,6 @@ class CreateFacturaDetallesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('factura_detalles');
+        Schema::dropIfExists('recibo_historial_contado');
     }
 }

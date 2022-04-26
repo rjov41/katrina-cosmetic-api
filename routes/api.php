@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthenticationController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\DevolucionFacturaController;
+use App\Http\Controllers\DevolucionProductoController;
 use App\Http\Controllers\FacturaController;
 use App\Http\Controllers\FacturaDetallesController;
 use App\Http\Controllers\FacturaHistorial;
@@ -14,8 +16,8 @@ use App\Http\Controllers\ProductosController;
 use App\Http\Controllers\ReciboController;
 use App\Http\Controllers\ReciboHistorialController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\ScriptController;
 use App\Http\Controllers\UsuarioController;
-
 
 /*
 |--------------------------------------------------------------------------
@@ -36,12 +38,11 @@ Route::post('/create-account', [AuthenticationController::class, 'createAccount'
 Route::post('/signin', [AuthenticationController::class, 'signin']);
 
 //using middleware
-Route::group(['middleware' => ['auth:sanctum','role:administrador|vendedor|supervisor']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'role:administrador|vendedor|supervisor']], function () {
     Route::post('/sign-out', [AuthenticationController::class, 'signout']);
-    Route::get('/profile', function(Request $request) {
+    Route::get('/profile', function (Request $request) {
         return auth()->user();
     });
-
 });
 
 // Route::middleware(
@@ -54,9 +55,11 @@ Route::group(['middleware' => ['auth:sanctum','role:administrador|vendedor|super
 
 // });
 
-Route::resource('cliente', ClienteController::class);
 Route::get('cliente/factura/{id}',  [ClienteController::class, 'clienteToFactura']);
 Route::get('cliente/abono/{id}',  [ClienteController::class, 'calcularAbono']);
+Route::get('cliente/deuda/{id}',  [ClienteController::class, 'calcularDeudaVendedorCliente']);
+Route::get('cliente/deuda',  [ClienteController::class, 'calcularDeudaVendedorTodosClientes']);
+Route::resource('cliente', ClienteController::class);
 
 Route::resource('roles', RoleController::class);
 
@@ -73,20 +76,28 @@ Route::resource('productos', ProductosController::class);
 Route::resource('factura-detalle', FacturaDetallesController::class);
 
 Route::resource('facturas', FacturaController::class);
-Route::put('facturas/despachar/{id}', [FacturaController::class,'despachar']);
+Route::put('facturas/despachar/{id}', [FacturaController::class, 'despachar']);
 
 Route::resource('abonos', FacturaHistorial::class);
 
 Route::resource('recibos', ReciboController::class);
-Route::get('recibos/number/{id}', [ReciboController::class,'getNumeroRecibo']);
+Route::get('recibos/number/{id}', [ReciboController::class, 'getNumeroRecibo']);
 // Route::get('recibos/number/{id}', [ReciboController::class,'validarStatusPagadoGlobal']);
 
 Route::resource('recibosHistorial', ReciboHistorialController::class);
 
-Route::get('pdf/{id}', [PdfController::class,'facturaPago']);
-Route::post('pdf', );
+Route::get('pdf/{id}', [PdfController::class, 'facturaPago']);
+Route::post('pdf',);
 
-Route::get('mail/{id}', [PdfController::class,'SendMail']);
+Route::get('mail/{id}', [PdfController::class, 'SendMail']);
+
+Route::resource('devolucion-factura', DevolucionFacturaController::class);
+
+Route::resource('devoluciones-producto', DevolucionProductoController::class);
+
+Route::get('script/AsignarPrecioPorUnidadGlobal', [ScriptController::class, 'AsignarPrecioPorUnidadGlobal']);
+Route::get('script/validarStatusPagadoGlobal', [ScriptController::class, 'validarStatusPagadoGlobal']);
+
 
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

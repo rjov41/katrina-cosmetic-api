@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Factura;
 use App\Models\Factura_Detalle;
 use App\Models\Producto;
+use App\Models\ReciboHistorialContado;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class FacturaController extends Controller
 {
@@ -76,11 +78,23 @@ class FacturaController extends Controller
             'despachado'        => 'required|numeric|max:1',
             'estado'            => 'required|numeric|max:1',
 
-            'factura_detalle'               => 'required|array',
-            'factura_detalle.*.producto_id' => 'required|numeric',
-            'factura_detalle.*.cantidad'    => 'required|numeric',
-            'factura_detalle.*.precio'      => 'required|numeric',
-            'factura_detalle.*.estado'      => 'required|numeric',
+            'factura_detalle'                   => 'required|array',
+            'factura_detalle.*.producto_id'     => 'required|numeric',
+            'factura_detalle.*.cantidad'        => 'required|numeric',
+            'factura_detalle.*.precio'          => 'required|numeric',
+            'factura_detalle.*.precio_unidad'   => 'required|numeric',
+            'factura_detalle.*.estado'          => 'required|numeric',
+
+            'numero'       => [
+                'required',
+                'numeric',
+                Rule::unique('recibo_historial_contado')->where(fn ($query) => $query->where('estado', 1)),
+            ],
+            'recibo_id'         => 'numeric|required',
+            'rango'             => 'required|string',
+
+        ],[
+            'numero.unique' => 'El número de recibo ya existe en nuestra base de datos.',
         ]);
 
         if($validation->fails()) {
@@ -104,8 +118,18 @@ class FacturaController extends Controller
             ];
             $factura = Factura::create($facturaInsert); // inserto factura
 
+            if($request["tipo_venta"] == 2 ){ // si es contado
+                $recibo = ReciboHistorialContado::create([ // genero recibo de factura
+                    'numero'                => $request['numero'],
+                    'recibo_id'             => $request['recibo_id'],
+                    'factura_id'            => $factura->id,
+                    'rango'                 => $request['rango'],
+                    'estado'                => 1,
+                ]);
+            }
+
             $currentDate = Carbon::now('utc')->toDateTimeString();
-            foreach ($request['factura_detalle'] as $key => $productoDetalle) {
+            foreach ($request['factura_detalle'] as $key => $productoDetalle) { // cargo productos
                 $producto = Producto::firstWhere('id', $productoDetalle['producto_id']);
 
                 if(!$producto){
@@ -124,14 +148,14 @@ class FacturaController extends Controller
                 $producto->save();
 
                 $fDetalles[] = [
-
-                    'producto_id' => $productoDetalle['producto_id'],
-                    'factura_id'  => $factura->id,
-                    'cantidad'    => $productoDetalle['cantidad'],
-                    'precio'      => $productoDetalle['precio'],
-                    'created_at'  => $currentDate,
-                    'updated_at'  => $currentDate,
-                    'estado'      => $productoDetalle['estado']
+                    'producto_id'       => $productoDetalle['producto_id'],
+                    'factura_id'        => $factura->id,
+                    'cantidad'          => $productoDetalle['cantidad'],
+                    'precio'            => $productoDetalle['precio'],
+                    'precio_unidad'     => $productoDetalle['precio_unidad'],
+                    'created_at'        => $currentDate,
+                    'updated_at'        => $currentDate,
+                    'estado'            => $productoDetalle['estado']
                 ];
             }
 
