@@ -39,7 +39,9 @@ class FacturaController extends Controller
             foreach ($facturas as $key => $factura) {
                 $factura->user;
                 $factura->cliente->factura_historial;
-                $factura->factura_detalle;
+                $factura->factura_detalle = $factura->factura_detalle()->where([
+                    ['estado', '=', 1],
+                ])->get();
                 // $factura->factura_historial;
             }
 
@@ -190,12 +192,14 @@ class FacturaController extends Controller
 
             // if($request->input("estado") != null) $facturaEstado = $request->input("estado");
             // dd($productoEstado);
-            $factura =  Factura::with('factura_detalle','cliente','user')->where([
+            $factura =  Factura::with('cliente','user')->where([
                 ['id', '=', $id],
                 // ['estado', '=', $facturaEstado],
             ])->first();
             // validarStatusPagadoGlobal($factura->cliente->id);
-
+            $factura->factura_detalle = $factura->factura_detalle()->where([
+                ['estado', '=', 1],
+            ])->get();
             $factura->cliente->factura_historial = $factura->cliente->factura_historial()->where([
                 ['estado', '=', 1],
                 ['debitado', '=', 1] // 0 = en proceso | 1 = Finalizado,

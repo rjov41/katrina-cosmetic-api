@@ -3,6 +3,7 @@
 use App\Models\Cliente;
 use App\Models\Factura;
 use App\Models\Factura_Detalle;
+use App\Models\Producto;
 
     function validarStatusPagadoGlobal($clienteID){
 
@@ -184,7 +185,7 @@ use App\Models\Factura_Detalle;
         if($detalle){
             if(($detalle->cantidad - $cantidad) <=0){
                 $detalle->cantidad = 0;  // si la cantidad es menor o igual a 0 la pongo en 0
-                $detalle->status = 0;    // si la cantidad es menor o igual a 0 desactivo el producto de la factura
+                $detalle->estado = 0;    // si la cantidad es menor o igual a 0 desactivo el producto de la factura
             }else{
                 $detalle->cantidad = $detalle->cantidad - $cantidad;
                 // $total +=  $productoDetalle["precio_unidad"] * $productoDetalle["cantidad"];
@@ -205,30 +206,43 @@ use App\Models\Factura_Detalle;
 
     function ActualizarPrecioFactura($factura_id){
         $factura = Factura::find($factura_id);
-        $factura->factura_detalle;
+        $factura_detalle = $factura->factura_detalle()->where([
+            ['estado', '=', 1],
+        ])->get();
 
-        if(count($factura->factura_detalle)>0){
+        if(count($factura_detalle)>0){
             $total = 0;
 
-            foreach ($factura->factura_detalle as $productoDetalle) {
+            foreach ($factura_detalle as $productoDetalle) {
                 // $total +=  $productoDetalle["precio_unidad"] * $productoDetalle["cantidad"];
                 $total +=  $productoDetalle["precio"];
             }
 
             $factura->monto = $total;
             $factura->saldo_restante = $total;
-            $factura->update();
 
-            validarStatusPagadoGlobal($factura->cliente_id);
+        }else{ // NO TIENES PRODUCTOS ACTIVOS EN LA FACTURA
+            // $factura->monto = 0;
+            // $factura->saldo_restante = 0;
 
+            // desactibo la factura para que no se tome en cuenta
+            $factura->status = 0;
         }
+
+        // print_r (json_encode($factura));
+
+        $factura->update();
+
+        validarStatusPagadoGlobal($factura->cliente_id);
     }
 
     function AsignarPrecioPorUnidadGlobal(){
         $facturas = Factura::all();
 
         foreach ($facturas  as $key => $factura) {
-            $factura->factura_detalle;
+            $factura->factura_detalle = $factura->factura_detalle()->where([
+                ['estado', '=', 1],
+            ])->get();
             if(count($factura->factura_detalle)>0){
                 $precio_unidad = 0;
 
@@ -250,4 +264,21 @@ use App\Models\Factura_Detalle;
 
 
 
+    }
+
+    function devolverStockProducto($detalle_id,$cantidad){
+        // print_r(json_encode($detalle_id));
+        $detalle = Factura_Detalle::where("id",$detalle_id)->first();
+        if($detalle){
+            $producto = Producto::where("id",$detalle->producto_id)->first();
+            // print_r(json_encode($producto));
+            $producto->stock = $producto->stock + $cantidad;
+            $producto->estado = 1;
+            $producto->update();
+            // print_r(json_encode($producto));
+
+            return true;
+        }
+
+        return false;
     }

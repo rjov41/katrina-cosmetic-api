@@ -50,4 +50,25 @@ class ScriptController extends Controller
         return response()->json($response, $status);
     }
 
+    public function ActualizarPrecioFactura($id)
+    {
+        $response = [];
+        $status = 200;
+
+        DB::beginTransaction();
+        try {
+            ActualizarPrecioFactura($id); //cliente perfecto
+            // DB::rollback();
+            DB::commit();
+            return response()->json([
+                'mensaje' => "Exito [ActualizarPrecioFactura]",], 200);
+        } catch (Exception $e) {
+            DB::rollback();
+            // print_r(json_encode($e));
+            return response()->json(["mensaje" => "Error en el Script  [ActualizarPrecioFactura]"], 400);
+        }
+
+        return response()->json($response, $status);
+    }
+
 }

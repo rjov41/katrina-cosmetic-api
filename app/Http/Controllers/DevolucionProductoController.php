@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\DevolucionProducto;
 use App\Models\Factura_Detalle;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class DevolucionProductoController extends Controller
@@ -73,26 +75,37 @@ class DevolucionProductoController extends Controller
             return response()->json($validation->errors(), 400);
         } else {
 
-            $devolucionFactura = DevolucionProducto::create([
-                'factura_detalle_id' => $request['factura_detalle_id'],
-                'user_id' => $request['user_id'],
-                'cantidad' => $request['cantidad'],
-                'descripcion' => $request['descripcion'],
-                'estado'     => $request['estado'],
-            ]);
+            DB::beginTransaction();
+            try {
+                $devolucionProducto = DevolucionProducto::create([
+                    'factura_detalle_id' => $request['factura_detalle_id'],
+                    'user_id' => $request['user_id'],
+                    'cantidad' => $request['cantidad'],
+                    'descripcion' => $request['descripcion'],
+                    'estado'     => $request['estado'],
+                ]);
 
-            if($devolucionFactura){
-                // $detalleFactura = Factura_Detalle::where('id', $request['factura_detalle_id'])->get();
+                if($devolucionProducto){
+                    // $detalleFactura = Factura_Detalle::where('id', $request['factura_detalle_id'])->get();
+                    actualizarCantidadDetalleProducto($request['factura_detalle_id'],$request['cantidad']);
+                    devolverStockProducto($request['factura_detalle_id'],$request['cantidad']);
 
-                actualizarCantidadDetalleProducto($request['factura_detalle_id'],$request['cantidad']);
+                }
+                DB::commit();
+
+                return response()->json([
+                    // 'success' => 'Usuario Insertado con exito',
+                    // 'data' =>[
+                    'id' => $devolucionProducto->id,
+                    // ]
+                ], 201);
+
+            } catch (Exception $e) {
+                DB::rollback();
+                // print_r(json_encode($e));
+                return response()->json(["mensaje" => json_encode($e)], 400);
             }
 
-            return response()->json([
-                // 'success' => 'Usuario Insertado con exito',
-                // 'data' =>[
-                'id' => $devolucionFactura->id,
-                // ]
-            ], 201);
         }
     }
 
