@@ -35,6 +35,7 @@ class FacturaHistorial extends Controller
         if(count($facturasHistorial) > 0){
             foreach ($facturasHistorial as $key => $facturaHistorial) {
                 $facturaHistorial->factura;
+                $facturaHistorial->recibo_historial;
 
                 $cliente = Cliente::find($facturaHistorial->cliente_id);
                 $usuario = User::find($facturaHistorial->user_id);

@@ -27,4 +27,9 @@ class FacturaHistorial extends Model
     {
         return $this->belongsTo(Cliente::class);
     }
+
+    public function recibo_historial()
+    {
+        return $this->hasOne(ReciboHistorial::class);
+    }
 }
