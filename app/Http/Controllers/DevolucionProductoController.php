@@ -86,11 +86,10 @@ class DevolucionProductoController extends Controller
                 ]);
 
                 if($devolucionProducto){
-                    // $detalleFactura = Factura_Detalle::where('id', $request['factura_detalle_id'])->get();
                     actualizarCantidadDetalleProducto($request['factura_detalle_id'],$request['cantidad']);
                     devolverStockProducto($request['factura_detalle_id'],$request['cantidad']);
-
                 }
+
                 DB::commit();
 
                 return response()->json([

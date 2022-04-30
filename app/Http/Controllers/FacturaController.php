@@ -163,6 +163,7 @@ class FacturaController extends Controller
 
 
             $factura_Detalle = Factura_Detalle::insert($fDetalles); // inserto detalle de factura
+            validarStatusPagadoGlobal( $request['cliente_id']); // valido si todas las facturas y ajusto en caso de que se le deba al cliente
 
             DB::commit();
             return response()->json([
