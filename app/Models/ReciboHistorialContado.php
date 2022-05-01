@@ -24,9 +24,9 @@ class ReciboHistorialContado extends Model
         return $this->belongsTo(Recibo::class);
     }
 
-    public function facturas()
+    public function factura()
     {
-        return $this->hasMany(Factura::class);
+        return $this->belongsTo(Factura::class);
     }
 
 

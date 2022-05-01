@@ -29,7 +29,7 @@ class ReciboHistorialController extends Controller
 
         if(count($recibos) > 0){
             foreach ($recibos as $recibo) {
-                $recibo->recibo;
+                $recibo->recibo->user;
                 $recibo->factura_historial;
 
             }

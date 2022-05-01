@@ -14,6 +14,7 @@ use App\Http\Controllers\FrecuenciaController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\ProductosController;
 use App\Http\Controllers\ReciboController;
+use App\Http\Controllers\ReciboHistorialContadoController;
 use App\Http\Controllers\ReciboHistorialController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ScriptController;
@@ -81,10 +82,10 @@ Route::put('facturas/despachar/{id}', [FacturaController::class, 'despachar']);
 Route::resource('abonos', FacturaHistorial::class);
 
 Route::resource('recibos', ReciboController::class);
+Route::resource('recibos/historial/contado', ReciboHistorialContadoController::class);
+Route::resource('recibos/historial/credito', ReciboHistorialController::class);
 Route::get('recibos/number/{id}', [ReciboController::class, 'getNumeroRecibo']);
-// Route::get('recibos/number/{id}', [ReciboController::class,'validarStatusPagadoGlobal']);
 
-Route::resource('recibosHistorial', ReciboHistorialController::class);
 
 Route::get('pdf/{id}', [PdfController::class, 'facturaPago']);
 Route::post('pdf',);
