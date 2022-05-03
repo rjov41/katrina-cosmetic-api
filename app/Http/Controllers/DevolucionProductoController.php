@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DeudaContadoProducto;
 use App\Models\DevolucionProducto;
 use App\Models\Factura_Detalle;
 use Exception;
@@ -77,6 +78,8 @@ class DevolucionProductoController extends Controller
 
             DB::beginTransaction();
             try {
+                $factura_Detalle = Factura_Detalle::where('id', $request['factura_detalle_id'])->first();
+
                 $devolucionProducto = DevolucionProducto::create([
                     'factura_detalle_id' => $request['factura_detalle_id'],
                     'user_id' => $request['user_id'],
@@ -86,8 +89,18 @@ class DevolucionProductoController extends Controller
                 ]);
 
                 if($devolucionProducto){
+                    //actualiza la cantidad de productos en factura_detalle, el precio de la factura y ejecuta [validarStatusPagadoGlobal] si es credito
                     actualizarCantidadDetalleProducto($request['factura_detalle_id'],$request['cantidad']);
+
+                    // agrega los productos devueltos al stock de productos en inventarios
                     devolverStockProducto($request['factura_detalle_id'],$request['cantidad']);
+
+                    $deudaContadoProducto = DeudaContadoProducto::create([
+                        'devolucion_producto_id' => $devolucionProducto->id,
+                        'monto'    => $factura_Detalle->precio,
+                        'estado'    => 1,
+                    ]);
+
                 }
 
                 DB::commit();

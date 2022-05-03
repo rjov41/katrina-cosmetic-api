@@ -28,4 +28,10 @@ class DevolucionFactura extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    // one to many
+    public function deuda_contado()
+    {
+        return $this->hasMany(DeudaContado::class);
+    }
 }

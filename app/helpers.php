@@ -1,9 +1,11 @@
 <?php
 
 use App\Models\Cliente;
+use App\Models\DeudaContado;
 use App\Models\Factura;
 use App\Models\Factura_Detalle;
 use App\Models\Producto;
+use Illuminate\Support\Facades\DB;
 
     function validarStatusPagadoGlobal($clienteID){
 
@@ -149,7 +151,7 @@ use App\Models\Producto;
         return $data;
     }
 
-    function calcularDeudaFacturasGlobal($clienteID){
+    function calcularDeudaFacturasCreditoGlobal($clienteID){
         $cliente = Cliente::find($clienteID);
 
         $cliente->factura = $cliente->facturas()->where([
@@ -177,6 +179,28 @@ use App\Models\Producto;
         }
 
         return number_format($totalAbonos, 2);
+    }
+
+    function calcularDeudaFacturasContadoGlobal($clienteID){
+        $deudas = DB::select("SELECT
+                deudaF.*
+            FROM clientes AS cli
+            INNER JOIN facturas AS fac ON cli.id = fac.cliente_id
+            INNER JOIN devolucion_facturas AS dfac ON fac.id = dfac.factura_id
+            INNER JOIN deuda_contados AS deudaF ON dfac.id = deudaF.devolucion_factura_id
+            WHERE
+                cli.id = $clienteID AND
+                deudaF.estado = 1 AND
+                dfac.estado  = 1"
+        );
+
+        $monto = 0;
+        foreach ($deudas as $deuda) {
+            $monto = $monto + $deuda->monto;
+        }
+
+        // print_r(json_encode($deudas));
+        return number_format($monto, 2);
     }
 
     function actualizarCantidadDetalleProducto($detalleID, $cantidad){
@@ -233,7 +257,9 @@ use App\Models\Producto;
 
         $factura->update();
 
-        validarStatusPagadoGlobal($factura->cliente_id);
+        if($factura->tipo_venta == 1){ // si es credito
+            validarStatusPagadoGlobal($factura->cliente_id);
+        }
     }
 
     function AsignarPrecioPorUnidadGlobal(){

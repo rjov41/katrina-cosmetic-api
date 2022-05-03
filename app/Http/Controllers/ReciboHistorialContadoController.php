@@ -28,7 +28,7 @@ class ReciboHistorialContadoController extends Controller
         if(count($recibos) > 0){
             foreach ($recibos as $recibo) {
                 $recibo->recibo->user;
-                $recibo->factura;
+                $recibo->factura->cliente;
             }
 
             $response = $recibos;

@@ -335,7 +335,7 @@ class ClienteController extends Controller
 
     function calcularDeudaVendedorCliente($id)
     {
-        $response = ["deuda" => 0];
+        $response = ["deuda_contado" => 0,"deuda_credito" => 0];
         $status = 200;
 
         if (is_numeric($id)) {
@@ -343,10 +343,12 @@ class ClienteController extends Controller
 
             if ($cliente) {
                 // validarStatusPagadoGlobal($cliente->id);
-                $dataAbono = calcularDeudaFacturasGlobal($cliente->id);
+                $deudaFacturasCredito = calcularDeudaFacturasCreditoGlobal($cliente->id);
+                $deudaFacturasContado = calcularDeudaFacturasContadoGlobal($cliente->id);
 
-                $response["deuda"] = $dataAbono;
-                $response["deuda_vendedor"] = ($dataAbono > 0) ? TRUE: FALSE;
+                $response["deuda_contado"] = $deudaFacturasContado;
+                $response["deuda_credito"] = $deudaFacturasCredito;
+                $response["deuda_vendedor"] = ($deudaFacturasContado > 0 || $deudaFacturasCredito > 0) ? TRUE: FALSE;
             }
         }
 
@@ -362,7 +364,7 @@ class ClienteController extends Controller
 
         foreach ($clientes as $cliente) {
             // print_r(json_encode($cliente));
-            $dataAbono = calcularDeudaFacturasGlobal($cliente->id);
+            $dataAbono = calcularDeudaFacturasCreditoGlobal($cliente->id);
             array_push($response, [
                 "cliente_id" => $cliente->id,
                 "deuda" => $dataAbono,

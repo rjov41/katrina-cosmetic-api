@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DeudaContado;
 use App\Models\DevolucionFactura;
 use App\Models\Factura;
 use Exception;
@@ -73,8 +74,8 @@ class DevolucionFacturaController extends Controller
             'user_id' => 'required|numeric',
             'descripcion' => 'string|nullable',
             'estado' => 'required|numeric|max:1',
-        ]);
 
+        ]);
         if ($validation->fails()) {
             $response[] = $validation->errors();
         } else {
@@ -95,15 +96,12 @@ class DevolucionFacturaController extends Controller
                             'estado' => 0
                         ]);
                     }
-                    // 3 - Actualizo el estadp de la factura
+                    // 3 - Actualizo el estado de la factura
                     $factura->update([
                         'status' => 0,
                     ]);
 
-                    // 4 - Recalculo la deuda del cliente sin la factura eliminada
-                    validarStatusPagadoGlobal($factura->cliente_id);
-
-                    // 5 - Inserto la devolucion de la factura
+                    // 4 - Inserto la devolucion de la factura
                     $devolucionFactura = DevolucionFactura::create([
                         'factura_id' => $request['factura_id'],
                         'user_id'    => $request['user_id'],
@@ -111,6 +109,18 @@ class DevolucionFacturaController extends Controller
                         'estado'     => $request['estado'],
                     ]);
 
+                    // 5 - Valido si es credito ==1 o Contado ==2
+                    if($factura->tipo_venta == 1){
+                        // Recalculo la deuda del cliente sin la factura eliminada
+                        validarStatusPagadoGlobal($factura->cliente_id);
+                    }else{
+                        // Inserto la deuda de la factura
+                        $deudaContadoFactura = DeudaContado::create([
+                            'devolucion_factura_id' => $devolucionFactura->id,
+                            'monto'    => $factura->monto,
+                            'estado'    => 1,
+                        ]);
+                    }
 
                     if ($devolucionFactura) {
                         $response[] = 'la factura fue devuelta con exito';
