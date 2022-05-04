@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DevolucionFactura;
 use App\Models\Factura;
+use App\Models\ReciboHistorialContado;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -95,15 +96,13 @@ class DevolucionFacturaController extends Controller
                             'estado' => 0
                         ]);
                     }
+
                     // 3 - Actualizo el estadp de la factura
                     $factura->update([
                         'status' => 0,
                     ]);
 
-                    // 4 - Recalculo la deuda del cliente sin la factura eliminada
-                    validarStatusPagadoGlobal($factura->cliente_id);
-
-                    // 5 - Inserto la devolucion de la factura
+                    // 4 - Inserto la devolucion de la factura
                     $devolucionFactura = DevolucionFactura::create([
                         'factura_id' => $request['factura_id'],
                         'user_id'    => $request['user_id'],
@@ -111,12 +110,23 @@ class DevolucionFacturaController extends Controller
                         'estado'     => $request['estado'],
                     ]);
 
+                    if($factura->tipo_venta == 1){ // si es venta a credito
+                        // 5 - Recalculo la deuda del cliente
+                        validarStatusPagadoGlobal($factura->cliente_id);
+                    }else{ // si es venta a contado
+                        // print_r(json_encode($factura->recibo_historial_contado));
+
+                        ReciboHistorialContado::where('factura_id', $factura->id)->update([
+                            'estado' => 0,
+                        ]);
+                    }
 
                     if ($devolucionFactura) {
                         $response[] = 'la factura fue devuelta con exito';
                         $status = 200;
 
                         DB::commit();
+                        // DB::rollback();
                     } else {
                         $response[] = 'Error al modificar los datos.';
                         DB::rollback();

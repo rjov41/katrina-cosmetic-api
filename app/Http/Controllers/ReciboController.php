@@ -168,7 +168,7 @@ class ReciboController extends Controller
                 // validarStatusPagadoGlobal(4); // logica para calcular el saldo restante de una factura y si se cierra la factura
 
                 $recibo->recibo_historial = $recibo->recibo_historial()->where([
-                    ['estado', '=', 1],
+                    // ['estado', '=', 1], se comento porque se quiere tomar en cuenta los recibos eliminados y no reutilizar esos numeros
                 ])->get();
 
                 if(count($recibo->recibo_historial) >0){
@@ -183,7 +183,7 @@ class ReciboController extends Controller
 
                 // Historial de recivos de Facturas Contado
                 $recibo->recibo_historial_contado = $recibo->recibo_historial_contado()->where([
-                    ['estado', '=', 1],
+                    // ['estado', '=', 1], se comento porque se quiere tomar en cuenta los recibos eliminados y no reutilizar esos numeros
                 ])->get();
 
                 if(count($recibo->recibo_historial_contado) >0){

@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FacturaHistorial;
 use App\Models\ReciboHistorial;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
@@ -30,7 +32,7 @@ class ReciboHistorialController extends Controller
         if(count($recibos) > 0){
             foreach ($recibos as $recibo) {
                 $recibo->recibo->user;
-                $recibo->factura_historial;
+                $recibo->factura_historial->cliente;
 
             }
 
@@ -218,17 +220,34 @@ class ReciboHistorialController extends Controller
             $recibo =  ReciboHistorial::find($id);
 
             if($recibo){
-                $reciboDelete = $recibo->update([
-                    'estado' => 0,
-                ]);
 
-                if($reciboDelete){
-                    $response[] = 'El recibo fue eliminado con exito.';
-                    $status = 200;
+                DB::beginTransaction();
+                try {
+                    $reciboDelete = $recibo->update([
+                        'estado' => 0,
+                    ]);
+                    if($reciboDelete){
+                        $abono = FacturaHistorial::where('id',$recibo->factura_historial_id)->first();
+                        $abono->update([
+                            'estado' => 0,
+                        ]);
+                        // print_r(json_encode($abono));
 
-                }else{
-                    $response[] = 'Error al eliminar el recibo.';
+                        validarStatusPagadoGlobal($abono->cliente_id);
+
+                        $response[] = 'El recibo fue eliminado con exito.';
+                        $status = 200;
+                    }else{
+                        $response[] = 'Error al eliminar el recibo.';
+                    }
+                    // DB::rollback();
+                    DB::commit();
+                } catch (Exception $e) {
+                    DB::rollback();
+                    // print_r(json_encode($e));
+                    return response()->json(["mensaje" => json_encode($e)], 400);
                 }
+
 
             }else{
                 $response[] = "El recibo no existe.";

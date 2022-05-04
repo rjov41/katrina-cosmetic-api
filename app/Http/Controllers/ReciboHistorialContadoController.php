@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Factura;
 use App\Models\ReciboHistorialContado;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ReciboHistorialContadoController extends Controller
 {
@@ -28,7 +31,7 @@ class ReciboHistorialContadoController extends Controller
         if(count($recibos) > 0){
             foreach ($recibos as $recibo) {
                 $recibo->recibo->user;
-                $recibo->factura;
+                $recibo->factura->cliente;
             }
 
             $response = $recibos;
@@ -100,6 +103,49 @@ class ReciboHistorialContadoController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $response = [];
+        $status = 400;
+
+        if(is_numeric($id)){
+            $recibo =  ReciboHistorialContado::find($id);
+
+            if($recibo){
+
+                DB::beginTransaction();
+                try {
+                    $reciboDelete = $recibo->update([
+                        'estado' => 0,
+                    ]);
+
+                    if($reciboDelete){
+                        $abono = Factura::where('id',$recibo->factura_id)->first();
+                        $abono->update([
+                            'estado' => 0,
+                        ]);
+
+                        $response[] = 'El recibo fue eliminado con exito.';
+                        $status = 200;
+                    }else{
+                        $response[] = 'Error al eliminar el recibo.';
+                    }
+
+                    DB::commit();
+                    // DB::rollback();
+                } catch (Exception $e) {
+                    DB::rollback();
+                    // print_r(json_encode($e));
+                    return response()->json(["mensaje" => json_encode($e)], 400);
+                }
+
+            }else{
+                $response[] = "El recibo no existe.";
+            }
+
+        }else{
+            $response[] = "El Valor de Id debe ser numerico.";
+        }
+
+        return response()->json($response, $status);
+
     }
 }
