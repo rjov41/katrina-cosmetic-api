@@ -30,6 +30,14 @@ class PdfController extends Controller
                 // ['estado', '=', $facturaEstado],
             ])->first();
 
+            /// datos del vendedor
+
+            $factura->user_data =  User::where([
+                ['id', '=', $factura->user_id],
+                // ['estado', '=', $facturaEstado],
+            ])->first();
+
+            /* dd($factura); */
             if(count($factura->factura_detalle)>0){
                 foreach ($factura->factura_detalle as $key => $productoDetalle) {
                     $producto = Producto::find($productoDetalle["producto_id"]);
@@ -71,6 +79,7 @@ class PdfController extends Controller
         $data = [
             'data' => $response
         ];
+       /*  dd($data); */
 
         $archivo = PDF::loadView('pdf', $data);
         $pdf = PDF::loadView('pdf', $data)->output();
