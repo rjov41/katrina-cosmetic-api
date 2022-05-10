@@ -39,6 +39,8 @@ class LogisticaController extends Controller
             ->whereBetween('created_at', [$dateIni->toDateString()." 00:00:00",  $dateFin->toDateString()." 23:59:59"])
             // ->where('created_at',">=", $dateIni->toDateString()." 00:00:00")
             // ->where('created_at',"<=",  $dateFin->toDateString()." 23:59:59")
+            ->where('tipo_venta', $request->tipo_venta ? $request->tipo_venta : 1) // si envian valor lo tomo, si no por defecto toma credito
+            ->where('status_pagado', $request->status_pagado ? $request->status_pagado : 0) // si envian valor lo tomo, si no por defecto asigno por pagar = 0
             ->where('user_id', $userId)
             ->where('status', 1)
             ->get();
@@ -49,7 +51,7 @@ class LogisticaController extends Controller
         if(count($facturas) > 0){
             $total = 0;
             foreach ($facturas as $factura) {
-                $total += $factura->monto;
+                $total += $factura->saldo_restante;
 
                 $factura->user;
                 $factura->cliente->factura_historial;
