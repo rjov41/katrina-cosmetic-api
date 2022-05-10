@@ -11,6 +11,7 @@ use App\Http\Controllers\FacturaController;
 use App\Http\Controllers\FacturaDetallesController;
 use App\Http\Controllers\FacturaHistorial;
 use App\Http\Controllers\FrecuenciaController;
+use App\Http\Controllers\LogisticaController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\ProductosController;
 use App\Http\Controllers\ReciboController;
@@ -99,6 +100,10 @@ Route::resource('devoluciones-producto', DevolucionProductoController::class);
 Route::get('script/AsignarPrecioPorUnidadGlobal', [ScriptController::class, 'AsignarPrecioPorUnidadGlobal']);
 Route::get('script/validarStatusPagadoGlobal', [ScriptController::class, 'validarStatusPagadoGlobal']);
 Route::get('script/actualizarPrecioFactura/{id}', [ScriptController::class, 'ActualizarPrecioFactura']);
+
+
+
+Route::post('logistica/cartera-date', [LogisticaController::class, 'carteraDate']);
 
 
 
