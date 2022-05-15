@@ -104,6 +104,9 @@ Route::get('script/actualizarPrecioFactura/{id}', [ScriptController::class, 'Act
 
 
 Route::post('logistica/cartera-date', [LogisticaController::class, 'carteraDate']);
+Route::post('logistica/recibo-date', [LogisticaController::class, 'reciboDate']);
+Route::post('logistica/mora-30-60', [LogisticaController::class, 'Mora30A60']);
+Route::post('logistica/mora-60-90', [LogisticaController::class, 'Mora60A90']);
 
 
 
