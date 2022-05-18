@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cliente;
 use App\Models\Factura;
 use App\Models\FacturaHistorial as Factura_Historial;
+use App\Models\MetodoPago;
 use App\Models\Recibo;
 use App\Models\ReciboHistorial;
 use App\Models\User;
@@ -36,6 +37,11 @@ class FacturaHistorial extends Controller
             foreach ($facturasHistorial as $key => $facturaHistorial) {
                 $facturaHistorial->factura;
                 $facturaHistorial->recibo_historial;
+
+                $facturaHistorial->metodo_pago;
+                if($facturaHistorial->metodo_pago){
+                    $facturaHistorial->metodo_pago->tipoPago = $facturaHistorial->metodo_pago->getTipoPago();
+                }
 
                 $cliente = Cliente::find($facturaHistorial->cliente_id);
                 $usuario = User::find($facturaHistorial->user_id);
@@ -73,6 +79,8 @@ class FacturaHistorial extends Controller
             'cliente_id' => 'required|numeric',
             'user_id' => 'required|numeric',
             'precio' => 'required|numeric',
+            'detalle_pago' => 'string|nullable',
+            'metodo_pago' => 'required|numeric',
             // 'estado' => 'required|numeric|max:1',
 
             'numero'       => [
@@ -114,6 +122,15 @@ class FacturaHistorial extends Controller
                     'estado'                => 1,
                 ]);
 
+
+                // dd($abono->id);
+                $metodo = MetodoPago::create([
+                    'factura_historial_id'  => $abono->id,
+                    'tipo'                  => $request['metodo_pago'],
+                    'detalle'               => $request['detalle_pago'],
+                    'estado'                => 1,
+                ]);
+
                 // DB::rollback();
                 DB::commit();
                 return response()->json([
@@ -122,7 +139,7 @@ class FacturaHistorial extends Controller
             } catch (Exception $e) {
                 DB::rollback();
 
-                return response()->json(["mensaje" => "Error al insertar el abono"], 400);
+                return response()->json(["mensaje" => $e], 400);
             }
 
 

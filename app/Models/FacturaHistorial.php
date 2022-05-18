@@ -32,4 +32,9 @@ class FacturaHistorial extends Model
     {
         return $this->hasOne(ReciboHistorial::class);
     }
+
+    public function metodo_pago()
+    {
+        return $this->hasOne(MetodoPago::class);
+    }
 }
