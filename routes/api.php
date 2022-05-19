@@ -20,6 +20,7 @@ use App\Http\Controllers\ReciboHistorialController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ScriptController;
 use App\Http\Controllers\UsuarioController;
+use Illuminate\Support\Facades\Artisan;
 
 /*
 |--------------------------------------------------------------------------
@@ -108,7 +109,12 @@ Route::post('logistica/recibo-date', [LogisticaController::class, 'reciboDate'])
 Route::post('logistica/mora-30-60', [LogisticaController::class, 'Mora30A60']);
 Route::post('logistica/mora-60-90', [LogisticaController::class, 'Mora60A90']);
 
-
+Route::get('/clear-cache', function () {
+    echo Artisan::call('config:clear');
+    echo Artisan::call('config:cache');
+    echo Artisan::call('cache:clear');
+    echo Artisan::call('route:clear');
+ });
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();

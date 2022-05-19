@@ -87,8 +87,6 @@ class LogisticaController extends Controller
         ];
 
         $userId = $request['userId'];
-        // "dateIni": "2022-03-15",
-        // "dateFin": "2022-03-15",
         if(empty($request->dateIni)){
             $dateIni = Carbon::now();
         }else{
@@ -102,10 +100,8 @@ class LogisticaController extends Controller
         }
 
         // DB::enableQueryLog();
-        // print_r(json_encode($dateIni->toDateString()." 00:00:00"));
 
         $recibo = Recibo::select("*")
-            // ->whereBetween('created_at', [$dateIni->toDateString()." 00:00:00",  $dateFin->toDateString()." 23:59:59"])
             ->where('user_id', $userId)
             ->where('estado', 1)
             ->first();
@@ -117,21 +113,26 @@ class LogisticaController extends Controller
 
             $recibo->user;
 
-            //credito
-            if($request->allDates){
-                $recibo->recibo_historial = $recibo->recibo_historial()->where([
-                    ['estado', '=', 1],
-                ])
-                    ->orderBy('created_at', 'desc')
-                    ->get(); // traigo los recibos credito
-            }else{
-                $recibo->recibo_historial = $recibo->recibo_historial()->where([
-                    ['estado', '=', 1],
-                ])
-                ->whereBetween('created_at', [$dateIni->toDateString()." 00:00:00",  $dateFin->toDateString()." 23:59:59"])
-                ->orderBy('created_at', 'desc')
-                ->get(); // traigo los recibos credito
+            //temporal
+            $reciboHistorial = $recibo->recibo_historial()->where([
+                ['estado', '=', 1],
+            ])
+                ->orderBy('created_at', 'desc');
+            // print(count($reciboHistorial->get()));
+
+            if(!$request->allDates){
+                $reciboHistorial = $reciboHistorial->whereBetween('created_at', [$dateIni->toDateString(),  $dateFin->toDateString()]);
             }
+
+            if(!$request->allNumber){
+                if ($request->numDesde != 0 && $request->numHasta != 0) {
+                    $reciboHistorial = $reciboHistorial->whereBetween('numero', [$request->numDesde, $request->numHasta]);
+                }else if ($request->numDesde != 0) {
+                    $reciboHistorial = $reciboHistorial->where('numero', '=', $request->numDesde);
+                }
+            }
+
+            $recibo->recibo_historial = $reciboHistorial->get();
 
             if(count($recibo->recibo_historial)>0){
                 foreach ($recibo->recibo_historial as $recibo_historial) {
@@ -142,6 +143,11 @@ class LogisticaController extends Controller
                     ])->first(); // traigo los abonos de facturas de tipo credito
 
                     $recibo_historial->factura_historial->cliente;
+                    $recibo_historial->factura_historial->metodo_pago;
+
+                    if($recibo_historial->factura_historial->metodo_pago){
+                        $recibo_historial->factura_historial->metodo_pago->tipoPago = $recibo_historial->factura_historial->metodo_pago->getTipoPago();
+                    }
 
                     if($recibo_historial->factura_historial){
                         $response["total_contado"] += $recibo_historial->factura_historial->precio;
@@ -150,24 +156,24 @@ class LogisticaController extends Controller
                 }
 
             }
-            if($request->allDates){
-                // contado
-                $recibo->recibo_historial_contado = $recibo->recibo_historial_contado()->where([
-                    ['estado', '=', 1],
-                ])
-                    ->orderBy('created_at', 'desc')
-                    ->get(); // traigo los recibos de facturas contados
-            }else{
-                // contado
-                $recibo->recibo_historial_contado = $recibo->recibo_historial_contado()->where([
-                    ['estado', '=', 1],
-                ])
-                    ->orderBy('created_at', 'desc')
-                    ->whereBetween('created_at', [$dateIni->toDateString()." 00:00:00",  $dateFin->toDateString()." 23:59:59"])
-                    ->get(); // traigo los recibos de facturas contados
+
+            $recibo_historial_contado = $recibo->recibo_historial_contado()->where([
+                ['estado', '=', 1],
+            ]);
+
+            if(!$request->allDates){
+                $recibo_historial_contado = $recibo_historial_contado->whereBetween('created_at', [$dateIni->toDateString(),  $dateFin->toDateString()]);
             }
 
+            if(!$request->allNumber){
+                if ($request->numDesde != 0 && $request->numHasta != 0) {
+                    $recibo_historial_contado = $recibo_historial_contado->whereBetween('numero', [$request->numDesde, $request->numHasta]);
+                }else if ($request->numDesde != 0) {
+                    $recibo_historial_contado = $recibo_historial_contado->where('numero', '=', $request->numDesde);
+                }
+            }
 
+            $recibo->recibo_historial_contado = $recibo_historial_contado->get();
 
             if(count($recibo->recibo_historial_contado)>0){
                 foreach ($recibo->recibo_historial_contado as  $recibo_historial_contado) {
@@ -201,13 +207,22 @@ class LogisticaController extends Controller
         $response = [
             'factura' => [],
         ];
-
+        $userId = $request['userId'];
         $fechaActual = Carbon::now();
 
-        $facturas = Factura::select("*")
-        ->where('status_pagado', 0)
-        ->where('status', 1)
-        ->get();
+        if($request->allUsers){
+
+            $facturas = Factura::select("*")
+            ->where('status_pagado', 0)
+            ->where('status', 1)
+            ->get();
+        }else{
+            $facturas = Factura::select("*")
+            ->where('status_pagado', 0)
+            ->where('user_id', $userId)
+            ->where('status', 1)
+            ->get();
+        }
 
         // $query = DB::getQueryLog();
         // dd($query);
@@ -215,25 +230,20 @@ class LogisticaController extends Controller
         if(count($facturas) > 0){
 
             foreach ($facturas as $factura) {
-                $fechaPasado30DiasVencimiento = Carbon::parse($factura->fecha_vencimiento)->addDays(30)->toDateTimeString();
-                $fechaPasado60DiasVencimiento = Carbon::parse($factura->fecha_vencimiento)->addDays(60)->toDateTimeString();
-                // $dt->addDays(29);
-
-                // var_dump($fechaActual->gte($fechaPasado30DiasVencimiento));
-                // printf(" $fechaActual ===== $fechaPasado30DiasVencimiento \n");
-                // printf(" $fechaActual ===== $fechaPasado60DiasVencimiento \n");
-                // printf(" ------------------------------------------------------------------------------- \n");
+                // $fechaPasado30DiasVencimiento = Carbon::parse($factura->fecha_vencimiento)->addDays(30)->toDateTimeString();
+                // $fechaPasado60DiasVencimiento = Carbon::parse($factura->fecha_vencimiento)->addDays(60)->toDateTimeString();
+                $fechaPasado30DiasVencimiento = Carbon::parse($factura->created_at)->addDays(30)->toDateTimeString();
+                $fechaPasado60DiasVencimiento = Carbon::parse($factura->created_at)->addDays(60)->toDateTimeString();
 
                 if($fechaActual->gte($fechaPasado30DiasVencimiento) && $fechaActual->lte($fechaPasado60DiasVencimiento)){
-                    // && $fechaActual->lte($fechaPasado60DiasVencimiento)
-                    // printf("%s\n fecha->Vencimiento:::", $fechaPasado60DiasVencimiento);
-                    // printf("%s\n fecha->60:::", $fechaPasado60DiasVencimiento);
-
                     $factura->user;
                     $factura->cliente;
                     $factura->vencimiento30 = $fechaPasado30DiasVencimiento;
                     $factura->vencimiento60 = $fechaPasado60DiasVencimiento;
-                    $factura->diferenciaDias = Carbon::parse($factura->fecha_vencimiento)->diffInDays($fechaActual);
+
+                    // $factura->diferenciaDias = Carbon::parse($factura->fecha_vencimiento)->diffInDays($fechaActual);
+                    $factura->diferenciaDias = Carbon::parse($factura->created_at)->diffInDays($fechaActual);
+
                     array_push($response["factura"],$factura);
                 }
             }
@@ -242,18 +252,28 @@ class LogisticaController extends Controller
         return response()->json($response, 200);
     }
 
-    function Mora60A90()
+    function Mora60A90(Request $request)
     {
         $response = [
             'factura' => [],
         ];
 
+        $userId = $request['userId'];
         $fechaActual = Carbon::now();
 
-        $facturas = Factura::select("*")
-        ->where('status_pagado', 0)
-        ->where('status', 1)
-        ->get();
+        if($request->allUsers){
+
+            $facturas = Factura::select("*")
+            ->where('status_pagado', 0)
+            ->where('status', 1)
+            ->get();
+        }else{
+            $facturas = Factura::select("*")
+            ->where('status_pagado', 0)
+            ->where('user_id', $userId)
+            ->where('status', 1)
+            ->get();
+        }
 
         // $query = DB::getQueryLog();
         // dd($query);
@@ -261,25 +281,21 @@ class LogisticaController extends Controller
         if(count($facturas) > 0){
 
             foreach ($facturas as $factura) {
-                $fechaPasado60DiasVencimiento = Carbon::parse($factura->fecha_vencimiento)->addDays(60)->toDateTimeString();
-                $fechaPasado90DiasVencimiento = Carbon::parse($factura->fecha_vencimiento)->addDays(90)->toDateTimeString();
-                // $dt->addDays(29);
 
-                // var_dump($fechaActual->gte($fechaPasado90DiasVencimiento));
-                // printf(" $fechaActual ===== $fechaPasado90DiasVencimiento \n");
-                // printf(" $fechaActual ===== $fechaPasado60DiasVencimiento \n");
-                // printf(" ------------------------------------------------------------------------------- \n");
+                // $fechaPasado60DiasVencimiento = Carbon::parse($factura->fecha_vencimiento)->addDays(60)->toDateTimeString();
+                // $fechaPasado90DiasVencimiento = Carbon::parse($factura->fecha_vencimiento)->addDays(90)->toDateTimeString();
+                $fechaPasado60DiasVencimiento = Carbon::parse($factura->created_at)->addDays(60)->toDateTimeString();
+                $fechaPasado90DiasVencimiento = Carbon::parse($factura->created_at)->addDays(90)->toDateTimeString();
 
                 if($fechaActual->gte($fechaPasado60DiasVencimiento) && $fechaActual->lte($fechaPasado90DiasVencimiento)){
-                    // && $fechaActual->lte($fechaPasado60DiasVencimiento)
-                    // printf("%s\n fecha->Vencimiento:::", $fechaPasado60DiasVencimiento);
-                    // printf("%s\n fecha->60:::", $fechaPasado60DiasVencimiento);
-
                     $factura->user;
                     $factura->cliente;
                     $factura->vencimiento60  = $fechaPasado60DiasVencimiento;
                     $factura->vencimiento90  = $fechaPasado90DiasVencimiento;
-                    $factura->diferenciaDias = Carbon::parse($factura->fecha_vencimiento)->diffInDays($fechaActual);
+
+                    // $factura->diferenciaDias = Carbon::parse($factura->fecha_vencimiento)->diffInDays($fechaActual);
+                    $factura->diferenciaDias = Carbon::parse($factura->created_at)->diffInDays($fechaActual);
+
                     array_push($response["factura"],$factura);
                 }
             }
