@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\FacturaHistorial;
 use App\Models\ReciboHistorial;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -22,18 +23,30 @@ class ReciboHistorialController extends Controller
         $status = 200;
         $parametros = [];
 
-        if(!is_null($request['estado'])) $parametros[] = ["estado", $request['estado']];
-        // if(!is_null($request['recibo_cerrado'])) $parametros[] = ["recibo_cerrado", $request['recibo_cerrado']];
+        // DB::enableQueryLog();
 
+        // if(!is_null($request['userId']))       $parametros[] = ["estado", $request['userId']];
+        if(!is_null($request['estado']))       $parametros[] = ["estado", $request['estado']];
+        if(!is_null($request['numeroRecibo']) && !empty($request['numeroRecibo'])) $parametros[] = ["numero", $request['numeroRecibo']];
 
+        if($request->allDates == "false"){
+            $recibos =  ReciboHistorial::where($parametros)
+            ->whereBetween('created_at', [$request['dateIni']." 00:00:00",  $request['dateFin']." 23:59:59"])
+            ->get();
+            // if(!is_null($request['dateIni']))      $parametros[] = ["created_at", ">=" ,$request['dateIni']];
+            // if(!is_null($request['dateFin']))      $parametros[] = ["created_at" ,"<=",$request['dateFin']];
+        }else{
+            $recibos =  ReciboHistorial::where($parametros)->get();
+        }
         // dd($facturaEstado);
-        $recibos =  ReciboHistorial::where($parametros)->get();
-
+        // $query = DB::getQueryLog();
+        // dd($query);
         if(count($recibos) > 0){
             foreach ($recibos as $recibo) {
                 $recibo->recibo->user;
                 $recibo->factura_historial->cliente;
-
+                // $recibo->created_at = Carbon::parse($recibo->created_at)->toDateString();
+                // $recibo->updated_at = Carbon::parse($recibo->updated_at)->toDateString();
             }
 
             $response = $recibos;
