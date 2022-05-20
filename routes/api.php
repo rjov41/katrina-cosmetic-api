@@ -90,7 +90,7 @@ Route::get('recibos/number/{id}', [ReciboController::class, 'getNumeroRecibo']);
 
 
 Route::get('pdf/{id}', [PdfController::class, 'facturaPago']);
-Route::post('pdf',);
+// Route::post('pdf', [PdfController::class,'generar']);
 
 Route::get('mail/{id}', [PdfController::class, 'SendMail']);
 
@@ -108,6 +108,8 @@ Route::post('logistica/cartera-date', [LogisticaController::class, 'carteraDate'
 Route::post('logistica/recibo-date', [LogisticaController::class, 'reciboDate']);
 Route::post('logistica/mora-30-60', [LogisticaController::class, 'Mora30A60']);
 Route::post('logistica/mora-60-90', [LogisticaController::class, 'Mora60A90']);
+Route::post('logistica/cliente-new', [LogisticaController::class, 'clienteDate']);
+Route::post('logistica/incentivo', [LogisticaController::class, 'incentivo']);
 
 Route::get('/clear-cache', function () {
     echo Artisan::call('config:clear');
