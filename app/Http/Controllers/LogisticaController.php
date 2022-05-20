@@ -100,11 +100,11 @@ class LogisticaController extends Controller
         }
 
         // DB::enableQueryLog();
-
-        $recibo = Recibo::select("*")
-            ->where('user_id', $userId)
+        $reciboStore = Recibo::select("*")
             ->where('estado', 1)
-            ->first();
+            ->where('user_id', $userId);
+
+        $recibo = $reciboStore->first();
 
         // $query = DB::getQueryLog();
         // print_r(json_encode($recibos));
@@ -125,10 +125,8 @@ class LogisticaController extends Controller
             }
 
             if(!$request->allNumber){
-                if ($request->numDesde != 0 && $request->numHasta != 0) {
-                    $reciboHistorial = $reciboHistorial->whereBetween('numero', [$request->numDesde, $request->numHasta]);
-                }else if ($request->numDesde != 0) {
-                    $reciboHistorial = $reciboHistorial->where('numero', '=', $request->numDesde);
+                if ($request->numRecibo != 0) {
+                    $reciboHistorial = $reciboHistorial->where('numero', '>=', $request->numRecibo);
                 }
             }
 
@@ -157,12 +155,20 @@ class LogisticaController extends Controller
 
             }
 
+            ///////////////// Contado (factura) /////////////////////////////
+
             $recibo_historial_contado = $recibo->recibo_historial_contado()->where([
                 ['estado', '=', 1],
             ]);
 
             if(!$request->allDates){
                 $recibo_historial_contado = $recibo_historial_contado->whereBetween('created_at', [$dateIni->toDateString(),  $dateFin->toDateString()]);
+            }
+
+            if(!$request->allNumber){
+                if ($request->numRecibo != 0) {
+                    $recibo_historial_contado = $recibo_historial_contado->where('numero', '>=', $request->numRecibo);
+                }
             }
 
             if(!$request->allNumber){
