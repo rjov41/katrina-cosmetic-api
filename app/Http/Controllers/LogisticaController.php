@@ -336,8 +336,14 @@ class LogisticaController extends Controller
             $clienteStore = $clienteStore->whereBetween('created_at', [$dateIni->toDateString(),  $dateFin->toDateString()]);
         }
 
+        if($request->userId != 0){
+            $clienteStore = $clienteStore->where('user_id', $request->userId);
+        }
+
         $clientes = $clienteStore->get();
 
+        // $query = DB::getQueryLog();
+        // print_r(json_encode($query));
         if (count($clientes) > 0) {
             foreach ($clientes as $cliente) {
                 $clientes->frecuencia = $cliente->frecuencia;
@@ -353,138 +359,138 @@ class LogisticaController extends Controller
     }
 
 
-        // recuperacion
-        function incentivo(Request $request)
-        {
-            $response = [
-                'recibo' => [],
-                'total_contado' => 0,
-                'total_credito' => 0,
-                'porcentaje20' => 0,
-                'total' => 0,
-            ];
+    // recuperacion
+    function incentivo(Request $request)
+    {
+        $response = [
+            'recibo' => [],
+            'total_contado' => 0,
+            'total_credito' => 0,
+            'porcentaje20' => 0,
+            'total' => 0,
+        ];
 
-            $userId = $request['userId'];
-            if(empty($request->dateIni)){
-                $dateIni = Carbon::now();
-            }else{
-                $dateIni = Carbon::parse($request->dateIni);
+        $userId = $request['userId'];
+        if(empty($request->dateIni)){
+            $dateIni = Carbon::now();
+        }else{
+            $dateIni = Carbon::parse($request->dateIni);
+        }
+
+        if(empty($request->dateFin)){
+            $dateFin = Carbon::now();
+        }else{
+            $dateFin = Carbon::parse($request->dateFin);
+        }
+
+        // DB::enableQueryLog();
+        $reciboStore = Recibo::select("*")
+            ->where('estado', 1)
+            ->where('user_id', $userId);
+
+        $recibo = $reciboStore->first();
+
+        // $query = DB::getQueryLog();
+        // print_r(json_encode($recibos));
+
+        if($recibo){
+
+            $recibo->user;
+
+            //temporal
+            $reciboHistorial = $recibo->recibo_historial()->where([
+                ['estado', '=', 1],
+            ])
+                ->orderBy('created_at', 'desc');
+            // print(count($reciboHistorial->get()));
+
+            if(!$request->allDates){
+                $reciboHistorial = $reciboHistorial->whereBetween('created_at', [$dateIni->toDateString(),  $dateFin->toDateString()]);
             }
 
-            if(empty($request->dateFin)){
-                $dateFin = Carbon::now();
-            }else{
-                $dateFin = Carbon::parse($request->dateFin);
+            if(!$request->allNumber){
+                if ($request->numRecibo != 0) {
+                    $reciboHistorial = $reciboHistorial->where('numero', '>=', $request->numRecibo);
+                }
             }
 
-            // DB::enableQueryLog();
-            $reciboStore = Recibo::select("*")
-                ->where('estado', 1)
-                ->where('user_id', $userId);
+            $recibo->recibo_historial = $reciboHistorial->get();
 
-            $recibo = $reciboStore->first();
+            if(count($recibo->recibo_historial)>0){
+                foreach ($recibo->recibo_historial as $recibo_historial) {
+                    // print_r(json_encode($recibo_historial));
 
-            // $query = DB::getQueryLog();
-            // print_r(json_encode($recibos));
+                    $recibo_historial->factura_historial = $recibo_historial->factura_historial()->where([
+                        ['estado', '=', 1],
+                    ])->first(); // traigo los abonos de facturas de tipo credito
 
-            if($recibo){
+                    $recibo_historial->factura_historial->cliente;
+                    $recibo_historial->factura_historial->metodo_pago;
 
-                $recibo->user;
-
-                //temporal
-                $reciboHistorial = $recibo->recibo_historial()->where([
-                    ['estado', '=', 1],
-                ])
-                    ->orderBy('created_at', 'desc');
-                // print(count($reciboHistorial->get()));
-
-                if(!$request->allDates){
-                    $reciboHistorial = $reciboHistorial->whereBetween('created_at', [$dateIni->toDateString(),  $dateFin->toDateString()]);
-                }
-
-                if(!$request->allNumber){
-                    if ($request->numRecibo != 0) {
-                        $reciboHistorial = $reciboHistorial->where('numero', '>=', $request->numRecibo);
+                    if($recibo_historial->factura_historial->metodo_pago){
+                        $recibo_historial->factura_historial->metodo_pago->tipoPago = $recibo_historial->factura_historial->metodo_pago->getTipoPago();
                     }
-                }
 
-                $recibo->recibo_historial = $reciboHistorial->get();
-
-                if(count($recibo->recibo_historial)>0){
-                    foreach ($recibo->recibo_historial as $recibo_historial) {
-                        // print_r(json_encode($recibo_historial));
-
-                        $recibo_historial->factura_historial = $recibo_historial->factura_historial()->where([
-                            ['estado', '=', 1],
-                        ])->first(); // traigo los abonos de facturas de tipo credito
-
-                        $recibo_historial->factura_historial->cliente;
-                        $recibo_historial->factura_historial->metodo_pago;
-
-                        if($recibo_historial->factura_historial->metodo_pago){
-                            $recibo_historial->factura_historial->metodo_pago->tipoPago = $recibo_historial->factura_historial->metodo_pago->getTipoPago();
-                        }
-
-                        if($recibo_historial->factura_historial){
-                            $response["total_contado"] += $recibo_historial->factura_historial->precio;
-                        }
-
+                    if($recibo_historial->factura_historial){
+                        $response["total_contado"] += $recibo_historial->factura_historial->precio;
                     }
 
                 }
-
-                ///////////////// Contado (factura) /////////////////////////////
-
-                $recibo_historial_contado = $recibo->recibo_historial_contado()->where([
-                    ['estado', '=', 1],
-                ]);
-
-                if(!$request->allDates){
-                    $recibo_historial_contado = $recibo_historial_contado->whereBetween('created_at', [$dateIni->toDateString(),  $dateFin->toDateString()]);
-                }
-
-                if(!$request->allNumber){
-                    if ($request->numRecibo != 0) {
-                        $recibo_historial_contado = $recibo_historial_contado->where('numero', '>=', $request->numRecibo);
-                    }
-                }
-
-                if(!$request->allNumber){
-                    if ($request->numDesde != 0 && $request->numHasta != 0) {
-                        $recibo_historial_contado = $recibo_historial_contado->whereBetween('numero', [$request->numDesde, $request->numHasta]);
-                    }else if ($request->numDesde != 0) {
-                        $recibo_historial_contado = $recibo_historial_contado->where('numero', '=', $request->numDesde);
-                    }
-                }
-
-                $recibo->recibo_historial_contado = $recibo_historial_contado->get();
-
-                if(count($recibo->recibo_historial_contado)>0){
-                    foreach ($recibo->recibo_historial_contado as  $recibo_historial_contado) {
-                        $recibo_historial_contado->factura = $recibo_historial_contado->factura()->where([
-                            ['status', '=', 1],
-                        ])->first(); // traigo las facturas contado //monto
-
-                        $recibo_historial_contado->factura->cliente;
-
-                        if($recibo_historial_contado->factura){
-                            $response["total_credito"] += $recibo_historial_contado->factura->monto;
-                        }
-                    }
-
-                }
-
-
-
-                $response["total_credito"] = number_format($response["total_credito"], 2,".","");
-                $response["total_contado"] = number_format($response["total_contado"], 2,".","");
-                $response["total"]         = number_format($response["total_contado"] + $response["total_credito"], 2,".","");
-                $response["porcentaje20"]  = number_format($response["total"] * 0.20 , 2,".","");
-
-                $response["recibo"]        = $recibo;
 
             }
-            return response()->json($response, 200);
+
+            ///////////////// Contado (factura) /////////////////////////////
+
+            $recibo_historial_contado = $recibo->recibo_historial_contado()->where([
+                ['estado', '=', 1],
+            ]);
+
+            if(!$request->allDates){
+                $recibo_historial_contado = $recibo_historial_contado->whereBetween('created_at', [$dateIni->toDateString(),  $dateFin->toDateString()]);
+            }
+
+            if(!$request->allNumber){
+                if ($request->numRecibo != 0) {
+                    $recibo_historial_contado = $recibo_historial_contado->where('numero', '>=', $request->numRecibo);
+                }
+            }
+
+            if(!$request->allNumber){
+                if ($request->numDesde != 0 && $request->numHasta != 0) {
+                    $recibo_historial_contado = $recibo_historial_contado->whereBetween('numero', [$request->numDesde, $request->numHasta]);
+                }else if ($request->numDesde != 0) {
+                    $recibo_historial_contado = $recibo_historial_contado->where('numero', '=', $request->numDesde);
+                }
+            }
+
+            $recibo->recibo_historial_contado = $recibo_historial_contado->get();
+
+            if(count($recibo->recibo_historial_contado)>0){
+                foreach ($recibo->recibo_historial_contado as  $recibo_historial_contado) {
+                    $recibo_historial_contado->factura = $recibo_historial_contado->factura()->where([
+                        ['status', '=', 1],
+                    ])->first(); // traigo las facturas contado //monto
+
+                    $recibo_historial_contado->factura->cliente;
+
+                    if($recibo_historial_contado->factura){
+                        $response["total_credito"] += $recibo_historial_contado->factura->monto;
+                    }
+                }
+
+            }
+
+
+
+            $response["total_credito"] = number_format($response["total_credito"], 2,".","");
+            $response["total_contado"] = number_format($response["total_contado"], 2,".","");
+            $response["total"]         = number_format($response["total_contado"] + $response["total_credito"], 2,".","");
+            $response["porcentaje20"]  = number_format($response["total"] * 0.20 , 2,".","");
+
+            $response["recibo"]        = $recibo;
 
         }
+        return response()->json($response, 200);
+
+    }
 }
