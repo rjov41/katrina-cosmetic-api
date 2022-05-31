@@ -333,7 +333,7 @@ class LogisticaController extends Controller
         $clienteStore = Cliente::select("*")->where('estado', 1);
 
         if(!$request->allDates){
-            $clienteStore = $clienteStore->whereBetween('created_at', [$dateIni->toDateString(),  $dateFin->toDateString()]);
+            $clienteStore = $clienteStore->whereBetween('created_at', [$dateIni->toDateString()." 00:00:00",  $dateFin->toDateString()." 23:59:59"]);
         }
 
         if($request->userId != 0){
@@ -405,7 +405,7 @@ class LogisticaController extends Controller
             // print(count($reciboHistorial->get()));
 
             if(!$request->allDates){
-                $reciboHistorial = $reciboHistorial->whereBetween('created_at', [$dateIni->toDateString(),  $dateFin->toDateString()]);
+                $reciboHistorial = $reciboHistorial->whereBetween('created_at', [$dateIni->toDateString()." 00:00:00",  $dateFin->toDateString()." 23:59:59"]);
             }
 
             if(!$request->allNumber){
@@ -446,7 +446,7 @@ class LogisticaController extends Controller
             ]);
 
             if(!$request->allDates){
-                $recibo_historial_contado = $recibo_historial_contado->whereBetween('created_at', [$dateIni->toDateString(),  $dateFin->toDateString()]);
+                $recibo_historial_contado = $recibo_historial_contado->whereBetween('created_at', [$dateIni->toDateString()." 00:00:00",  $dateFin->toDateString()." 23:59:59"]);
             }
 
             if(!$request->allNumber){
