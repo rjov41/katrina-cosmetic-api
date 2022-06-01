@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cliente;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -36,11 +37,25 @@ class ScriptController extends Controller
 
         DB::beginTransaction();
         try {
-            validarStatusPagadoGlobal(1); //cliente perfecto
-            // DB::rollback();
-            DB::commit();
-            return response()->json([
-                'mensaje' => "Exito [validarStatusPagadoGlobal]",], 200);
+
+            $clientes = Cliente::select("*")
+                ->where('estado', 1)
+                ->get();
+            if(count($clientes) > 0){
+                // validarStatusPagadoGlobal(1); //cliente perfecto
+                foreach ($clientes as $key => $cliente) {
+                    // print_r($cliente->id." "."\n");
+                    validarStatusPagadoGlobal($cliente->id);
+
+                }
+                // DB::rollback();
+
+                DB::commit();
+                return response()->json(['mensaje' => "Exito [validarStatusPagadoGlobal]",], 200);
+            }
+
+            return response()->json(['mensaje' => "No hay clientes [validarStatusPagadoGlobal]",], 400);
+
         } catch (Exception $e) {
             DB::rollback();
 
