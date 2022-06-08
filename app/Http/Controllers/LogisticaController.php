@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Categoria;
 use App\Models\Cliente;
 use App\Models\Factura;
+use App\Models\Frecuencia;
 use App\Models\Recibo;
 use App\Models\User;
 use Carbon\Carbon;
@@ -355,6 +357,66 @@ class LogisticaController extends Controller
         }
 
 
+        return response()->json($response, 200);
+    }
+
+    function clienteInactivo(Request $request)
+    {
+        $response = [];
+
+        // if(empty($request->dateIni)){
+        //     $dateIni = Carbon::now();
+        // }else{
+        //     $dateIni = Carbon::parse($request->dateIni);
+        // }
+
+        // if(empty($request->dateFin)){
+        //     $dateFin = Carbon::now();
+        // }else{
+        //     $dateFin = Carbon::parse($request->dateFin);
+        // }
+
+        // DB::enableQueryLog();
+
+        $query = "SELECT
+            c.*,
+            q.cantidad_factura,
+            q.cantidad_finalizadas,
+            if(q.cantidad_factura = q.cantidad_finalizadas, 1, 0) AS cliente_inactivo
+            FROM clientes c
+            INNER JOIN (
+                SELECT
+                    c.id AS cliente_id,
+                    c.user_id AS user_id,
+                    COUNT(c.id) AS cantidad_factura,
+                    SUM(if(f.status_pagado = 1, 1, 0)) AS cantidad_finalizadas
+                FROM clientes c
+                INNER JOIN facturas f ON c.id = f.cliente_id
+                WHERE  f.`status` = 1
+                GROUP BY c.id
+                ORDER BY c.id ASC
+            )q ON c.id = q.cliente_id
+            WHERE
+                q.cantidad_factura = q.cantidad_finalizadas
+        ";
+
+        if($request->userId != 0){
+            $query = $query." AND c.user_id = ".$request->userId;
+        }
+
+        $clientes = DB::select($query);
+
+        if (count($clientes)>0) {
+            foreach ($clientes as $cliente) {
+                $cliente->frecuencia = Frecuencia::find($cliente->frecuencia_id);
+                $cliente->categoria = Categoria::find($cliente->categoria_id);
+                $cliente->user = User::find($cliente->user_id);
+            }
+
+            $response = $clientes;
+        }
+
+        // print_r(count($cliente));
         return response()->json($response, 200);
     }
 

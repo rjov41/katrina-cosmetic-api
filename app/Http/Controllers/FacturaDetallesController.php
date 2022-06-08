@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Factura;
 use App\Models\Factura_Detalle;
+use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -141,9 +142,9 @@ class FacturaDetallesController extends Controller
         $status = 400;
 
         if(is_numeric($id)){
-            $producto =  Factura_Detalle::find($id);
+            $productoFacturaDetalle =  Factura_Detalle::find($id);
 
-            if($producto){
+            if($productoFacturaDetalle){
                 $validation = Validator::make($request->all() ,[
                     'producto_id' => 'required|numeric',
                     'factura_id' => 'required|numeric',
@@ -156,9 +157,33 @@ class FacturaDetallesController extends Controller
                 if($validation->fails()) {
                     $response[] = $validation->errors();
                 } else {
+                    // 1- obtener producto
+                        $producto =  Producto::find($request['producto_id']);
+                    // 2 - obtener la cantidad actual del producto en la factura
+                        $cantidadActual = $productoFacturaDetalle->cantidad;
 
+                        if($request['cantidad'] > $cantidadActual){
+                            $diferencia = $request['cantidad'] - $cantidadActual;
 
-                    $productoUpdate = $producto->update([
+                            // resto porque estoy sacando producto del inventario
+                            $producto->stock = $producto->stock - $diferencia;
+                            $producto->save();
+                        }
+
+                        if($request['cantidad'] < $cantidadActual){
+                            $diferencia = $cantidadActual - $request['cantidad'];
+
+                            // sumo porque estoy agregando producto al inventario
+                            $producto->stock = $producto->stock + $diferencia;
+                            $producto->save();
+                        }
+
+                        // if($request['cantidad'] == $cantidadActual){
+                        //     $stock = $cantidadActual - $request['cantidad'];
+                        //     // nada porque es la misma cantidad porque devuelbo producto
+                        // }
+
+                    $productoUpdate = $productoFacturaDetalle->update([
                         'producto_id' => $request['producto_id'],
                         'factura_id' => $request['factura_id'],
                         'cantidad' => $request['cantidad'],
@@ -172,13 +197,15 @@ class FacturaDetallesController extends Controller
                     if($productoUpdate){
 
                         $factura = Factura::find($request['factura_id']);
-                        $factura->factura_detalle;
+                        $factura_detalle = $factura->factura_detalle()->where([
+                            ['estado', '=', 1],
+                        ])->get();
 
-                        if(count($factura->factura_detalle)>0){
+                        if(count($factura_detalle)>0){
                             $total = 0;
 
-                            foreach ($factura->factura_detalle as $key => $productoDetalle) {
-                                // print_r($productoDetalle["cantidad"]);
+                            foreach ($factura_detalle as $key => $productoDetalle) {
+                                // print_r($productoDetalle["precio"]);
                                 // $total += ($productoDetalle["precio"] * $productoDetalle["cantidad"]);
                                 $total +=  $productoDetalle["precio"];
                             }

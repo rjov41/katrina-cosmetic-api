@@ -38,6 +38,9 @@ class PdfController extends Controller
             ])->first();
 
             /* dd($factura); */
+            $factura->factura_detalle = $factura->factura_detalle()->where([
+                ['estado', '=', 1],
+            ])->get();
             if(count($factura->factura_detalle)>0){
                 foreach ($factura->factura_detalle as $key => $productoDetalle) {
                     $producto = Producto::find($productoDetalle["producto_id"]);
