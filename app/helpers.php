@@ -334,7 +334,8 @@ use Illuminate\Support\Facades\DB;
                 $saldo = 0;
                 foreach ($estadoCuenta as $operacion) {
                     // if(!isset($operacion->saldo)) $operacion->saldo = 0;
-                    $saldo = ($operacion->credito != "") ? intval($operacion->credito) + $saldo  : $saldo - intval($operacion->abono);
+                    $saldo = ($operacion->credito != "") ? number_format((float)$operacion->credito,2,".","") + number_format((float)$saldo,2,".","")   : number_format((float)$saldo,2,".","") - number_format((float)($operacion->abono),2,".","");
+
                     $operacion->saldo = $saldo;
                     // print_r(intval($operacion->credito) + $operacion->saldo ."<br>");
                 }
