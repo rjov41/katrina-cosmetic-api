@@ -285,7 +285,9 @@ use Illuminate\Support\Facades\DB;
     }
 
     function queryEstadoCuenta($cliente_id){
-        $response = [];
+        $response = [
+            "estado_cuenta" => [],
+        ];
 
         if(is_numeric($cliente_id)){
             $query = "SELECT
@@ -336,7 +338,7 @@ use Illuminate\Support\Facades\DB;
                     $operacion->saldo = $saldo;
                     // print_r(intval($operacion->credito) + $operacion->saldo ."<br>");
                 }
-                $response = $estadoCuenta;
+                $response["estado_cuenta"] = $estadoCuenta;
             }
 
         }
