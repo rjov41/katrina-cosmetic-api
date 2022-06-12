@@ -555,4 +555,12 @@ class LogisticaController extends Controller
         return response()->json($response, 200);
 
     }
+
+    function estadoCuenta(Request $request)
+    {
+        $response = queryEstadoCuenta($request->cliente_id);
+        return response()->json($response, 200);
+    }
+
+
 }

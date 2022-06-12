@@ -4,6 +4,7 @@ use App\Models\Cliente;
 use App\Models\Factura;
 use App\Models\Factura_Detalle;
 use App\Models\Producto;
+use Illuminate\Support\Facades\DB;
 
     function validarStatusPagadoGlobal($clienteID){
 
@@ -281,4 +282,65 @@ use App\Models\Producto;
         }
 
         return false;
+    }
+
+    function queryEstadoCuenta($cliente_id){
+        $response = [];
+
+        if(is_numeric($cliente_id)){
+            $query = "SELECT
+                    *
+                FROM (
+                    SELECT
+                        c.id AS cliente_id,
+                        CONCAT('PED-',f.id ) AS `numero_documento`,
+                        'Pedido' as tipo_documento,
+                        f.created_at AS fecha,
+                        f.fecha_vencimiento AS f_vencimiento,
+                    f.monto AS credito,
+                        '' AS abono
+                    FROM clientes c
+                    INNER JOIN facturas f ON f.cliente_id = c.id
+                    WHERE
+                        f.`status` = 1
+                        UNION ALL
+                    SELECT
+                        c.id AS cliente_id,
+                        CONCAT('REC-', rh.numero ) AS `numero_documento`,
+                        'Recibo' as tipo_documento,
+                        rh.created_at AS fecha,
+                        rh.created_at AS f_vencimiento,
+                    '' AS credito,
+                        fh.precio AS abono
+                    FROM	clientes c
+                    INNER JOIN factura_historials fh ON fh.cliente_id = c.id
+                    INNER JOIN recibo_historials rh ON rh.factura_historial_id = fh.id
+                    WHERE
+                        fh.`estado` = 1
+                ) estado_cuenta
+                WHERE estado_cuenta.cliente_id = $cliente_id
+                ORDER BY estado_cuenta.fecha ASC
+            ";
+
+            // if($request->userId != 0){
+            //     $query = $query." AND c.user_id = ".$request->userId;
+            // }
+
+            $estadoCuenta = DB::select($query);
+
+            if (count($estadoCuenta)>0) {
+                $saldo = 0;
+                foreach ($estadoCuenta as $operacion) {
+                    // if(!isset($operacion->saldo)) $operacion->saldo = 0;
+                    $saldo = ($operacion->credito != "") ? intval($operacion->credito) + $saldo  : $saldo - intval($operacion->abono);
+                    $operacion->saldo = $saldo;
+                    // print_r(intval($operacion->credito) + $operacion->saldo ."<br>");
+                }
+                $response = $estadoCuenta;
+            }
+
+        }
+
+        return $response;
+
     }

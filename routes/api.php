@@ -111,6 +111,7 @@ Route::post('logistica/mora-60-90', [LogisticaController::class, 'Mora60A90']);
 Route::post('logistica/cliente-new', [LogisticaController::class, 'clienteDate']);
 Route::post('logistica/incentivo', [LogisticaController::class, 'incentivo']);
 Route::post('logistica/cliente-inactivo', [LogisticaController::class, 'clienteInactivo']);
+Route::post('logistica/estado-de-cuenta', [LogisticaController::class, 'estadoCuenta']);
 
 Route::get('/clear-cache', function () {
     echo Artisan::call('config:clear');
