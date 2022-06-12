@@ -27,7 +27,7 @@
         border-top-left-radius: 30px;
         border-top-right-radius: 30px;
         padding: 10px;
-    
+
     }
     .seccion_supeior{
         display: flex;
@@ -117,8 +117,8 @@
 {{-- <div class="page-break"></div> --}}
 <body>
 
-    @foreach($data['estado_cuenta'] as $key =>  $historico)     
-    <h6 style="float: right">Pagina {{ $key + 1 }} de {{ count($data['estado_cuenta']) }} </h6>  
+    @foreach($data['estado_cuenta'] as $key =>  $historico)
+    <h6 style="float: right">Pagina {{ $key + 1 }} de {{ count($data['estado_cuenta']) }} </h6>
         <img class="logo" src="lib/img/logo_png.png" style="{{ $key > 0 ?  'margin-top: 15px' : '' }}"  alt="">
         <h5 style="{{ $key > 0 ?  'margin-left: 100px' : '' }}">M&R Cosmetics <br> ALTAMIRA DE DONDE FUE EL BDF 1C A LAGO 1C ARRIBA CONTIGUO A ETIRROL <br> Teléfonos: 84220028-88071569-81562408</h5>
         </div>
@@ -130,7 +130,7 @@
                     <span class="direccion"><b>Cedula:</b> {{$data['cliente']['cedula']}}</span>
                     <span class="direccion"><b>Teléfono:</b> {{$data['cliente']['celular']}}</span>
                 </div>
-                
+
                 <div class="right">
                     <span class="direccion"><b>Teléfono salon:</b> {{$data['cliente']['telefono']}}</span>
                     <span style="width: 350px;"><b>Dirección:</b> {{$data['cliente']['direccion_casa']}}</span>
@@ -159,13 +159,13 @@
                                 <td>{{ $historico->tipo_documento }}</td>
                                 <td>{{ $historico->fecha }}</td>
                                 <td>{{ $historico->f_vencimiento }}</td>
-                                <td>{{ $historico->credito }}</td>
-                                <td>{{ $historico->abono }}</td>
-                                <td>{{ $historico->saldo }}</td>
+                                <td>{{ number_format((float) $historico->credito ,2,".","")}}</td>
+                                <td>{{ number_format((float) $historico->abono ,2,".","")}}</td>
+                                <td>{{ number_format((float) $historico->saldo ,2,".","")}}</td>
                             </tr>
                         @endforeach
-                            
-                        
+
+
                     </tbody>
                 </table>
                 <table>
@@ -175,12 +175,12 @@
                 </table>
             </div>
         </div>
-        
+
         {{-- <div class="page-break"></div> --}}
     @endforeach
 
 
-    
+
 
 </body>
 </html>

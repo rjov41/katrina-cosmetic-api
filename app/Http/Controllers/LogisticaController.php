@@ -559,6 +559,8 @@ class LogisticaController extends Controller
     function estadoCuenta(Request $request)
     {
         $response = queryEstadoCuenta($request->cliente_id);
+        $response["cliente"] = Cliente::find($request->cliente_id);
+
         return response()->json($response, 200);
     }
 
