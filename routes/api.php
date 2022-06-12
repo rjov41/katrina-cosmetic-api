@@ -90,6 +90,7 @@ Route::get('recibos/number/{id}', [ReciboController::class, 'getNumeroRecibo']);
 
 
 Route::get('pdf/{id}', [PdfController::class, 'facturaPago']);
+Route::get('pdf/estado_cuenta/{id}', [PdfController::class, 'estadoCuenta']);
 // Route::post('pdf', [PdfController::class,'generar']);
 
 Route::get('mail/{id}', [PdfController::class, 'SendMail']);

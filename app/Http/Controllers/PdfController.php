@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Factura;
 use App\Models\Producto;
 use App\Models\User;
+use App\Models\Cliente;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Illuminate\Http\Request;
 use App\Mail\PdfMail;
@@ -82,7 +83,6 @@ class PdfController extends Controller
         $data = [
             'data' => $response
         ];
-       /*  dd($data); */
 
         $archivo = PDF::loadView('pdf', $data);
         $pdf = PDF::loadView('pdf', $data)->output();
@@ -92,6 +92,29 @@ class PdfController extends Controller
 
         return $archivo->download('factura_'.$response->id.'.pdf');
 
+    }
+
+    public function estadoCuenta(Request $request)
+    {
+        $all_datos = queryEstadoCuenta($request->id);
+        $response['cliente'] = Cliente::find($request->id);
+
+
+      
+        $response['estado_cuenta'] = array_chunk($all_datos['estado_cuenta'], 30);
+
+        $data = [
+            'data' => $response
+            
+        ];
+
+        $archivo = PDF::loadView('estado_cuenta', $data);
+        $pdf = $archivo->output();
+
+        Storage::disk('public')->put('estado_cuenta.blade.pdf', $pdf);
+
+
+        return $archivo->download('estado_cuenta_'.$request->id.'.pdf');
     }
 
     public function SendMail($id)
@@ -173,8 +196,6 @@ class PdfController extends Controller
 
     function generar(Request $request){
         dd($request);
-
-
         // aqui colocar lo mismo que en facturaPago
     }
 }
