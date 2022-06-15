@@ -159,8 +159,8 @@
                                 <td>{{ $historico->tipo_documento }}</td>
                                 <td>{{ date("d/m/Y", strtotime($historico->fecha)) }}</td>
                                 <td>{{ date("d/m/Y", strtotime($historico->f_vencimiento)) }}</td>
-                                <td>{{ number_format((float) $historico->credito ,2,".","")}}</td>
-                                <td>{{ number_format((float) $historico->abono ,2,".","")}}</td>
+                                <td>{{ $historico->credito != "" ? number_format((float) $historico->credito ,2,".","") : ""}}</td>
+                                <td>{{ $historico->abono != "" ? number_format((float) $historico->abono ,2,".","") : ""}}</td>
                                 <td>{{ number_format((float) $historico->saldo ,2,".","")}}</td>
                             </tr>
                         @endforeach
