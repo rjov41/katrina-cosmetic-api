@@ -36,28 +36,21 @@ class LogisticaController extends Controller
             $dateFin = Carbon::parse($request->dateFin);
         }
 
-        // DB::enableQueryLog();
-        // print_r(json_encode($dateIni->toDateString()." 00:00:00"));
-        if($request->allDates){
-            $facturas = Factura::select("*")
-            // ->whereBetween('created_at', [$dateIni->toDateString()." 00:00:00",  $dateFin->toDateString()." 23:59:59"])
+        $facturasStorage = Factura::select("*")
             ->where('tipo_venta', $request->tipo_venta ? $request->tipo_venta : 1) // si envian valor lo tomo, si no por defecto toma credito
             ->where('status_pagado', $request->status_pagado ? $request->status_pagado : 0) // si envian valor lo tomo, si no por defecto asigno por pagar = 0
-            ->where('user_id', $userId)
-            ->where('status', 1)
-            ->get();
-        }else{
-            $facturas = Factura::select("*")
-                ->whereBetween('created_at', [$dateIni->toDateString()." 00:00:00",  $dateFin->toDateString()." 23:59:59"])
-                ->where('tipo_venta', $request->tipo_venta ? $request->tipo_venta : 1) // si envian valor lo tomo, si no por defecto toma credito
-                ->where('status_pagado', $request->status_pagado ? $request->status_pagado : 0) // si envian valor lo tomo, si no por defecto asigno por pagar = 0
-                ->where('user_id', $userId)
-                ->where('status', 1)
-                ->get();
+            ->where('status', 1);
+
+        if(!$request->allDates){
+            $facturasStorage = $facturasStorage->whereBetween('created_at', [$dateIni->toDateString()." 00:00:00",  $dateFin->toDateString()." 23:59:59"]);
         }
 
-        // $query = DB::getQueryLog();
-        // dd($query);
+        if($userId != 0){
+            $facturasStorage = $facturasStorage->where('user_id', $userId);
+        }
+
+        $facturas = $facturasStorage->get();
+
 
         if(count($facturas) > 0){
             $total = 0;
