@@ -6,6 +6,7 @@ use App\Models\Categoria;
 use App\Models\Cliente;
 use App\Models\Factura;
 use App\Models\Frecuencia;
+use App\Models\Producto;
 use App\Models\Recibo;
 use App\Models\User;
 use Carbon\Carbon;
@@ -553,6 +554,26 @@ class LogisticaController extends Controller
     {
         $response = queryEstadoCuenta($request->cliente_id);
         $response["cliente"] = Cliente::find($request->cliente_id);
+
+        return response()->json($response, 200);
+    }
+
+    function productoLogistica(Request $request)
+    {
+        $response = [
+            'productos' => 0,
+            'monto_total' => 0,
+        ];
+
+        $productos =  Producto::where('estado',1)->get();
+
+        if(count($productos) > 0){
+            foreach ($productos as $producto) {
+                $precio = number_format((float) ($producto->precio * $producto->stock),2,".","");
+                $response["productos"] += $producto->stock;
+                $response["monto_total"] += $precio;
+            }
+        }
 
         return response()->json($response, 200);
     }

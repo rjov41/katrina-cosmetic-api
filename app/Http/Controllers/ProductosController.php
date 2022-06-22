@@ -18,16 +18,16 @@ class ProductosController extends Controller
         $response = [];
         $status = 200;
         $productoEstado = 1; // Activo
-        
+
         // if($request->input("estado") != null) $productoEstado = $request->input("estado");
-        
+
         // dd($clienteEstado);
         $producto =  Producto::where('estado',$productoEstado)->get();
-        
+
         if(count($producto) > 0){
             $response[] = $producto;
         }
-        
+
         return response()->json($producto, $status);
     }
 
@@ -64,7 +64,7 @@ class ProductosController extends Controller
         if($validation->fails()) {
             return response()->json($validation->errors(), 400);
         } else {
-            
+
             $user = Producto::create([
                 'marca' => $request['marca'],
                 'modelo' => $request['modelo'],
@@ -75,7 +75,7 @@ class ProductosController extends Controller
                 'descripcion' => $request['descripcion'],
                 'estado' => $request['estado'],
             ]);
-            
+
             return response()->json([
                 // 'success' => 'Usuario Insertado con exito',
                 // 'data' =>[
@@ -96,18 +96,18 @@ class ProductosController extends Controller
         $response = [];
         $status = 400;
         // $productoEstado = 1; // Activo
-        
+
         if(is_numeric($id)){
-                    
+
             // if($request->input("estado") != null) $productoEstado = $request->input("estado");
             // dd($productoEstado);
-        
+
             $producto =  Producto::where([
                 ['id', '=', $id],
             // ['estado', '=', $productoEstado],
             ])->first();
-        
-        
+
+
             // $cliente =  Cliente::find($id);
             if($producto){
                 $response = $producto;
@@ -116,11 +116,11 @@ class ProductosController extends Controller
             }else{
                 $response[] = "El producto no existe o fue eliminado.";
             }
-            
+
         }else{
             $response[] = "El Valor de Id debe ser numerico.";
         }
-        
+
         return response()->json($response, $status);
     }
 
@@ -146,11 +146,11 @@ class ProductosController extends Controller
     {
         $response = [];
         $status = 400;
-        
+
         if(is_numeric($id)){
             $producto =  Producto::find($id);
-            
-            if($producto){ 
+
+            if($producto){
                 $validation = Validator::make($request->all() ,[
                     'marca' => 'required|string',
                     'modelo' => 'required|string',
@@ -161,12 +161,12 @@ class ProductosController extends Controller
                     'descripcion' => 'required|string',
                     'estado' => 'required|numeric|max:1',
                 ]);
-                
+
                 if($validation->fails()) {
                     $response[] = $validation->errors();
                 } else {
 
-                    
+
                     $productoUpdate = $producto->update([
                         'marca' => $request['marca'],
                         'modelo' => $request['modelo'],
@@ -178,11 +178,11 @@ class ProductosController extends Controller
                         'estado' => $request['estado'],
                     ]);
 
-                    
-                    if($productoUpdate){                  
+
+                    if($productoUpdate){
                         $response[] = 'El producto fue modificado con exito.';
                         $status = 200;
-                        
+
                     }else{
                         $response[] = 'Error al modificar los datos.';
                     }
@@ -192,11 +192,11 @@ class ProductosController extends Controller
             }else{
                 $response[] = "El producto no existe.";
             }
-            
+
         }else{
             $response[] = "El Valor de Id debe ser numerico.";
         }
-        
+
         return response()->json($response, $status);
     }
 
@@ -210,19 +210,19 @@ class ProductosController extends Controller
     {
         $response = [];
         $status = 400;
-        
+
         if(is_numeric($id)){
             $producto =  Producto::find($id);
             // dd($producto);
-            if(!empty($producto)){ 
+            if(!empty($producto)){
                 $productoDelete = $producto->update([
                     'estado' => 0,
                 ]);
-                
-                if($productoDelete){                  
+
+                if($productoDelete){
                     $response[] = 'El producto fue eliminado con exito.';
                     $status = 200;
-                    
+
                 }else{
                     $response[] = 'Error al eliminar el producto.';
                 }
@@ -230,11 +230,11 @@ class ProductosController extends Controller
             }else{
                 $response[] = "El producto no existe.";
             }
-            
+
         }else{
             $response[] = "El Valor de Id debe ser numerico.";
         }
-        
+
         return response()->json($response, $status);
     }
 }
