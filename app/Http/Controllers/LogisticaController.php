@@ -56,7 +56,9 @@ class LogisticaController extends Controller
         if(count($facturas) > 0){
             $total = 0;
             foreach ($facturas as $factura) {
-                $total += $factura->saldo_restante;
+                // $total += $factura->saldo_restante;
+                $total += number_format((float) ($factura->saldo_restante),2,".","");
+
 
                 $factura->user;
                 $factura->cliente->factura_historial;
@@ -65,7 +67,7 @@ class LogisticaController extends Controller
                 ])->get();
             }
 
-            $response["total"]    = number_format($total, 2,".","");
+            $response["total"]    = $total;
             $response["factura"] = $facturas;
         }
 
