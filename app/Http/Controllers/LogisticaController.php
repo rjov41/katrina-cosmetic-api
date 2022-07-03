@@ -38,7 +38,7 @@ class LogisticaController extends Controller
         }
 
         $facturasStorage = Factura::select("*")
-            ->where('tipo_venta', $request->tipo_venta ? $request->tipo_venta : 1) // si envian valor lo tomo, si no por defecto toma credito
+            //->where('tipo_venta', $request->tipo_venta ? $request->tipo_venta : 1) // si envian valor lo tomo, si no por defecto toma credito
             ->where('status_pagado', $request->status_pagado ? $request->status_pagado : 0) // si envian valor lo tomo, si no por defecto asigno por pagar = 0
             ->where('status', 1);
 
@@ -57,7 +57,8 @@ class LogisticaController extends Controller
             $total = 0;
             foreach ($facturas as $factura) {
                 // $total += $factura->saldo_restante;
-                $total += number_format((float) ($factura->saldo_restante),2,".","");
+                $total += number_format((float) ($factura->monto),2,".","");
+                //$total += number_format((float) ($factura->saldo_restante),2,".","");
 
 
                 $factura->user;
