@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ClientesReactivados;
 use App\Models\Factura;
 use App\Models\Factura_Detalle;
 use App\Models\Producto;
@@ -30,6 +31,8 @@ class FacturaController extends Controller
         if(!is_null($request['estado'])) $parametros[] = ["status", $request['estado']];
         if(!is_null($request['tipo_venta'])) $parametros[] = ["tipo_venta", $request['tipo_venta']];
         if(!is_null($request['status_pagado'])) $parametros[] = ["status_pagado", $request['status_pagado']];
+        if(!is_null($request['status_pagado'])) $parametros[] = ["status_pagado", $request['status_pagado']];
+        if(!is_null($request['status_entrega'])) $parametros[] = ["entregado", $request['status_entrega']];
         if(!is_null($request['despachado'])) $parametros[] = ["despachado", $request['despachado']];
 
         // dd($facturaEstado);
@@ -118,6 +121,31 @@ class FacturaController extends Controller
                 'despachado'        => $request['despachado'],
                 'status'            => $request['estado'],
             ];
+
+            $query = "SELECT
+            c.*,
+            q.cantidad_factura,
+            q.cantidad_finalizadas,
+            if(q.cantidad_factura = q.cantidad_finalizadas, 1, 0) AS cliente_inactivo
+            FROM clientes c
+            INNER JOIN (
+                SELECT
+                    c.id AS cliente_id,
+                    c.user_id AS user_id,
+                    COUNT(c.id) AS cantidad_factura,
+                    SUM(if(f.status_pagado = 1, 1, 0)) AS cantidad_finalizadas
+                FROM clientes c
+                INNER JOIN facturas f ON c.id = f.cliente_id
+                WHERE  f.`status` = 1
+                GROUP BY c.id
+                ORDER BY c.id ASC
+            )q ON c.id = q.cliente_id
+            WHERE
+                q.cantidad_factura = q.cantidad_finalizadas AND
+                c.id = ".$request['cliente_id']; // Valido que el cliente este en la lista de clientes inactivos
+
+            $clientesInactivos = DB::select($query);
+
             $factura = Factura::create($facturaInsert); // inserto factura
 
             if($request["tipo_venta"] == 2 ){ // si es contado
@@ -163,7 +191,10 @@ class FacturaController extends Controller
 
 
             $factura_Detalle = Factura_Detalle::insert($fDetalles); // inserto detalle de factura
+
             validarStatusPagadoGlobal( $request['cliente_id']); // valido si todas las facturas y ajusto en caso de que se le deba al cliente
+
+            validarReactivacionCliente($request['user_id'],$request['cliente_id'],$factura->id, $clientesInactivos);
 
             DB::commit();
             return response()->json([
@@ -400,6 +431,33 @@ class FacturaController extends Controller
                 }else{
                     $response[] = 'La factura ha sido devuelta a la sección de facturas despachadas.';
                 }
+
+            }else{
+                $response[] = "La factura no existe.";
+            }
+
+        }else{
+            $response[] = "El Valor de Id debe ser numerico.";
+        }
+
+        return response()->json($response, $status);
+    }
+
+    public function entregada($id)
+    {
+        $response = [];
+        $status = 400;
+
+        if(is_numeric($id)){
+            $factura =  Factura::find($id);
+            // print_r($factura);
+            if($factura){
+                $factura->entregado = 1;
+                $factura->save();
+
+                // print_r($factura);
+                $status = 200;
+                $response[] = 'La factura fue marcada como entregada.';
 
             }else{
                 $response[] = "La factura no existe.";

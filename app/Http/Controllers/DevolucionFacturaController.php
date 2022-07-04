@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ClientesReactivados;
 use App\Models\DevolucionFactura;
 use App\Models\Factura;
 use App\Models\ReciboHistorialContado;
@@ -118,6 +119,39 @@ class DevolucionFacturaController extends Controller
 
                         ReciboHistorialContado::where('factura_id', $factura->id)->update([
                             'estado' => 0,
+                        ]);
+                    }
+
+                    // 6 - elimino la reactivacion del cliente
+                    $query = "SELECT
+                    c.*,
+                    q.cantidad_factura,
+                    q.cantidad_finalizadas,
+                    if(q.cantidad_factura = q.cantidad_finalizadas, 1, 0) AS cliente_inactivo
+                    FROM clientes c
+                    INNER JOIN (
+                        SELECT
+                            c.id AS cliente_id,
+                            c.user_id AS user_id,
+                            COUNT(c.id) AS cantidad_factura,
+                            SUM(if(f.status_pagado = 1, 1, 0)) AS cantidad_finalizadas
+                        FROM clientes c
+                        INNER JOIN facturas f ON c.id = f.cliente_id
+                        WHERE  f.`status` = 1
+                        GROUP BY c.id
+                        ORDER BY c.id ASC
+                    )q ON c.id = q.cliente_id
+                    WHERE
+                        q.cantidad_factura = q.cantidad_finalizadas AND
+                        c.id = ".$factura->cliente_id; // Valido que el cliente este en la lista de clientes inactivos
+
+                    $clientesInactivos = DB::select($query);
+
+                    if(count($clientesInactivos)>0){
+                        ClientesReactivados::where([
+                            ['factura_id', '=', $factura->id],
+                        ])->update([
+                            'estado'     => 0,
                         ]);
                     }
 

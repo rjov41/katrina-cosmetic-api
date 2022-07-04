@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Categoria;
 use App\Models\Cliente;
+use App\Models\ClientesReactivados;
 use App\Models\Factura;
 use App\Models\Frecuencia;
 use App\Models\Producto;
@@ -578,6 +579,54 @@ class LogisticaController extends Controller
             }
         }
 
+        return response()->json($response, 200);
+    }
+
+    function clientesReactivados(Request $request)
+    {
+        $response = [];
+
+        $userId = $request['userId'];
+
+        if(empty($request->dateIni)){
+            $dateIni = Carbon::now();
+        }else{
+            $dateIni = Carbon::parse($request->dateIni);
+        }
+
+        if(empty($request->dateFin)){
+            $dateFin = Carbon::now();
+        }else{
+            $dateFin = Carbon::parse($request->dateFin);
+        }
+
+
+        $reactivosStorage = ClientesReactivados::select("*")->where('estado', 1);
+
+        if($userId != 0){
+            $reactivosStorage = $reactivosStorage->where('user_id', $userId);
+        }
+
+        if(!$request->allDates){
+            $reactivosStorage = $reactivosStorage->whereBetween('created_at', [$dateIni->toDateString()." 00:00:00",  $dateFin->toDateString()." 23:59:59"]);
+        }
+
+        $reactivos = $reactivosStorage->get();
+
+
+
+        if (count($reactivos)>0) {
+            foreach ($reactivos as $reactivo) {
+
+                $reactivo->cliente;
+                $reactivo->user;
+                $reactivo->factura;
+            }
+
+            $response = $reactivos;
+        }
+
+        // print_r(count($cliente));
         return response()->json($response, 200);
     }
 
