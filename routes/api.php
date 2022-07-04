@@ -80,6 +80,7 @@ Route::resource('factura-detalle', FacturaDetallesController::class);
 
 Route::resource('facturas', FacturaController::class);
 Route::put('facturas/despachar/{id}', [FacturaController::class, 'despachar']);
+Route::put('facturas/entregada/{id}', [FacturaController::class, 'entregada']);
 
 Route::resource('abonos', FacturaHistorial::class);
 
@@ -114,6 +115,7 @@ Route::post('logistica/incentivo', [LogisticaController::class, 'incentivo']);
 Route::post('logistica/cliente-inactivo', [LogisticaController::class, 'clienteInactivo']);
 Route::post('logistica/estado-de-cuenta', [LogisticaController::class, 'estadoCuenta']);
 Route::get('logistica/producto-logistica', [LogisticaController::class, 'productoLogistica']);
+Route::post('logistica/clientes-reactivados', [LogisticaController::class, 'clientesReactivados']);
 
 Route::get('/clear-cache', function () {
     echo Artisan::call('config:clear');

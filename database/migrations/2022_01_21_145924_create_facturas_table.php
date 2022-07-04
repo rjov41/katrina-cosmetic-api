@@ -34,6 +34,7 @@ class CreateFacturasTable extends Migration
             $table->integer("tipo_venta")->length(1); //1 credito 2 contado
             $table->integer("status_pagado")->length(1); // define si se pago una factura fue pagada en su totalidad, 0= en proceso y 1 = pagado
             $table->integer("despachado")->length(1)->default(0); // esta seccion la maneja el admin para saber si fue despachada o no la factura
+            $table->integer("entregado")->length(1)->default(0); // valida si elvendedor le entrego la factura al administrador
             $table->integer("status")->length(1);  // define si la factura esta activa o no (eliminada o no) 0 = eliminada, 1= activa
             $table->timestamps();
 
