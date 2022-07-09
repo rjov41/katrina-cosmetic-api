@@ -34,6 +34,10 @@ class FacturaController extends Controller
         if(!is_null($request['status_pagado'])) $parametros[] = ["status_pagado", $request['status_pagado']];
         if(!is_null($request['status_entrega'])) $parametros[] = ["entregado", $request['status_entrega']];
         if(!is_null($request['despachado'])) $parametros[] = ["despachado", $request['despachado']];
+        if(!is_null($request['created_at'])){
+            $created_at = Carbon::parse($request['created_at']);
+            $parametros[] = ["created_at",'>=', $created_at." 00:00:00"];
+        }
 
         // dd($facturaEstado);
         $facturas =  Factura::where($parametros)->get();
