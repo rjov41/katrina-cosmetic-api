@@ -83,7 +83,7 @@ class PdfController extends Controller
         $data = [
             'data' => $response
         ];
-
+      
         $archivo = PDF::loadView('pdf', $data);
         $pdf = PDF::loadView('pdf', $data)->output();
 
@@ -98,15 +98,14 @@ class PdfController extends Controller
     {
         $all_datos = queryEstadoCuenta($request->id);
         $response['cliente'] = Cliente::find($request->id);
-
-
-      
+        
         $response['estado_cuenta'] = array_chunk($all_datos['estado_cuenta'], 30);
 
         $data = [
             'data' => $response
             
         ];
+
 
         $archivo = PDF::loadView('estado_cuenta', $data);
         $pdf = $archivo->output();
@@ -197,5 +196,37 @@ class PdfController extends Controller
     function generar(Request $request){
         dd($request);
         // aqui colocar lo mismo que en facturaPago
+    }
+
+    function cartera(Request $request)
+    {
+        $fullName = 'Todos'; 
+        $data = carteraQuery($request);
+
+        $data['facturas'] = array_chunk(json_decode(json_encode($data['factura'])), 11);
+        
+        if($request->userId != 0){
+            $datosCliente =  User::find($request->userId);
+            $data['fullname'] = $datosCliente->name.' '.$datosCliente->apellido;
+        }else{
+            $data['fullname'] = $fullName;
+        }
+        
+        
+        $data = [
+            'data' => $data['facturas'],
+            'fullname' => $data['fullname'],
+            'total' => $data['total']
+        ];
+
+        $archivo = PDF::loadView('cartera', $data);
+        $pdf = PDF::loadView('cartera', $data)->output();
+
+        Storage::disk('public')->put('cartera.pdf', $pdf);
+
+
+        return $archivo->download('cartera.pdf');
+
+        
     }
 }
