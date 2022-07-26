@@ -406,8 +406,8 @@ function carteraQuery($request ){
     if(count($facturas) > 0){
         $total = 0;
         foreach ($facturas as $factura) {
-            // $total += $factura->saldo_restante;
-            $total += number_format((float) ($factura->monto),2,".","");
+            $total += $factura->saldo_restante;
+            // $total += number_format((float) ($factura->monto),2,".","");
             //$total += number_format((float) ($factura->saldo_restante),2,".","");
 
 
