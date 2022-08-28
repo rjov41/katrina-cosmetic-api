@@ -578,4 +578,11 @@ class LogisticaController extends Controller
     }
 
 
+    function ventasDate(Request $request)
+    {
+
+        $response = ventasMetaQuery($request);
+        return response()->json($response, 200);
+    }
+
 }

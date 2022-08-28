@@ -12,6 +12,7 @@ use App\Http\Controllers\FacturaDetallesController;
 use App\Http\Controllers\FacturaHistorial;
 use App\Http\Controllers\FrecuenciaController;
 use App\Http\Controllers\LogisticaController;
+use App\Http\Controllers\MetasController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\ProductosController;
 use App\Http\Controllers\ReciboController;
@@ -89,6 +90,7 @@ Route::resource('recibos/historial/contado', ReciboHistorialContadoController::c
 Route::resource('recibos/historial/credito', ReciboHistorialController::class);
 Route::get('recibos/number/{id}', [ReciboController::class, 'getNumeroRecibo']);
 
+Route::resource('metas', MetasController::class);
 
 Route::get('pdf/{id}', [PdfController::class, 'facturaPago']);
 Route::get('pdf/estado_cuenta/{id}', [PdfController::class, 'estadoCuenta']);
@@ -117,6 +119,7 @@ Route::post('logistica/cliente-inactivo', [LogisticaController::class, 'clienteI
 Route::post('logistica/estado-de-cuenta', [LogisticaController::class, 'estadoCuenta']);
 Route::get('logistica/producto-logistica', [LogisticaController::class, 'productoLogistica']);
 Route::post('logistica/clientes-reactivados', [LogisticaController::class, 'clientesReactivados']);
+Route::post('logistica/ventas', [LogisticaController::class, 'ventasDate']);
 
 Route::get('/clear-cache', function () {
     echo Artisan::call('config:clear');

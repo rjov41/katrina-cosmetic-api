@@ -88,4 +88,10 @@ class User extends Authenticatable
     {
         return $this->hasOne(Recibo::class);
     }
+
+    // one to one
+    public function meta()
+    {
+        return $this->hasOne(Meta::class);
+    }
 }

@@ -4,6 +4,7 @@ use App\Models\Cliente;
 use App\Models\ClientesReactivados;
 use App\Models\Factura;
 use App\Models\Factura_Detalle;
+use App\Models\Meta;
 use App\Models\Producto;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -422,6 +423,87 @@ function carteraQuery($request ){
 
         $response["total"]    = $total;
         $response["factura"] = $facturas;
+    }
+
+    return $response;
+}
+
+function ventasMetaQuery($request){
+    $response = [
+        'factura' => [],
+        'total' => 0,
+        'meta' => 0,
+        'meta_monto' => 0,
+    ];
+
+    $metaValue = 0;
+    $userId = $request['userId'];
+    
+    // "dateIni": "2022-03-15",
+    // "dateFin": "2022-03-15",
+    if(empty($request->dateIni)){
+        $dateIni = Carbon::now();
+    }else{
+        $dateIni = Carbon::parse($request->dateIni);
+    }
+
+    if(empty($request->dateIni)){
+        $dateFin = Carbon::now();
+    }else{
+        $dateFin = Carbon::parse($request->dateFin);
+    }
+
+
+
+    $facturasStorage = Factura::select("*")
+        //->where('tipo_venta', $request->tipo_venta ? $request->tipo_venta : 1) // si envian valor lo tomo, si no por defecto toma credito
+        ->where('status_pagado', $request->status_pagado ? $request->status_pagado : 0) // si envian valor lo tomo, si no por defecto asigno por pagar = 0
+        ->where('status', 1);
+
+    if(!$request->allDates){
+        $facturasStorage = $facturasStorage->whereBetween('created_at', [$dateIni->toDateString()." 00:00:00",  $dateFin->toDateString()." 23:59:59"]);
+    }
+
+    if($userId != 0){
+        $facturasStorage = $facturasStorage->where('user_id', $userId);
+    }
+
+    $facturas = $facturasStorage->get();
+
+
+    if(count($facturas) > 0){
+        $total = 0;
+        foreach ($facturas as $factura) {
+            // $total += $factura->saldo_restante;
+            $total += number_format((float) ($factura->monto),2,".","");
+            //$total += number_format((float) ($factura->saldo_restante),2,".","");
+
+
+            $factura->user;
+            $factura->cliente->factura_historial = $factura->cliente->factura_historial()->where([
+                ['estado', '=', 1],
+            ])->get()->last();
+            $factura->factura_detalle = $factura->factura_detalle()->where([
+                ['estado', '=', 1],
+            ])->get();
+        }
+
+        $response["total"]    = $total;
+        $response["factura"] = $facturas;
+    }
+
+    // $meta = Meta::where('user_id', $userId)->first();
+    $meta = Meta::select("*")
+                ->where('user_id', $userId)
+                ->first();
+    // print_r(json_encode($meta));
+
+    if($meta){
+        $metaValue = $meta->monto;
+        $response["meta_monto"] = $meta->monto;
+        // print_r(json_encode($metaValue));
+        $averageMeta = ($response["total"] / $metaValue ) * 100;
+        $response["meta"] = number_format((float) ($averageMeta),2,".","");
     }
 
     return $response;

@@ -31,6 +31,7 @@ class UsuarioController extends Controller
             foreach ($usuarios as $usuario) {
                 $usuario->factura;
                 $usuario->recibo;
+                $usuario->meta;
 
                 $role_id = DB::table('model_has_roles')->where('model_id', $usuario->id)->first();
                 $usuario->role_id = $role_id->role_id;
