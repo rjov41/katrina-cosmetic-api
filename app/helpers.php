@@ -419,6 +419,10 @@ function carteraQuery($request ){
             $factura->factura_detalle = $factura->factura_detalle()->where([
                 ['estado', '=', 1],
             ])->get();
+            
+            // $factura->recibos = $factura->cliente->factura_historial()->where([
+            //     ['estado', '=', 1],
+            // ])->recibo_historial->get();
         }
 
         $response["total"]    = $total;
