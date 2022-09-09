@@ -4,6 +4,7 @@ use App\Models\Cliente;
 use App\Models\ClientesReactivados;
 use App\Models\Factura;
 use App\Models\Factura_Detalle;
+use App\Models\FacturaHistorial;
 use App\Models\Meta;
 use App\Models\Producto;
 use Carbon\Carbon;
@@ -371,6 +372,8 @@ function carteraQuery($request ){
     $response = [
         'factura' => [],
         'total' => 0,
+        'recuperacion' => 0,
+        'abonos' => [],
     ];
 
     $userId = $request['userId'];
@@ -406,6 +409,8 @@ function carteraQuery($request ){
 
     if(count($facturas) > 0){
         $total = 0;
+        $clientes = [];
+
         foreach ($facturas as $factura) {
             $total += $factura->saldo_restante;
             // $total += number_format((float) ($factura->monto),2,".","");
@@ -420,17 +425,63 @@ function carteraQuery($request ){
                 ['estado', '=', 1],
             ])->get();
             
+            $factura->montos_recibos = $factura
+                ->cliente
+                ->factura_historial()
+                ->where([
+                    ['estado', '=', 1],
+                ])
+                ->whereBetween('created_at', [$dateIni->toDateString()." 00:00:00",  $dateFin->toDateString()." 23:59:59"])
+                ->get();
+
             // $factura->recibos = $factura->cliente->factura_historial()->where([
             //     ['estado', '=', 1],
             // ])->recibo_historial->get();
+
+            array_push($clientes,$factura->cliente_id);
         }
 
-        $response["total"]    = $total;
+        if(count($clientes) > 0){
+            $clientesUnicos = array_unique($clientes);
+            
+            $clienteStore =  FacturaHistorial::whereIn('cliente_id', $clientesUnicos)
+            // ->select('id', 'cliente_id','precio','estado','created_at')
+            ->where([
+                ['estado', '=', 1],
+            ]);
+
+            if(!$request->allDates){
+                $clienteStore = $clienteStore->whereBetween('created_at', [$dateIni->toDateString()." 00:00:00",  $dateFin->toDateString()." 23:59:59"]);
+            }
+        
+            $abonos = $clienteStore->get();
+            $response["recuperacion"] = recuperacion($abonos);  
+            $response["abonos"] = $abonos;  
+            
+            // echo json_encode($cliente);
+        }
+
+        $response["total"]   = $total;
         $response["factura"] = $facturas;
     }
 
     return $response;
 }
+
+
+function recuperacion($abonos){
+    $result = 0;
+    // echo json_encode($abonos);
+
+    if(count($abonos) > 0){
+        foreach ($abonos as $abono) {
+            $result += number_format((float) ($abono->precio),2,".","");
+        }
+    }
+    
+    return $result;
+}
+
 
 function ventasMetaQuery($request){
     $response = [
@@ -438,6 +489,9 @@ function ventasMetaQuery($request){
         'total' => 0,
         'meta' => 0,
         'meta_monto' => 0,
+        'recuperacion' => 0,
+        'recuperacion_monto' => 0,
+        'abonos' => [],
     ];
 
     $metaValue = 0;
@@ -473,8 +527,7 @@ function ventasMetaQuery($request){
     }
 
     $facturas = $facturasStorage->get();
-
-
+    $clientes = [];
     if(count($facturas) > 0){
         $total = 0;
         foreach ($facturas as $factura) {
@@ -490,6 +543,8 @@ function ventasMetaQuery($request){
             $factura->factura_detalle = $factura->factura_detalle()->where([
                 ['estado', '=', 1],
             ])->get();
+
+            array_push($clientes,$factura->cliente_id);
         }
 
         $response["total"]    = $total;
@@ -497,17 +552,42 @@ function ventasMetaQuery($request){
     }
 
     // $meta = Meta::where('user_id', $userId)->first();
+    
     $meta = Meta::select("*")
                 ->where('user_id', $userId)
                 ->first();
     // print_r(json_encode($meta));
+    // (453 * 100)/1500
+    
 
     if($meta){
         $metaValue = $meta->monto;
         $response["meta_monto"] = $meta->monto;
         // print_r(json_encode($metaValue));
         $averageMeta = ($response["total"] / $metaValue ) * 100;
-        $response["meta"] = number_format((float) ($averageMeta),2,".","");
+        $response["meta"] = (float) number_format((float) ($averageMeta),2,".","");
+    }
+
+    if(count($clientes) > 0){
+        $clientesUnicos = array_unique($clientes);
+        
+        $abonosStore =  FacturaHistorial::whereIn('cliente_id', $clientesUnicos)
+        // ->select('id', 'cliente_id','precio','estado','created_at')
+        ->where([
+            ['estado', '=', 1],
+        ]);
+
+        if(!$request->allDates){
+            $abonosStore = $abonosStore->whereBetween('created_at', [$dateIni->toDateString()." 00:00:00",  $dateFin->toDateString()." 23:59:59"]);
+        }
+    
+        $abonos = $abonosStore->get();
+        $response["recuperacion_monto"] = recuperacion($abonos);  
+        $recuperacion = ($response["recuperacion_monto"] * 100)/$response["meta_monto"];
+        $response["recuperacion"] = (float) number_format((float) $recuperacion,2,".","");
+        $response["abonos"] = $abonos;  
+        
+        // echo json_encode($cliente);
     }
 
     return $response;
