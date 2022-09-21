@@ -356,6 +356,31 @@ class ClienteController extends Controller
         return response()->json($response, $status);
     }
 
+    function calcularDeudaVendedorTodosClientesPorUsuario($userId)
+    {// negativo es que debe el cliente y positivo es que le debemos al cliente
+        $response = [];
+        $status = 200;
+
+        $clientes =  FacturaHistorial::where(
+            [
+                ["user_id","=",$userId]
+            ]
+        )->get();
+
+        foreach ($clientes as $cliente) {
+            // print_r(json_encode($cliente));
+            $dataAbono = calcularDeudaFacturasGlobal($cliente->cliente_id);
+            
+            array_push($response, [
+                "cliente_id" => $cliente->cliente_id,
+                "deuda" => $dataAbono,
+                "deudaVendedor" => ($dataAbono > 0) ? TRUE: FALSE,
+            ]);
+        }
+
+        return response()->json($response, $status);
+    }
+
     function calcularDeudaVendedorTodosClientes()
     {// negativo es que debe el cliente y positivo es que le debemos al cliente
         $response = [];

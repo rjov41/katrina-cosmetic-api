@@ -585,4 +585,21 @@ class LogisticaController extends Controller
         return response()->json($response, 200);
     }
 
+    function recuperacion(Request $request)
+    {
+        $response = [];
+        $users = User::where([
+            ["estado","=",1]
+        ])->get();
+
+        foreach ($users as $user) {
+            // dd($user->id);
+            $user->meta;
+            $responsequery = recuperacionQuery($user);
+    
+            array_push($response, $responsequery);
+        }
+        return response()->json($response, 200);
+    }
+
 }

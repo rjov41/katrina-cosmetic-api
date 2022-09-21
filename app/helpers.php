@@ -7,6 +7,7 @@ use App\Models\Factura_Detalle;
 use App\Models\FacturaHistorial;
 use App\Models\Meta;
 use App\Models\Producto;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -455,7 +456,7 @@ function carteraQuery($request ){
             }
         
             $abonos = $clienteStore->get();
-            $response["recuperacion"] = recuperacion($abonos);  
+            $response["recuperacion"] = sumaRecuperacion($abonos);  
             $response["abonos"] = $abonos;  
             
             // echo json_encode($cliente);
@@ -469,7 +470,7 @@ function carteraQuery($request ){
 }
 
 
-function recuperacion($abonos){
+function sumaRecuperacion($abonos){
     $result = 0;
     // echo json_encode($abonos);
 
@@ -582,13 +583,87 @@ function ventasMetaQuery($request){
         }
     
         $abonos = $abonosStore->get();
-        $response["recuperacion_monto"] = recuperacion($abonos);  
+        $response["recuperacion_monto"] = sumaRecuperacion($abonos);  
         $recuperacion = ($response["recuperacion_monto"] * 100)/$response["meta_monto"];
         $response["recuperacion"] = (float) number_format((float) $recuperacion,2,".","");
         $response["abonos"] = $abonos;  
         
         // echo json_encode($cliente);
     }
+
+    return $response;
+}
+
+function recuperacionQuery($user){
+    $userId = $user->id;
+    $response = [
+        'facturasTotal' => 0,
+        'abonosTotal' => 0,
+        'abonosTotalLastMount' => 0,
+        'recuperacionPorcentaje' => 0,
+        'recuperacionTotal' => 0,
+        'user_id' => $userId,
+
+    ];
+    
+    $inicioMesActual =  Carbon::now()->firstOfMonth()->toDateString();
+    $finMesActual =  Carbon::now()->lastOfMonth()->toDateString();
+    
+    $facturasStorage = Factura::select("*")
+    ->where('tipo_venta',  1) // credito 
+    ->where('created_at',"<", $inicioMesActual." 00:00:00")
+    ->where('status', 1);
+
+    if($userId != 0){
+        $facturasStorage = $facturasStorage->where('user_id', $userId);
+    }
+    
+    $facturas = $facturasStorage->get();
+    
+    if(count($facturas) > 0){
+        $total = 0;
+        foreach ($facturas as $factura) {
+            $factura->user;
+            $total += number_format((float) ($factura->monto),2,".","");
+        }
+
+        
+        $response["facturasTotal"] = (float) number_format((float) $total,2,".","");
+
+        // Inicio el calculo de recuperacion
+
+        // $inicioMesAnterior =  Carbon::now()->subMonth()->firstOfMonth()->toDateString();
+        // $finMesAnterior =  Carbon::now()->subMonth()->lastOfMonth()->toDateString();
+        
+        $abonosStore =  FacturaHistorial::where('user_id', $userId)
+        ->where([
+            ['created_at',"<", $inicioMesActual." 00:00:00"],
+            ['estado', '=', 1],
+        ]);
+    
+        $abonos = $abonosStore->get();
+        $response["abonosTotal"] =  (float) number_format((float) sumaRecuperacion($abonos),2,".","");  
+    
+        $clienteStoreCurrentMount =  FacturaHistorial::where('user_id', $userId)
+        ->whereBetween('created_at', [$inicioMesActual." 00:00:00",  $finMesActual." 23:59:59"])
+        ->where([
+            ['estado', '=', 1],
+        ])
+        ->get();
+    
+        // Ahora es el mes actual y no ultimo mes 
+        $response["abonosTotalLastMount"] =  (float) number_format((float) sumaRecuperacion($clienteStoreCurrentMount),2,".","");  
+    
+    
+        $resultado = ($response["facturasTotal"] - $response["abonosTotal"] ) * 0.85;
+        $response["recuperacionTotal"] = (float) number_format((float) $resultado,2,".","");
+    
+        $recuperacionPorcentaje = ($response["abonosTotalLastMount"] * 100) / $response["recuperacionTotal"];
+        $response["recuperacionPorcentaje"] = (float) number_format((float) $recuperacionPorcentaje,2,".","");
+    }
+
+    $response["user"] = $user;
+    
 
     return $response;
 }

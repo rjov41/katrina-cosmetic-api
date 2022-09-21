@@ -63,6 +63,7 @@ Route::get('cliente/factura/{id}',  [ClienteController::class, 'clienteToFactura
 Route::get('cliente/abono/{id}',  [ClienteController::class, 'calcularAbono']);
 Route::get('cliente/deuda/{id}',  [ClienteController::class, 'calcularDeudaVendedorCliente']);
 Route::get('cliente/deuda',  [ClienteController::class, 'calcularDeudaVendedorTodosClientes']);
+Route::get('cliente/deuda/user/{id}',  [ClienteController::class, 'calcularDeudaVendedorTodosClientesPorUsuario']);
 Route::resource('cliente', ClienteController::class);
 
 Route::resource('roles', RoleController::class);
@@ -120,6 +121,7 @@ Route::post('logistica/estado-de-cuenta', [LogisticaController::class, 'estadoCu
 Route::get('logistica/producto-logistica', [LogisticaController::class, 'productoLogistica']);
 Route::post('logistica/clientes-reactivados', [LogisticaController::class, 'clientesReactivados']);
 Route::post('logistica/ventas', [LogisticaController::class, 'ventasDate']);
+Route::post('logistica/recuperacion', [LogisticaController::class, 'recuperacion']);
 
 Route::get('/clear-cache', function () {
     echo Artisan::call('config:clear');
