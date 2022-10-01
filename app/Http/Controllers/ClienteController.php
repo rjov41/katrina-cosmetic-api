@@ -194,7 +194,7 @@ class ClienteController extends Controller
                     'frecuencia_id' => 'required|numeric',
                     'user_id' => 'nullable|numeric',
                     // 'nombreCompleto' => 'required|string|max:80',
-                    'nombreCompleto' => 'required|string|max:80|unique:clientes,nombreCompleto',
+                    'nombreCompleto' => 'required|string|max:80|unique:clientes,nombreCompleto,' . $id,
                     'nombreEmpresa' => 'required|string|max:80',
                     // 'celular' => 'required|numeric|unique:clientes,celular,'.$id.'|digits_between:10,12',
                     // 'telefono' => 'nullable|digits_between:10,12',
