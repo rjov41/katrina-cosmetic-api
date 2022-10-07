@@ -595,7 +595,8 @@ class LogisticaController extends Controller
         foreach ($users as $user) {
             // dd($user->id);
             // $user->meta;
-            $responsequery = recuperacionQuery($user);
+            // $responsequery = recuperacionQuery($user);
+            $responsequery = newrecuperacionQuery($user);
     
             array_push($response, $responsequery);
         }

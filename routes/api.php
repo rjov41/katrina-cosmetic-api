@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthenticationController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\ConfiguracionController;
 use App\Http\Controllers\DevolucionFacturaController;
 use App\Http\Controllers\DevolucionProductoController;
 use App\Http\Controllers\FacturaController;
@@ -122,6 +123,9 @@ Route::get('logistica/producto-logistica', [LogisticaController::class, 'product
 Route::post('logistica/clientes-reactivados', [LogisticaController::class, 'clientesReactivados']);
 Route::post('logistica/ventas', [LogisticaController::class, 'ventasDate']);
 Route::post('logistica/recuperacion', [LogisticaController::class, 'recuperacion']);
+
+
+Route::post('configuracion/migracion', [ConfiguracionController::class, 'migracion']);
 
 Route::get('/clear-cache', function () {
     echo Artisan::call('config:clear');

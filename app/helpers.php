@@ -391,7 +391,7 @@ function carteraQuery($request ){
     }else{
         $dateFin = Carbon::parse($request->dateFin);
     }
-
+        // DB::enableQueryLog();
     $facturasStorage = Factura::select("*")
         //->where('tipo_venta', $request->tipo_venta ? $request->tipo_venta : 1) // si envian valor lo tomo, si no por defecto toma credito
         ->where('status_pagado', $request->status_pagado ? $request->status_pagado : 0) // si envian valor lo tomo, si no por defecto asigno por pagar = 0
@@ -406,7 +406,8 @@ function carteraQuery($request ){
     }
 
     $facturas = $facturasStorage->get();
-
+        // $query = DB::getQueryLog();
+        // dd(json_encode($query));
 
     if(count($facturas) > 0){
         $total = 0;
@@ -662,6 +663,81 @@ function recuperacionQuery($user){
     
         $recuperacionPorcentaje = ($response["abonosTotalLastMount"] * 100) / $response["recuperacionTotal"];
         $response["recuperacionPorcentaje"] = (float) number_format((float) $recuperacionPorcentaje,2,".","");
+    }
+
+    $response["user"] = $user;
+
+    return $response;
+}
+
+function newrecuperacionQuery($user){
+    $userId = $user->id;
+    $response = [
+        'facturasTotal' => 0,
+        'abonosTotal' => 0,
+        'abonosTotalLastMount' => 0,
+        'recuperacionPorcentaje' => 0,
+        'recuperacionTotal' => 0,
+        'user_id' => $userId,
+
+    ];
+    
+    $inicioMesActual =  Carbon::now()->firstOfMonth()->toDateString();
+    $finMesActual =  Carbon::now()->lastOfMonth()->toDateString();
+        // DB::enableQueryLog();
+    
+    $facturasStorage = Factura::select("*")
+    ->where('tipo_venta',  1) // credito 
+    ->where('status_pagado',0) 
+    // ->whereBetween('created_at', [$inicioMesAnterior." 00:00:00",  $finMesAnterior ." 23:59:59"])
+    ->where('created_at',"<", $inicioMesActual." 00:00:00")
+    ->where('status', 1);
+
+    if($userId != 0){
+        $facturasStorage = $facturasStorage->where('user_id', $userId);
+    }
+    
+    $facturas = $facturasStorage->get();
+
+        // $query = DB::getQueryLog();
+        // dd(json_encode($query));
+    if(count($facturas) > 0){
+        $total = 0;
+        foreach ($facturas as $factura) {
+            $factura->user;
+            $total += number_format((float) ($factura->saldo_restante),2,".","");
+        }
+
+        $response["facturasTotal"] = (float) number_format((float) $total,2,".","");
+
+        // Inicio el calculo de recuperacion
+
+        $abonosStore =  FacturaHistorial::where('user_id', $userId)
+        // ->whereBetween('created_at', [$inicioMesAnterior." 00:00:00",  $finMesAnterior ." 23:59:59"])
+        ->where('created_at',"<", $inicioMesActual." 00:00:00")
+        ->where('estado', 1);
+    
+        $abonos = $abonosStore->get();
+
+        $response["abonosTotal"] =  (float) number_format((float) sumaRecuperacion($abonos),2,".","");  
+        // DB::enableQueryLog();
+        
+        $clienteStoreCurrentMount =  FacturaHistorial::where('user_id', $userId)
+        ->whereBetween('created_at', [$inicioMesActual." 00:00:00",  $finMesActual." 23:59:59"])
+        ->where('estado', 1)
+        ->get();
+
+        // $query = DB::getQueryLog();
+        // dd(json_encode($query));
+
+        // Ahora es el mes actual y no ultimo mes 
+        $response["abonosTotalLastMount"] =  (float) number_format((float) sumaRecuperacion($clienteStoreCurrentMount),2,".","");  
+
+        $resultado = $response["facturasTotal"]  * 0.85;// meta
+        $response["recuperacionTotal"] = (float) number_format((float) $resultado,2,".",""); // meta
+        $porcentaje = ($response["abonosTotalLastMount"] * 100) / $response["recuperacionTotal"]; // porcentaje
+        $response["recuperacionPorcentaje"] = (float) number_format((float) $porcentaje,2,".","");
+
     }
 
     $response["user"] = $user;
