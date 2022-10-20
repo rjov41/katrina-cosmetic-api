@@ -31,4 +31,9 @@ class Factura_Detalle extends Model
         return $this->belongsTo(Factura::class);
     }
 
+    public function devolucion_producto()
+    {
+        return $this->belongsTo(Factura::class);
+    }
+
 }

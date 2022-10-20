@@ -137,8 +137,10 @@ class UsuarioController extends Controller
             if($usuario){
                 $role_id = DB::table('model_has_roles')->where('model_id', $usuario->id)->first();
 
+                $usuario->clientes;
                 $usuario->factura;
                 $usuario->role_id = $role_id->role_id;
+                $usuario->recibo;
                 $usuario->recibo;
 
                 $response = $usuario;

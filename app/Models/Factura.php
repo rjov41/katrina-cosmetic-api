@@ -55,6 +55,12 @@ class Factura extends Model
         return $this->hasOne(ReciboHistorialContado::class);
     }
 
+    // one to many
+    public function devolucion_factura()
+    {
+        return $this->hasMany(DevolucionFactura::class);
+    }
+
     // // one to many
     // public function factura_historial()
     // {

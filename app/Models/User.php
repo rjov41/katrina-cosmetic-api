@@ -83,6 +83,12 @@ class User extends Authenticatable
         return $this->hasMany(Factura::class);
     }
 
+    // one to many
+    public function clientes()
+    {
+        return $this->hasMany(Cliente::class);
+    }
+
     // one to one
     public function recibo()
     {
