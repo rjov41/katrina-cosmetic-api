@@ -132,6 +132,7 @@ Route::get('/clear-cache', function () {
     echo Artisan::call('config:cache');
     echo Artisan::call('cache:clear');
     echo Artisan::call('route:clear');
+    // echo Artisan::call('db:dump');
  });
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
