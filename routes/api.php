@@ -123,6 +123,7 @@ Route::get('logistica/producto-logistica', [LogisticaController::class, 'product
 Route::post('logistica/clientes-reactivados', [LogisticaController::class, 'clientesReactivados']);
 Route::post('logistica/ventas', [LogisticaController::class, 'ventasDate']);
 Route::post('logistica/recuperacion', [LogisticaController::class, 'recuperacion']);
+Route::post('logistica/productos-vendidos', [LogisticaController::class, 'productosVendidos']);
 
 
 Route::post('configuracion/migracion', [ConfiguracionController::class, 'migracion']);

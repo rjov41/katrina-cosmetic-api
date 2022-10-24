@@ -603,4 +603,25 @@ class LogisticaController extends Controller
         return response()->json($response, 200);
     }
 
+    function productosVendidos(Request $request)
+    {
+        $response = [];
+        $users = User::where([
+            ["estado","=",1]
+        ])->get();
+        // $users = Recibo::where([
+        //     ["estado","=",1]
+        // ])->get();
+
+        foreach ($users as $user) {
+            // dd($user->id);
+            // $user->meta;
+            // $responsequery = recuperacionQuery($user);
+            $responsequery = productosVendidos($user,$request);
+    
+            array_push($response, $responsequery);
+        }
+        return response()->json($response, 200);
+    }
+
 }

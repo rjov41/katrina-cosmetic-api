@@ -11,7 +11,8 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
-function validarStatusPagadoGlobal($clienteID){
+function validarStatusPagadoGlobal($clienteID)
+{
 
     $cliente = Cliente::find($clienteID);
 
@@ -26,36 +27,33 @@ function validarStatusPagadoGlobal($clienteID){
         // ['debitado', '=', 0] // 0 = aun no usado el abono | 1 = ya se uso el abono,
     ])->get();
 
-    $totalAbonos = 0 ;
-    if(count($cliente->factura_historial)>0){
+    $totalAbonos = 0;
+    if (count($cliente->factura_historial) > 0) {
         foreach ($cliente->factura_historial as $itemHistorial) {
-            $totalAbonos += $itemHistorial["precio"] ;
+            $totalAbonos += $itemHistorial["precio"];
 
             $itemHistorial["debitado"] = 1; // coloco como debitado los abonos que ya fuy sumando al acumulador
             $itemHistorial->update();
-
         }
     }
 
-    if(count($cliente->factura)>0){
+    if (count($cliente->factura) > 0) {
         $tieneSaldo = TRUE; // Bandera para saber cuando debo de dejar ajustar el calculo de saldo restante de las facturas
 
         foreach ($cliente->factura as $factura) {
-            if($tieneSaldo){
+            if ($tieneSaldo) {
                 // print_r (json_encode( ["monto" => $factura["monto"], "totalAbonos"=>$totalAbonos ]));
                 $totalAbonos =  $totalAbonos - $factura["monto"];
                 // print_r (json_encode( ["monto" => $factura["monto"], "totalAbonos"=>$totalAbonos ]));
-                if($totalAbonos < 0){ // si el precio es mas alto que el total de abonos (dejo la factura abierta y ajusto el saldo_restante)
+                if ($totalAbonos < 0) { // si el precio es mas alto que el total de abonos (dejo la factura abierta y ajusto el saldo_restante)
                     $tieneSaldo = FALSE;
                     $factura["status_pagado"] = 0;
                     $factura["saldo_restante"] = abs($totalAbonos);
-
-                }else{// cierro la factura y el saldo restante lo dejo 0
+                } else { // cierro la factura y el saldo restante lo dejo 0
                     $factura["saldo_restante"] = 0;
                     $factura["status_pagado"] = 1;
                 }
-
-            }else{ // si no tiene saldo reinicio la factura
+            } else { // si no tiene saldo reinicio la factura
                 $factura["saldo_restante"] = $factura["monto"];
                 $factura["status_pagado"] = 0;
             }
@@ -68,7 +66,8 @@ function validarStatusPagadoGlobal($clienteID){
 
 }
 
-function debitarAbonosClientes($clienteID){
+function debitarAbonosClientes($clienteID)
+{
     $cliente = Cliente::find($clienteID);
     // $cliente = Cliente::find($clienteID);
     // $cliente = $abono->cliente;
@@ -84,35 +83,32 @@ function debitarAbonosClientes($clienteID){
     ])->get();
 
     // print_r(json_encode($cliente->factura_historial));
-    $totalAbonos = 0 ;
-    if(count($cliente->factura_historial)>0){
+    $totalAbonos = 0;
+    if (count($cliente->factura_historial) > 0) {
         foreach ($cliente->factura_historial as $itemHistorial) {
-            $totalAbonos += $itemHistorial["precio"] ;
+            $totalAbonos += $itemHistorial["precio"];
 
             $itemHistorial["debitado"] = 1; // coloco como debitado los abonos que ya fuy sumando al acumulador
             $itemHistorial->update();
-
         }
     }
 
-    if(count($cliente->factura)>0){
+    if (count($cliente->factura) > 0) {
         $tieneSaldo = TRUE; // Bandera para saber cuando debo de dejar ajustar el calculo de saldo restante de las facturas
 
         foreach ($cliente->factura as $factura) {
-            if($tieneSaldo){
+            if ($tieneSaldo) {
                 // 200 - 500 = -300 ajusta el restante
                 // 500 - 500 = 0  cierra factura y ajusta restante
                 $totalAbonos =  $totalAbonos - $factura["saldo_restante"];
 
-                if($totalAbonos < 0){ // si el precio es mas alto que el total de abonos (dejo la factura abierta y ajusto el saldo_restante)
+                if ($totalAbonos < 0) { // si el precio es mas alto que el total de abonos (dejo la factura abierta y ajusto el saldo_restante)
                     $tieneSaldo = FALSE;
-                    $factura["saldo_restante"] = abs($totalAbonos) ;
-
-                }else{// cierro la factura y el saldo restante lo dejo 0
+                    $factura["saldo_restante"] = abs($totalAbonos);
+                } else { // cierro la factura y el saldo restante lo dejo 0
                     $factura["saldo_restante"] = 0;
                     $factura["status_pagado"] = 1;
                 }
-
             }
 
             $factura->update();
@@ -123,7 +119,8 @@ function debitarAbonosClientes($clienteID){
 
 }
 
-function calcularDeudaFacturaCliente($clienteID){
+function calcularDeudaFacturaCliente($clienteID)
+{
     $cliente = Cliente::find($clienteID);
     $data = array(
         "saldo_restante" => 0,
@@ -137,7 +134,7 @@ function calcularDeudaFacturaCliente($clienteID){
     ])->get();
 
     // print_r (count($cliente->factura));
-    if(count($cliente->factura)>0){
+    if (count($cliente->factura) > 0) {
 
         $totalFactura = 0;
         $saldoRestanteFactura = 0;
@@ -155,7 +152,8 @@ function calcularDeudaFacturaCliente($clienteID){
     return $data;
 }
 
-function calcularDeudaFacturasGlobal($clienteID){
+function calcularDeudaFacturasGlobal($clienteID)
+{
     $cliente = Cliente::find($clienteID);
 
     $cliente->factura = $cliente->facturas()->where([
@@ -169,14 +167,14 @@ function calcularDeudaFacturasGlobal($clienteID){
         // ['debitado', '=', 0] // 0 = aun no usado el abono | 1 = ya se uso el abono,
     ])->get();
 
-    $totalAbonos = 0 ;
-    if(count($cliente->factura_historial)>0){
+    $totalAbonos = 0;
+    if (count($cliente->factura_historial) > 0) {
         foreach ($cliente->factura_historial as $itemHistorial) {
-            $totalAbonos += $itemHistorial["precio"] ;
+            $totalAbonos += $itemHistorial["precio"];
         }
     }
 
-    if(count($cliente->factura)>0){
+    if (count($cliente->factura) > 0) {
         foreach ($cliente->factura as $factura) {
             $totalAbonos =  $totalAbonos - $factura["monto"];
         }
@@ -185,14 +183,15 @@ function calcularDeudaFacturasGlobal($clienteID){
     return number_format($totalAbonos, 2);
 }
 
-function actualizarCantidadDetalleProducto($detalleID, $cantidad){
+function actualizarCantidadDetalleProducto($detalleID, $cantidad)
+{
     $detalle = Factura_Detalle::find($detalleID);
 
-    if($detalle){
-        if(($detalle->cantidad - $cantidad) <=0){
+    if ($detalle) {
+        if (($detalle->cantidad - $cantidad) <= 0) {
             $detalle->cantidad = 0;  // si la cantidad es menor o igual a 0 la pongo en 0
             $detalle->estado = 0;    // si la cantidad es menor o igual a 0 desactivo el producto de la factura
-        }else{
+        } else {
             $detalle->cantidad = $detalle->cantidad - $cantidad;
             // $total +=  $productoDetalle["precio_unidad"] * $productoDetalle["cantidad"];
             $detalle->precio = $detalle["precio_unidad"] * $detalle->cantidad;
@@ -210,13 +209,14 @@ function actualizarCantidadDetalleProducto($detalleID, $cantidad){
 }
 
 
-function ActualizarPrecioFactura($factura_id){
+function ActualizarPrecioFactura($factura_id)
+{
     $factura = Factura::find($factura_id);
     $factura_detalle = $factura->factura_detalle()->where([
         ['estado', '=', 1],
     ])->get();
 
-    if(count($factura_detalle)>0){
+    if (count($factura_detalle) > 0) {
         $total = 0;
 
         foreach ($factura_detalle as $productoDetalle) {
@@ -226,8 +226,7 @@ function ActualizarPrecioFactura($factura_id){
 
         $factura->monto = $total;
         $factura->saldo_restante = $total;
-
-    }else{ // NO TIENES PRODUCTOS ACTIVOS EN LA FACTURA
+    } else { // NO TIENES PRODUCTOS ACTIVOS EN LA FACTURA
         // $factura->monto = 0;
         // $factura->saldo_restante = 0;
 
@@ -242,19 +241,20 @@ function ActualizarPrecioFactura($factura_id){
     validarStatusPagadoGlobal($factura->cliente_id);
 }
 
-function AsignarPrecioPorUnidadGlobal(){
+function AsignarPrecioPorUnidadGlobal()
+{
     $facturas = Factura::all();
 
     foreach ($facturas  as $key => $factura) {
         $factura->factura_detalle = $factura->factura_detalle()->where([
             ['estado', '=', 1],
         ])->get();
-        if(count($factura->factura_detalle)>0){
+        if (count($factura->factura_detalle) > 0) {
             $precio_unidad = 0;
 
             foreach ($factura->factura_detalle as $productoDetalle) {
 
-                $precio_unidad =  $productoDetalle["precio"] / $productoDetalle["cantidad"] ;
+                $precio_unidad =  $productoDetalle["precio"] / $productoDetalle["cantidad"];
                 $precio_unidad_format = number_format($precio_unidad, 2);
 
                 $productoDetalle["precio_unidad"] = $precio_unidad_format;
@@ -267,16 +267,14 @@ function AsignarPrecioPorUnidadGlobal(){
 
         }
     }
-
-
-
 }
 
-function devolverStockProducto($detalle_id,$cantidad){
+function devolverStockProducto($detalle_id, $cantidad)
+{
     // print_r(json_encode($detalle_id));
-    $detalle = Factura_Detalle::where("id",$detalle_id)->first();
-    if($detalle){
-        $producto = Producto::where("id",$detalle->producto_id)->first();
+    $detalle = Factura_Detalle::where("id", $detalle_id)->first();
+    if ($detalle) {
+        $producto = Producto::where("id", $detalle->producto_id)->first();
         // print_r(json_encode($producto));
         $producto->stock = $producto->stock + $cantidad;
         $producto->estado = 1;
@@ -289,12 +287,13 @@ function devolverStockProducto($detalle_id,$cantidad){
     return false;
 }
 
-function queryEstadoCuenta($cliente_id){
+function queryEstadoCuenta($cliente_id)
+{
     $response = [
         "estado_cuenta" => [],
     ];
 
-    if(is_numeric($cliente_id)){
+    if (is_numeric($cliente_id)) {
         $query = "SELECT
                 *
             FROM (
@@ -335,28 +334,27 @@ function queryEstadoCuenta($cliente_id){
 
         $estadoCuenta = DB::select($query);
 
-        if (count($estadoCuenta)>0) {
+        if (count($estadoCuenta) > 0) {
             $saldo = 0;
             foreach ($estadoCuenta as $operacion) {
                 // if(!isset($operacion->saldo)) $operacion->saldo = 0;
-                $saldo = ($operacion->credito != "") ? number_format((float)$operacion->credito,2,".","") + number_format((float)$saldo,2,".","")   : number_format((float)$saldo,2,".","") - number_format((float)($operacion->abono),2,".","");
+                $saldo = ($operacion->credito != "") ? number_format((float)$operacion->credito, 2, ".", "") + number_format((float)$saldo, 2, ".", "")   : number_format((float)$saldo, 2, ".", "") - number_format((float)($operacion->abono), 2, ".", "");
 
                 $operacion->saldo = $saldo;
                 // print_r(intval($operacion->credito) + $operacion->saldo ."<br>");
             }
             $response["estado_cuenta"] = $estadoCuenta;
         }
-
     }
 
     return $response;
-
 }
 
-function validarReactivacionCliente($user_id, $cliente_id ,$factura_id , $listaInactivos ){
+function validarReactivacionCliente($user_id, $cliente_id, $factura_id, $listaInactivos)
+{
 
     // print_r($listaInactivos);
-    if(count($listaInactivos) > 0){ // si existe en la lista de clientes inactivos registro el dia que se reactivo
+    if (count($listaInactivos) > 0) { // si existe en la lista de clientes inactivos registro el dia que se reactivo
 
         ClientesReactivados::create([
             'user_id'         => $user_id,
@@ -369,7 +367,8 @@ function validarReactivacionCliente($user_id, $cliente_id ,$factura_id , $listaI
     }
 }
 
-function carteraQuery($request ){
+function carteraQuery($request)
+{
     $response = [
         'factura' => [],
         'total' => 0,
@@ -380,36 +379,36 @@ function carteraQuery($request ){
     $userId = $request['userId'];
     // "dateIni": "2022-03-15",
     // "dateFin": "2022-03-15",
-    if(empty($request->dateIni)){
+    if (empty($request->dateIni)) {
         $dateIni = Carbon::now();
-    }else{
+    } else {
         $dateIni = Carbon::parse($request->dateIni);
     }
 
-    if(empty($request->dateIni)){
+    if (empty($request->dateIni)) {
         $dateFin = Carbon::now();
-    }else{
+    } else {
         $dateFin = Carbon::parse($request->dateFin);
     }
-        // DB::enableQueryLog();
+    // DB::enableQueryLog();
     $facturasStorage = Factura::select("*")
         //->where('tipo_venta', $request->tipo_venta ? $request->tipo_venta : 1) // si envian valor lo tomo, si no por defecto toma credito
         ->where('status_pagado', $request->status_pagado ? $request->status_pagado : 0) // si envian valor lo tomo, si no por defecto asigno por pagar = 0
         ->where('status', 1);
 
-    if(!$request->allDates){
-        $facturasStorage = $facturasStorage->whereBetween('created_at', [$dateIni->toDateString()." 00:00:00",  $dateFin->toDateString()." 23:59:59"]);
+    if (!$request->allDates) {
+        $facturasStorage = $facturasStorage->whereBetween('created_at', [$dateIni->toDateString() . " 00:00:00",  $dateFin->toDateString() . " 23:59:59"]);
     }
 
-    if($userId != 0){
+    if ($userId != 0) {
         $facturasStorage = $facturasStorage->where('user_id', $userId);
     }
 
     $facturas = $facturasStorage->get();
-        // $query = DB::getQueryLog();
-        // dd(json_encode($query));
+    // $query = DB::getQueryLog();
+    // dd(json_encode($query));
 
-    if(count($facturas) > 0){
+    if (count($facturas) > 0) {
         $total = 0;
         $clientes = [];
 
@@ -426,40 +425,40 @@ function carteraQuery($request ){
             $factura->factura_detalle = $factura->factura_detalle()->where([
                 ['estado', '=', 1],
             ])->get();
-            
+
             $factura->montos_recibos = $factura
                 ->cliente
                 ->factura_historial()
                 ->where([
                     ['estado', '=', 1],
                 ])
-                ->whereBetween('created_at', [$dateIni->toDateString()." 00:00:00",  $dateFin->toDateString()." 23:59:59"])
+                ->whereBetween('created_at', [$dateIni->toDateString() . " 00:00:00",  $dateFin->toDateString() . " 23:59:59"])
                 ->get();
 
             // $factura->recibos = $factura->cliente->factura_historial()->where([
             //     ['estado', '=', 1],
             // ])->recibo_historial->get();
 
-            array_push($clientes,$factura->cliente_id);
+            array_push($clientes, $factura->cliente_id);
         }
 
-        if(count($clientes) > 0){
+        if (count($clientes) > 0) {
             $clientesUnicos = array_unique($clientes);
-            
-            $clienteStore =  FacturaHistorial::whereIn('cliente_id', $clientesUnicos)
-            // ->select('id', 'cliente_id','precio','estado','created_at')
-            ->where([
-                ['estado', '=', 1],
-            ]);
 
-            if(!$request->allDates){
-                $clienteStore = $clienteStore->whereBetween('created_at', [$dateIni->toDateString()." 00:00:00",  $dateFin->toDateString()." 23:59:59"]);
+            $clienteStore =  FacturaHistorial::whereIn('cliente_id', $clientesUnicos)
+                // ->select('id', 'cliente_id','precio','estado','created_at')
+                ->where([
+                    ['estado', '=', 1],
+                ]);
+
+            if (!$request->allDates) {
+                $clienteStore = $clienteStore->whereBetween('created_at', [$dateIni->toDateString() . " 00:00:00",  $dateFin->toDateString() . " 23:59:59"]);
             }
-        
+
             $abonos = $clienteStore->get();
-            $response["recuperacion"] = sumaRecuperacion($abonos);  
-            $response["abonos"] = $abonos;  
-            
+            $response["recuperacion"] = sumaRecuperacion($abonos);
+            $response["abonos"] = $abonos;
+
             // echo json_encode($cliente);
         }
 
@@ -471,21 +470,23 @@ function carteraQuery($request ){
 }
 
 
-function sumaRecuperacion($abonos){
+function sumaRecuperacion($abonos)
+{
     $result = 0;
     // echo json_encode($abonos);
 
-    if(count($abonos) > 0){
+    if (count($abonos) > 0) {
         foreach ($abonos as $abono) {
-            $result += number_format((float) ($abono->precio),2,".","");
+            $result += number_format((float) ($abono->precio), 2, ".", "");
         }
     }
-    
+
     return $result;
 }
 
 
-function ventasMetaQuery($request){
+function ventasMetaQuery($request)
+{
     $response = [
         'factura' => [],
         'total' => 0,
@@ -498,18 +499,18 @@ function ventasMetaQuery($request){
 
     $metaValue = 0;
     $userId = $request['userId'];
-    
+
     // "dateIni": "2022-03-15",
     // "dateFin": "2022-03-15",
-    if(empty($request->dateIni)){
+    if (empty($request->dateIni)) {
         $dateIni = Carbon::now();
-    }else{
+    } else {
         $dateIni = Carbon::parse($request->dateIni);
     }
 
-    if(empty($request->dateIni)){
+    if (empty($request->dateIni)) {
         $dateFin = Carbon::now();
-    }else{
+    } else {
         $dateFin = Carbon::parse($request->dateFin);
     }
 
@@ -520,21 +521,21 @@ function ventasMetaQuery($request){
         ->where('status_pagado', $request->status_pagado ? $request->status_pagado : 0) // si envian valor lo tomo, si no por defecto asigno por pagar = 0
         ->where('status', 1);
 
-    if(!$request->allDates){
-        $facturasStorage = $facturasStorage->whereBetween('created_at', [$dateIni->toDateString()." 00:00:00",  $dateFin->toDateString()." 23:59:59"]);
+    if (!$request->allDates) {
+        $facturasStorage = $facturasStorage->whereBetween('created_at', [$dateIni->toDateString() . " 00:00:00",  $dateFin->toDateString() . " 23:59:59"]);
     }
 
-    if($userId != 0){
+    if ($userId != 0) {
         $facturasStorage = $facturasStorage->where('user_id', $userId);
     }
 
     $facturas = $facturasStorage->get();
     $clientes = [];
-    if(count($facturas) > 0){
+    if (count($facturas) > 0) {
         $total = 0;
         foreach ($facturas as $factura) {
             // $total += $factura->saldo_restante;
-            $total += number_format((float) ($factura->monto),2,".","");
+            $total += number_format((float) ($factura->monto), 2, ".", "");
             //$total += number_format((float) ($factura->saldo_restante),2,".","");
 
 
@@ -546,7 +547,7 @@ function ventasMetaQuery($request){
                 ['estado', '=', 1],
             ])->get();
 
-            array_push($clientes,$factura->cliente_id);
+            array_push($clientes, $factura->cliente_id);
         }
 
         $response["total"]    = $total;
@@ -554,48 +555,49 @@ function ventasMetaQuery($request){
     }
 
     // $meta = Meta::where('user_id', $userId)->first();
-    
+
     $meta = Meta::select("*")
-                ->where('user_id', $userId)
-                ->first();
+        ->where('user_id', $userId)
+        ->first();
     // print_r(json_encode($meta));
     // (453 * 100)/1500
-    
 
-    if($meta){
+
+    if ($meta) {
         $metaValue = $meta->monto;
         $response["meta_monto"] = $meta->monto;
         // print_r(json_encode($metaValue));
-        $averageMeta = ($response["total"] / $metaValue ) * 100;
-        $response["meta"] = (float) number_format((float) ($averageMeta),2,".","");
+        $averageMeta = ($response["total"] / $metaValue) * 100;
+        $response["meta"] = (float) number_format((float) ($averageMeta), 2, ".", "");
     }
 
-    if(count($clientes) > 0){
+    if (count($clientes) > 0) {
         $clientesUnicos = array_unique($clientes);
-        
-        $abonosStore =  FacturaHistorial::whereIn('cliente_id', $clientesUnicos)
-        // ->select('id', 'cliente_id','precio','estado','created_at')
-        ->where([
-            ['estado', '=', 1],
-        ]);
 
-        if(!$request->allDates){
-            $abonosStore = $abonosStore->whereBetween('created_at', [$dateIni->toDateString()." 00:00:00",  $dateFin->toDateString()." 23:59:59"]);
+        $abonosStore =  FacturaHistorial::whereIn('cliente_id', $clientesUnicos)
+            // ->select('id', 'cliente_id','precio','estado','created_at')
+            ->where([
+                ['estado', '=', 1],
+            ]);
+
+        if (!$request->allDates) {
+            $abonosStore = $abonosStore->whereBetween('created_at', [$dateIni->toDateString() . " 00:00:00",  $dateFin->toDateString() . " 23:59:59"]);
         }
-    
+
         $abonos = $abonosStore->get();
-        $response["recuperacion_monto"] = sumaRecuperacion($abonos);  
-        $recuperacion = ($response["recuperacion_monto"] * 100)/$response["meta_monto"];
-        $response["recuperacion"] = (float) number_format((float) $recuperacion,2,".","");
-        $response["abonos"] = $abonos;  
-        
+        $response["recuperacion_monto"] = sumaRecuperacion($abonos);
+        $recuperacion = ($response["recuperacion_monto"] * 100) / $response["meta_monto"];
+        $response["recuperacion"] = (float) number_format((float) $recuperacion, 2, ".", "");
+        $response["abonos"] = $abonos;
+
         // echo json_encode($cliente);
     }
 
     return $response;
 }
 
-function recuperacionQuery($user){
+function newrecuperacionQuery($user)
+{
     $userId = $user->id;
     $response = [
         'facturasTotal' => 0,
@@ -606,63 +608,62 @@ function recuperacionQuery($user){
         'user_id' => $userId,
 
     ];
-    
+
     $inicioMesActual =  Carbon::now()->firstOfMonth()->toDateString();
     $finMesActual =  Carbon::now()->lastOfMonth()->toDateString();
-    
-    // $inicioMesAnterior =  Carbon::now()->subMonth()->firstOfMonth()->toDateString();
-    // $finMesAnterior =  Carbon::now()->subMonth()->lastOfMonth()->toDateString();
-    
-    $facturasStorage = Factura::select("*")
-    ->where('tipo_venta',  1) // credito 
-    // ->whereBetween('created_at', [$inicioMesAnterior." 00:00:00",  $finMesAnterior ." 23:59:59"])
-    ->where('created_at',"<", $inicioMesActual." 00:00:00")
-    ->where('status', 1);
+    // DB::enableQueryLog();
 
-    if($userId != 0){
+    $facturasStorage = Factura::select("*")
+        ->where('tipo_venta',  1) // credito 
+        ->where('status_pagado', 0)
+        // ->whereBetween('created_at', [$inicioMesAnterior." 00:00:00",  $finMesAnterior ." 23:59:59"])
+        ->where('created_at', "<", $inicioMesActual . " 00:00:00")
+        ->where('status', 1);
+
+    if ($userId != 0) {
         $facturasStorage = $facturasStorage->where('user_id', $userId);
     }
-    
+
     $facturas = $facturasStorage->get();
 
-    if(count($facturas) > 0){
+    // $query = DB::getQueryLog();
+    // dd(json_encode($query));
+    if (count($facturas) > 0) {
         $total = 0;
         foreach ($facturas as $factura) {
             $factura->user;
-            $total += number_format((float) ($factura->monto),2,".","");
+            $total += number_format((float) ($factura->saldo_restante), 2, ".", "");
         }
 
-        
-        $response["facturasTotal"] = (float) number_format((float) $total,2,".","");
+        $response["facturasTotal"] = (float) number_format((float) $total, 2, ".", "");
 
         // Inicio el calculo de recuperacion
 
         $abonosStore =  FacturaHistorial::where('user_id', $userId)
-        // ->whereBetween('created_at', [$inicioMesAnterior." 00:00:00",  $finMesAnterior ." 23:59:59"])
-        ->where('created_at',"<", $inicioMesActual." 00:00:00")
-        ->where('estado', 1);
-    
+            // ->whereBetween('created_at', [$inicioMesAnterior." 00:00:00",  $finMesAnterior ." 23:59:59"])
+            ->where('created_at', "<", $inicioMesActual . " 00:00:00")
+            ->where('estado', 1);
+
         $abonos = $abonosStore->get();
 
-        $response["abonosTotal"] =  (float) number_format((float) sumaRecuperacion($abonos),2,".","");  
+        $response["abonosTotal"] =  (float) number_format((float) sumaRecuperacion($abonos), 2, ".", "");
         // DB::enableQueryLog();
-        
+
         $clienteStoreCurrentMount =  FacturaHistorial::where('user_id', $userId)
-        ->whereBetween('created_at', [$inicioMesActual." 00:00:00",  $finMesActual." 23:59:59"])
-        ->where('estado', 1)
-        ->get();
+            ->whereBetween('created_at', [$inicioMesActual . " 00:00:00",  $finMesActual . " 23:59:59"])
+            ->where('estado', 1)
+            ->get();
 
         // $query = DB::getQueryLog();
         // dd(json_encode($query));
 
         // Ahora es el mes actual y no ultimo mes 
-        $response["abonosTotalLastMount"] =  (float) number_format((float) sumaRecuperacion($clienteStoreCurrentMount),2,".","");  
+        $response["abonosTotalLastMount"] =  (float) number_format((float) sumaRecuperacion($clienteStoreCurrentMount), 2, ".", "");
 
-        $resultado = ($response["facturasTotal"] - $response["abonosTotal"] ) * 0.85;
-        $response["recuperacionTotal"] = (float) number_format((float) $resultado,2,".",""); // meta
-    
-        $recuperacionPorcentaje = ($response["abonosTotalLastMount"] * 100) / $response["recuperacionTotal"];
-        $response["recuperacionPorcentaje"] = (float) number_format((float) $recuperacionPorcentaje,2,".","");
+        $resultado = $response["facturasTotal"]  * 0.85; // meta
+        $response["recuperacionTotal"] = (float) number_format((float) $resultado, 2, ".", ""); // meta
+        $porcentaje = ($response["abonosTotalLastMount"] * 100) / $response["recuperacionTotal"]; // porcentaje
+        $response["recuperacionPorcentaje"] = (float) number_format((float) $porcentaje, 2, ".", "");
     }
 
     $response["user"] = $user;
@@ -670,77 +671,85 @@ function recuperacionQuery($user){
     return $response;
 }
 
-function newrecuperacionQuery($user){
-    $userId = $user->id;
+function productosVendidos($user, $request)
+{
+    $id = $user->id;
     $response = [
-        'facturasTotal' => 0,
-        'abonosTotal' => 0,
-        'abonosTotalLastMount' => 0,
-        'recuperacionPorcentaje' => 0,
-        'recuperacionTotal' => 0,
-        'user_id' => $userId,
-
+        'totalProductos' => 0,
+        'productos' => [],
+        'user' => $user,
     ];
-    
-    $inicioMesActual =  Carbon::now()->firstOfMonth()->toDateString();
-    $finMesActual =  Carbon::now()->lastOfMonth()->toDateString();
-        // DB::enableQueryLog();
-    
-    $facturasStorage = Factura::select("*")
-    ->where('tipo_venta',  1) // credito 
-    ->where('status_pagado',0) 
-    // ->whereBetween('created_at', [$inicioMesAnterior." 00:00:00",  $finMesAnterior ." 23:59:59"])
-    ->where('created_at',"<", $inicioMesActual." 00:00:00")
-    ->where('status', 1);
+    $contadorProductos = 0;
+    $idProductos = [];
 
-    if($userId != 0){
-        $facturasStorage = $facturasStorage->where('user_id', $userId);
+    if (empty($request->dateIni)) {
+        $dateIni = Carbon::now();
+    } else {
+        $dateIni = Carbon::parse($request->dateIni);
     }
-    
-    $facturas = $facturasStorage->get();
 
-        // $query = DB::getQueryLog();
-        // dd(json_encode($query));
-    if(count($facturas) > 0){
-        $total = 0;
-        foreach ($facturas as $factura) {
-            $factura->user;
-            $total += number_format((float) ($factura->saldo_restante),2,".","");
+    if (empty($request->dateIni)) {
+        $dateFin = Carbon::now();
+    } else {
+        $dateFin = Carbon::parse($request->dateFin);
+    }
+
+    $facturasStorage = Factura::select("*")
+        // ->where('status_pagado', $request->status_pagado ? $request->status_pagado : 0) // si envian valor lo tomo, si no por defecto asigno por pagar = 0
+        ->where('status', 1);
+
+    if (!$request->allDates) {
+        $facturasStorage = $facturasStorage->whereBetween('created_at', [$dateIni->toDateString() . " 00:00:00",  $dateFin->toDateString() . " 23:59:59"]);
+    }
+
+    $facturasStorage = $facturasStorage->where('user_id', $id);
+
+    $facturas = $facturasStorage->get();
+    foreach ($facturas as $factura) {
+        $factura->factura_detalle = $factura->factura_detalle()->where([
+            ['estado', '=', 1],
+        ])->get();
+
+        if (count($factura->factura_detalle) > 0) {
+            foreach ($factura->factura_detalle as $factura_detalle) {
+                array_push($idProductos, $factura_detalle->id);
+                $contadorProductos = $contadorProductos + $factura_detalle->cantidad;
+                // $factura_detalle->producto  = $factura_detalle->producto; 
+            }
         }
 
-        $response["facturasTotal"] = (float) number_format((float) $total,2,".","");
-
-        // Inicio el calculo de recuperacion
-
-        $abonosStore =  FacturaHistorial::where('user_id', $userId)
-        // ->whereBetween('created_at', [$inicioMesAnterior." 00:00:00",  $finMesAnterior ." 23:59:59"])
-        ->where('created_at',"<", $inicioMesActual." 00:00:00")
-        ->where('estado', 1);
-    
-        $abonos = $abonosStore->get();
-
-        $response["abonosTotal"] =  (float) number_format((float) sumaRecuperacion($abonos),2,".","");  
-        // DB::enableQueryLog();
-        
-        $clienteStoreCurrentMount =  FacturaHistorial::where('user_id', $userId)
-        ->whereBetween('created_at', [$inicioMesActual." 00:00:00",  $finMesActual." 23:59:59"])
-        ->where('estado', 1)
-        ->get();
-
-        // $query = DB::getQueryLog();
-        // dd(json_encode($query));
-
-        // Ahora es el mes actual y no ultimo mes 
-        $response["abonosTotalLastMount"] =  (float) number_format((float) sumaRecuperacion($clienteStoreCurrentMount),2,".","");  
-
-        $resultado = $response["facturasTotal"]  * 0.85;// meta
-        $response["recuperacionTotal"] = (float) number_format((float) $resultado,2,".",""); // meta
-        $porcentaje = ($response["abonosTotalLastMount"] * 100) / $response["recuperacionTotal"]; // porcentaje
-        $response["recuperacionPorcentaje"] = (float) number_format((float) $porcentaje,2,".","");
-
+        // $response["productos"][] = $factura->factura_detalle; 
+        // array_push($response["productos"],$factura->factura_detalle) ; 
     }
 
-    $response["user"] = $user;
+    if (count($idProductos) > 0) {
+        // $facturas_detalle =  Factura_Detalle::whereIn('id', $idProductos)->get();
+        // if(count($facturas_detalle)>0){
+        //     foreach ($facturas_detalle as $factura_detalle) {
+        //         $factura_detalle->producto = $factura_detalle->producto;
+        //         $response["productos"][] = $factura_detalle;
+        //     }
+        // }
+
+
+        $query = "SELECT 
+            SUM(fd.cantidad) AS cantidad,
+            p.*
+        FROM factura_detalles fd
+        INNER JOIN productos p ON p.id = fd.producto_id
+        WHERE fd.id IN(". implode(",", $idProductos).")
+        GROUP BY fd.producto_id";
+
+        $productos = DB::select($query);
+
+        if (count($productos) > 0) {
+            $response["productos"] = $productos;
+        }
+    }
+
+    // $response = $facturas;
+    $response["totalProductos"] = $contadorProductos;
+    // $response["id"] = $idProductos;
 
     return $response;
 }
