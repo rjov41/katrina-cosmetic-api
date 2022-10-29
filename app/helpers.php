@@ -6,10 +6,12 @@ use App\Models\Factura;
 use App\Models\Factura_Detalle;
 use App\Models\FacturaHistorial;
 use App\Models\Meta;
+use App\Models\MetaRecuperacion;
 use App\Models\Producto;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+
 
 function validarStatusPagadoGlobal($clienteID)
 {
@@ -600,7 +602,7 @@ function newrecuperacionQuery($user)
 {
     $userId = $user->id;
     $response = [
-        'facturasTotal' => 0,
+        // 'facturasTotal' => 0,
         'abonosTotal' => 0,
         'abonosTotalLastMount' => 0,
         'recuperacionPorcentaje' => 0,
@@ -611,60 +613,46 @@ function newrecuperacionQuery($user)
 
     $inicioMesActual =  Carbon::now()->firstOfMonth()->toDateString();
     $finMesActual =  Carbon::now()->lastOfMonth()->toDateString();
-    // DB::enableQueryLog();
 
-    $facturasStorage = Factura::select("*")
-        ->where('tipo_venta',  1) // credito 
-        ->where('status_pagado', 0)
+    $meta_recuperacion = getMetaMensual($userId);
+
+    if ($meta_recuperacion) {
+        $response["recuperacionTotal"] = (float) number_format((float) $meta_recuperacion->monto_meta, 2, ".", "");
+    } else {
+        crearMetaMensual();
+        $metaCreada = getMetaMensual($userId);
+        $response["recuperacionTotal"] = (float) number_format((float) $metaCreada, 2, ".", ""); // meta
+    }
+
+
+    // Inicio el calculo de recuperacion
+
+    $abonosStore =  FacturaHistorial::where('user_id', $userId)
         // ->whereBetween('created_at', [$inicioMesAnterior." 00:00:00",  $finMesAnterior ." 23:59:59"])
         ->where('created_at', "<", $inicioMesActual . " 00:00:00")
-        ->where('status', 1);
+        ->where('estado', 1);
 
-    if ($userId != 0) {
-        $facturasStorage = $facturasStorage->where('user_id', $userId);
-    }
+    $abonos = $abonosStore->get();
 
-    $facturas = $facturasStorage->get();
+    $response["abonosTotal"] =  (float) number_format((float) sumaRecuperacion($abonos), 2, ".", "");
 
-    // $query = DB::getQueryLog();
-    // dd(json_encode($query));
-    if (count($facturas) > 0) {
-        $total = 0;
-        foreach ($facturas as $factura) {
-            $factura->user;
-            $total += number_format((float) ($factura->saldo_restante), 2, ".", "");
-        }
+    $clienteStoreCurrentMount =  FacturaHistorial::where('user_id', $userId)
+        ->whereBetween('created_at', [$inicioMesActual . " 00:00:00",  $finMesActual . " 23:59:59"])
+        ->where('estado', 1)
+        ->get();
 
-        $response["facturasTotal"] = (float) number_format((float) $total, 2, ".", "");
+    // Ahora es el mes actual y no ultimo mes 
+    $response["abonosTotalLastMount"] =  (float) number_format((float) sumaRecuperacion($clienteStoreCurrentMount), 2, ".", "");
 
-        // Inicio el calculo de recuperacion
 
-        $abonosStore =  FacturaHistorial::where('user_id', $userId)
-            // ->whereBetween('created_at', [$inicioMesAnterior." 00:00:00",  $finMesAnterior ." 23:59:59"])
-            ->where('created_at', "<", $inicioMesActual . " 00:00:00")
-            ->where('estado', 1);
-
-        $abonos = $abonosStore->get();
-
-        $response["abonosTotal"] =  (float) number_format((float) sumaRecuperacion($abonos), 2, ".", "");
-        // DB::enableQueryLog();
-
-        $clienteStoreCurrentMount =  FacturaHistorial::where('user_id', $userId)
-            ->whereBetween('created_at', [$inicioMesActual . " 00:00:00",  $finMesActual . " 23:59:59"])
-            ->where('estado', 1)
-            ->get();
-
-        // $query = DB::getQueryLog();
-        // dd(json_encode($query));
-
-        // Ahora es el mes actual y no ultimo mes 
-        $response["abonosTotalLastMount"] =  (float) number_format((float) sumaRecuperacion($clienteStoreCurrentMount), 2, ".", "");
-
-        $resultado = $response["facturasTotal"]  * 0.85; // meta
-        $response["recuperacionTotal"] = (float) number_format((float) $resultado, 2, ".", ""); // meta
+    if ($response["abonosTotalLastMount"] >= 1) {
         $porcentaje = ($response["abonosTotalLastMount"] * 100) / $response["recuperacionTotal"]; // porcentaje
-        $response["recuperacionPorcentaje"] = (float) number_format((float) $porcentaje, 2, ".", "");
+    } else {
+        $porcentaje = 0; // porcentaje
     }
+
+    $response["recuperacionPorcentaje"] = (float) number_format((float) $porcentaje, 2, ".", "");
+    // }
 
     $response["user"] = $user;
 
@@ -737,7 +725,7 @@ function productosVendidos($user, $request)
             p.*
         FROM factura_detalles fd
         INNER JOIN productos p ON p.id = fd.producto_id
-        WHERE fd.id IN(". implode(",", $idProductos).")
+        WHERE fd.id IN(" . implode(",", $idProductos) . ")
         GROUP BY fd.producto_id";
 
         $productos = DB::select($query);
@@ -752,4 +740,57 @@ function productosVendidos($user, $request)
     // $response["id"] = $idProductos;
 
     return $response;
+}
+
+
+function crearMetaMensual()
+{
+
+    $inicioMesActual =  Carbon::now()->firstOfMonth()->toDateString();
+    // DB::enableQueryLog();
+
+    $users = User::where([
+        ["estado", "=", 1]
+    ])->get();
+
+    foreach ($users as $user) {
+        $total = 0;
+
+        $facturas = Factura::select("*")
+            ->where('tipo_venta',  1) // credito 
+            ->where('status_pagado', 0)
+            ->where('created_at', "<", $inicioMesActual . " 00:00:00")
+            ->where('user_id', $user->id)
+            ->where('status', 1)
+            ->get();
+
+        if (count($facturas) > 0) {
+            foreach ($facturas as $factura) {
+                $factura->user;
+                $total += number_format((float) ($factura->saldo_restante), 2, ".", "");
+            }
+        }
+
+        $resultado = $total  * 0.85;
+        $monto_meta = (float) number_format((float) $resultado, 2, ".", ""); // meta
+
+        MetaRecuperacion::create([
+            'user_id' => $user->id,
+            'monto_meta' => $monto_meta,
+            'estado' => 1,
+        ]);
+    }
+}
+
+function getMetaMensual($user_id)
+{
+    $inicioMesActual =  Carbon::now()->firstOfMonth()->toDateString();
+    $finMesActual =  Carbon::now()->lastOfMonth()->toDateString();
+
+    $meta_recuperacion = MetaRecuperacion::where('user_id', $user_id)
+        ->whereBetween('created_at', [$inicioMesActual . " 00:00:00",  $finMesActual . " 23:59:59"])
+        ->where('estado', 1)
+        ->first();
+
+    return ($meta_recuperacion) ? $meta_recuperacion : false;
 }

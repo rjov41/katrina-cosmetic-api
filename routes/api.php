@@ -127,14 +127,17 @@ Route::post('logistica/productos-vendidos', [LogisticaController::class, 'produc
 
 
 Route::post('configuracion/migracion', [ConfiguracionController::class, 'migracion']);
-
-Route::get('/clear-cache', function () {
+Route::get('configuracion/crons', function () {
+    // Artisan::call('schedule:list');
+    // echo Artisan::output();
+});
+Route::get('configuracion/clear-cache', function () {
     echo Artisan::call('config:clear');
     echo Artisan::call('config:cache');
     echo Artisan::call('cache:clear');
     echo Artisan::call('route:clear');
-    // echo Artisan::call('db:dump');
- });
+});
+
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
