@@ -520,7 +520,7 @@ function ventasMetaQuery($request)
 
     $facturasStorage = Factura::select("*")
         //->where('tipo_venta', $request->tipo_venta ? $request->tipo_venta : 1) // si envian valor lo tomo, si no por defecto toma credito
-        ->where('status_pagado', $request->status_pagado ? $request->status_pagado : 0) // si envian valor lo tomo, si no por defecto asigno por pagar = 0
+        // ->where('status_pagado', $request->status_pagado ? $request->status_pagado : 0) // si envian valor lo tomo, si no por defecto asigno por pagar = 0
         ->where('status', 1);
 
     if (!$request->allDates) {
