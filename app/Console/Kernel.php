@@ -20,6 +20,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('meta:recuperacion')->monthly();
+        $schedule->command('sanctum:prune-expired --hours=24')->daily();
     }
 
     /**

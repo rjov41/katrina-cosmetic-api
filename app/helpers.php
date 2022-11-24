@@ -645,7 +645,7 @@ function newrecuperacionQuery($user)
     $response["abonosTotalLastMount"] =  (float) number_format((float) sumaRecuperacion($clienteStoreCurrentMount), 2, ".", "");
 
 
-    if ($response["abonosTotalLastMount"] >= 1) {
+    if ($response["abonosTotalLastMount"] >= 1 && $response["recuperacionTotal"] >= 1) {
         $porcentaje = ($response["abonosTotalLastMount"] * 100) / $response["recuperacionTotal"]; // porcentaje
     } else {
         $porcentaje = 0; // porcentaje

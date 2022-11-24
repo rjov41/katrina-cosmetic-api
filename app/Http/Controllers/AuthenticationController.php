@@ -50,7 +50,7 @@ class AuthenticationController extends Controller
 
         if (!Auth::attempt($attr)) {
             // return $this->error('Credentials not match', 401);
-            return response()->json(['error' => "problemas"], 400);
+            return response()->json(['error' => "problemas con las credenciales"], 401);
         }
         
         $user = Auth::user();
@@ -81,7 +81,7 @@ class AuthenticationController extends Controller
         } else {
             // return $this->error('Error', 401);
             // return ['error' => "problemas"];
-            return response()->json(['error' => "problemas"], 400);
+            return response()->json(['error' => "problemas auth"], 401);
         }
         
 

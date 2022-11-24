@@ -109,21 +109,23 @@ Route::get('script/AsignarPrecioPorUnidadGlobal', [ScriptController::class, 'Asi
 Route::get('script/validarStatusPagadoGlobal', [ScriptController::class, 'validarStatusPagadoGlobal']);
 Route::get('script/actualizarPrecioFactura/{id}', [ScriptController::class, 'ActualizarPrecioFactura']);
 
+Route::group(['middleware' => ['auth:sanctum', 'role:administrador|vendedor|supervisor']], function () {
+    Route::post('logistica/cartera-date', [LogisticaController::class, 'carteraDate']);
+    Route::post('logistica/recibo-date', [LogisticaController::class, 'reciboDate']);
+    Route::post('logistica/mora-30-60', [LogisticaController::class, 'Mora30A60']);
+    Route::post('logistica/mora-60-90', [LogisticaController::class, 'Mora60A90']);
+    Route::post('logistica/cliente-new', [LogisticaController::class, 'clienteDate']);
+    Route::post('logistica/incentivo', [LogisticaController::class, 'incentivo']);
+    Route::post('logistica/cliente-inactivo', [LogisticaController::class, 'clienteInactivo']);
+    Route::post('logistica/estado-de-cuenta', [LogisticaController::class, 'estadoCuenta']);
+    Route::get('logistica/producto-logistica', [LogisticaController::class, 'productoLogistica']);
+    Route::post('logistica/clientes-reactivados', [LogisticaController::class, 'clientesReactivados']);
+    Route::post('logistica/ventas', [LogisticaController::class, 'ventasDate']);
+    Route::post('logistica/recuperacion', [LogisticaController::class, 'recuperacion']);
+    Route::post('logistica/productos-vendidos', [LogisticaController::class, 'productosVendidos']);
+});
 
 
-Route::post('logistica/cartera-date', [LogisticaController::class, 'carteraDate']);
-Route::post('logistica/recibo-date', [LogisticaController::class, 'reciboDate']);
-Route::post('logistica/mora-30-60', [LogisticaController::class, 'Mora30A60']);
-Route::post('logistica/mora-60-90', [LogisticaController::class, 'Mora60A90']);
-Route::post('logistica/cliente-new', [LogisticaController::class, 'clienteDate']);
-Route::post('logistica/incentivo', [LogisticaController::class, 'incentivo']);
-Route::post('logistica/cliente-inactivo', [LogisticaController::class, 'clienteInactivo']);
-Route::post('logistica/estado-de-cuenta', [LogisticaController::class, 'estadoCuenta']);
-Route::get('logistica/producto-logistica', [LogisticaController::class, 'productoLogistica']);
-Route::post('logistica/clientes-reactivados', [LogisticaController::class, 'clientesReactivados']);
-Route::post('logistica/ventas', [LogisticaController::class, 'ventasDate']);
-Route::post('logistica/recuperacion', [LogisticaController::class, 'recuperacion']);
-Route::post('logistica/productos-vendidos', [LogisticaController::class, 'productosVendidos']);
 
 
 Route::post('configuracion/migracion', [ConfiguracionController::class, 'migracion']);
