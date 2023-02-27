@@ -8,6 +8,7 @@ use App\Models\FacturaHistorial;
 use App\Models\Meta;
 use App\Models\MetaRecuperacion;
 use App\Models\Producto;
+use App\Models\TazaCambio;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -793,4 +794,23 @@ function getMetaMensual($user_id)
         ->first();
 
     return ($meta_recuperacion) ? $meta_recuperacion : false;
+}
+
+
+function convertTazaCambio($monto)
+{
+    $result = number_format((float) (0), 2, ".", "");
+    
+    $tazacambio = TazaCambio::where('estado', 1)->first();
+    $taza = number_format((float) ($tazacambio->monto), 2, ".", "");
+    $montoCambio = number_format((float) ($monto), 2, ".", "");
+
+    $result = (float) number_format((float) ($taza * $montoCambio), 2, ".", "");
+
+    return $result;
+}
+
+function decimal($monto)
+{
+    return number_format((float) ($monto), 2, ".", "");
 }

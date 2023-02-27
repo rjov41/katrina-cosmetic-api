@@ -7,6 +7,8 @@ use App\Models\Factura;
 use App\Models\Factura_Detalle;
 use App\Models\Producto;
 use App\Models\ReciboHistorialContado;
+use App\Models\TazaCambio;
+use App\Models\TazaCambioFactura;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -151,6 +153,13 @@ class FacturaController extends Controller
             $clientesInactivos = DB::select($query);
 
             $factura = Factura::create($facturaInsert); // inserto factura
+
+
+            $tazacambio = TazaCambio::where('estado', 1)->first();
+            TazaCambioFactura::create([
+                'monto'         => $tazacambio->monto,
+                'factura_id'    => $factura->id,
+            ]); // Cargo taza de cambio de la factura
 
             if($request["tipo_venta"] == 2 ){ // si es contado
                 $recibo = ReciboHistorialContado::create([ // genero recibo de factura

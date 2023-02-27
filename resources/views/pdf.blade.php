@@ -151,12 +151,12 @@
                     <tr>
                         <td>{{ $producto->descripcion }}</td>
                         <td>{{ ($producto->cantidad > 1) ? $producto->cantidad.' Uds' : $producto->cantidad.' Ud' }}</td>
-                        <td>${{ bcdiv($producto->precio, 1, 2) }}</td>
+                        <td>{{ bcdiv($producto->precio, 1, 2) }} C$</td>
                     </tr>
                     @endforeach
                     {{-- <tr>
                         <td colspan="2">Total</td>
-                        <td>${{ $data->monto }}.00</td>
+                        <td>{{ $data->monto }}.00 C$</td>
                     </tr> --}}
                 </tbody>
             </table>
@@ -177,7 +177,7 @@
     </div> -->
     <div class="total">
         <span>Total</span>
-        <span class="monto">${{ bcdiv($data->monto, 1, 2) }}</span>
+        <span class="monto">{{ bcdiv($data->monto, 1, 2) }} C$</span>
     </div>
     <div class="footer">
 

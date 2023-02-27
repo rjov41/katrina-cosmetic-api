@@ -129,6 +129,13 @@ Route::group(['middleware' => ['auth:sanctum', 'role:administrador|vendedor|supe
 
 
 Route::post('configuracion/migracion', [ConfiguracionController::class, 'migracion']);
+Route::post('configuracion/taza-cambio', [ConfiguracionController::class, 'saveTazaCambio']);
+Route::get('configuracion/taza-cambio', [ConfiguracionController::class, 'getTazaCambio']);
+
+Route::patch('configuracion/taza-cambio/factura', [ConfiguracionController::class, 'updateTazaCambioFactura']);
+Route::post('configuracion/taza-cambio/factura', [ConfiguracionController::class, 'saveTazaCambioFactura']);
+Route::get('configuracion/taza-cambio/factura/{id}', [ConfiguracionController::class, 'getTazaCambioFactura']);
+
 Route::get('configuracion/crons', function () {
     // Artisan::call('schedule:list');
     // echo Artisan::output();
