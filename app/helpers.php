@@ -282,6 +282,25 @@ function devolverStockProducto($detalle_id, $cantidad)
         $producto->stock = $producto->stock + $cantidad;
         $producto->estado = 1;
         $producto->update();
+
+        if(count($detalle->regaloFacturado) >0){
+            foreach ($detalle->regaloFacturado as $regaloF) {
+                // agrego la relacion con la tabla producto para regalo
+                $regaloF->regalo;
+
+                // producto para regalo
+                $regalo = Producto::where("id", $regaloF->regalo->id_producto_regalo)->first();
+                // print_r(json_encode($producto));
+                $regalo->stock = $regalo->stock + ( $regaloF->regalo->cantidad * $cantidad);
+                $regalo->estado = 1;
+                $regalo->update();
+
+                // regalo facturado 
+                $regaloF->cantidad_regalada = $regaloF->cantidad_regalada - ( $regaloF->regalo->cantidad * $cantidad);
+                $regaloF->update();
+            }
+        }
+
         // print_r(json_encode($producto));
 
         return true;

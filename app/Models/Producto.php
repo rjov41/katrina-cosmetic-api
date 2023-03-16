@@ -25,4 +25,6 @@ class Producto extends Model
     {
         return $this->hasMany(Factura_Detalle::class);
     }
+
+
 }

@@ -6,7 +6,9 @@ use App\Models\ClientesReactivados;
 use App\Models\Factura;
 use App\Models\Factura_Detalle;
 use App\Models\Producto;
+use App\Models\ProductoParaRegalo;
 use App\Models\ReciboHistorialContado;
+use App\Models\RegalosFacturados;
 use App\Models\TazaCambio;
 use App\Models\TazaCambioFactura;
 use App\Models\User;
@@ -30,21 +32,21 @@ class FacturaController extends Controller
         // $facturaEstado = 1; // Activo
         $parametros = [];
 
-        if(!is_null($request['estado'])) $parametros[] = ["status", $request['estado']];
-        if(!is_null($request['tipo_venta'])) $parametros[] = ["tipo_venta", $request['tipo_venta']];
-        if(!is_null($request['status_pagado'])) $parametros[] = ["status_pagado", $request['status_pagado']];
-        if(!is_null($request['status_pagado'])) $parametros[] = ["status_pagado", $request['status_pagado']];
-        if(!is_null($request['status_entrega'])) $parametros[] = ["entregado", $request['status_entrega']];
-        if(!is_null($request['despachado'])) $parametros[] = ["despachado", $request['despachado']];
-        if(!is_null($request['created_at'])){
+        if (!is_null($request['estado'])) $parametros[] = ["status", $request['estado']];
+        if (!is_null($request['tipo_venta'])) $parametros[] = ["tipo_venta", $request['tipo_venta']];
+        if (!is_null($request['status_pagado'])) $parametros[] = ["status_pagado", $request['status_pagado']];
+        if (!is_null($request['status_pagado'])) $parametros[] = ["status_pagado", $request['status_pagado']];
+        if (!is_null($request['status_entrega'])) $parametros[] = ["entregado", $request['status_entrega']];
+        if (!is_null($request['despachado'])) $parametros[] = ["despachado", $request['despachado']];
+        if (!is_null($request['created_at'])) {
             $created_at = Carbon::parse($request['created_at']);
-            $parametros[] = ["created_at",'>=', $created_at." 00:00:00"];
+            $parametros[] = ["created_at", '>=', $created_at . " 00:00:00"];
         }
 
         // dd($facturaEstado);
         $facturas =  Factura::where($parametros)->get();
 
-        if(count($facturas) > 0){
+        if (count($facturas) > 0) {
             foreach ($facturas as $key => $factura) {
                 $factura->user;
                 $factura->cliente->factura_historial;
@@ -78,7 +80,7 @@ class FacturaController extends Controller
      */
     public function store(Request $request)
     {
-        $validation = Validator::make($request->all() ,[
+        $validation = Validator::make($request->all(), [
             'user_id'           => 'required|numeric',
             'cliente_id'        => 'required|numeric',
             'monto'             => 'required|numeric',
@@ -104,11 +106,11 @@ class FacturaController extends Controller
             'recibo_id'         => 'numeric|required',
             'rango'             => 'required|string',
 
-        ],[
+        ], [
             'numero.unique' => 'El número de recibo ya existe en nuestra base de datos.',
         ]);
 
-        if($validation->fails()) {
+        if ($validation->fails()) {
             return response()->json($validation->errors(), 400);
         }
 
@@ -148,7 +150,7 @@ class FacturaController extends Controller
             )q ON c.id = q.cliente_id
             WHERE
                 q.cantidad_factura = q.cantidad_finalizadas AND
-                c.id = ".$request['cliente_id']; // Valido que el cliente este en la lista de clientes inactivos
+                c.id = " . $request['cliente_id']; // Valido que el cliente este en la lista de clientes inactivos
 
             $clientesInactivos = DB::select($query);
 
@@ -161,7 +163,7 @@ class FacturaController extends Controller
                 'factura_id'    => $factura->id,
             ]); // Cargo taza de cambio de la factura
 
-            if($request["tipo_venta"] == 2 ){ // si es contado
+            if ($request["tipo_venta"] == 2) { // si es contado
                 $recibo = ReciboHistorialContado::create([ // genero recibo de factura
                     'numero'                => $request['numero'],
                     'recibo_id'             => $request['recibo_id'],
@@ -175,48 +177,111 @@ class FacturaController extends Controller
             foreach ($request['factura_detalle'] as $key => $productoDetalle) { // cargo productos
                 $producto = Producto::firstWhere('id', $productoDetalle['producto_id']);
 
-                if(!$producto){
-                    return response()->json(["mensaje"=> "El producto no existe o fue removido"], 400);
+
+
+                if (!$producto) {
+                    return response()->json(["mensaje" => "El producto no existe o fue removido"], 400);
                 }
 
-                if($producto->estado == 0  ){
+                if ($producto->estado == 0) {
                     return response()->json(["mensaje" => "El producto {$producto->descripcion} esta inactivo o eliminado"], 400);
                 }
 
-                if($producto->stock < $productoDetalle["cantidad"]){
+                if ($producto->stock < $productoDetalle["cantidad"]) {
                     return response()->json(["mensaje" => "El producto {$producto->descripcion} solo posee {$producto->stock} en stock"], 400);
                 }
 
                 $producto->stock = $producto->stock - $productoDetalle['cantidad'];
                 $producto->save();
 
-                $fDetalles[] = [
+                $facturadetalle =  Factura_Detalle::create([
                     'producto_id'       => $productoDetalle['producto_id'],
                     'factura_id'        => $factura->id,
                     'cantidad'          => $productoDetalle['cantidad'],
                     'precio'            => $productoDetalle['precio'],
                     'precio_unidad'     => $productoDetalle['precio_unidad'],
-                    'created_at'        => $currentDate,
-                    'updated_at'        => $currentDate,
                     'estado'            => $productoDetalle['estado']
-                ];
+                ]);
+
+
+                // dd(json_encode($facturadetalle));
+
+                // agrego el regalo al validar la carga del producto
+                $regalos =  ProductoParaRegalo::where([
+                    ['producto_id', '=',  $productoDetalle['producto_id']],
+                    ['estado', '=', 1],
+                ])->get();
+
+                // $regalos = $producto->regalo;
+                if (count($regalos) > 0) {
+                    foreach ($regalos as $regalo) {
+                        $productoRegalo =  Producto::where([
+                            ['id', '=',  $regalo->id_producto_regalo],
+                            ['estado', '=', 1],
+
+                        ])->first();
+
+
+                        if ($productoRegalo) {
+                            if ($productoRegalo->stock < ($regalo->cantidad * $productoDetalle['cantidad'])) {
+                                // si no tiene que no cargue nada
+                                return response()->json(["mensaje" => "El producto {$productoRegalo->descripcion} tiene asociado regalos con stock insuficiente. Comuniquese con el admin para cargar nuevos en stock o removerlo "], 400);
+                            } else {
+                                // si tiene stock que guarde el regalo
+
+                                // dd(json_encode([ // genero recibo de regalos facturados
+                                //     'factura_detalle_id' => $facturadetalle->id,
+                                //     'cantidad_regalada'  => $regalo->cantidad * $productoDetalle['cantidad'],
+                                //     'regalo_id'          => $regalo->id,
+                                //     'estado'             => 1,
+                                //     '$productoRegalo->stock'             =>  $productoRegalo->stock,
+                                //     '$regalo->cantidad'             => $regalo->cantidad,
+                                //     '$productoDetalle[cantidad]'             => $productoDetalle['cantidad'],
+                                //     '$productoRegalo->stock'             =>  $productoRegalo,
+                                // ]));
+                                $productoRegalo->stock =  $productoRegalo->stock - ($regalo->cantidad * $productoDetalle['cantidad']);
+                                $productoRegalo->save();
+
+                                $regalosFacturados = RegalosFacturados::create([ // genero recibo de regalos facturados
+                                    'factura_detalle_id' => $facturadetalle->id,
+                                    'cantidad_regalada'  => $regalo->cantidad * $productoDetalle['cantidad'],
+                                    'regalo_id'          => $regalo->id,
+                                    'estado'             => 1,
+                                ]);
+                            }
+                        }
+                    }
+                }
+
+
+                // $fDetalles[] = [
+                //     'producto_id'       => $productoDetalle['producto_id'],
+                //     'factura_id'        => $factura->id,
+                //     'cantidad'          => $productoDetalle['cantidad'],
+                //     'precio'            => $productoDetalle['precio'],
+                //     'precio_unidad'     => $productoDetalle['precio_unidad'],
+                //     'created_at'        => $currentDate,
+                //     'updated_at'        => $currentDate,
+                //     'estado'            => $productoDetalle['estado']
+                // ];
             }
 
 
-            $factura_Detalle = Factura_Detalle::insert($fDetalles); // inserto detalle de factura
+            // $factura_Detalle = Factura_Detalle::insert($fDetalles); // inserto detalle de factura
+            // dd(json_encode($factura_Detalle));
+            validarStatusPagadoGlobal($request['cliente_id']); // valido si todas las facturas y ajusto en caso de que se le deba al cliente
 
-            validarStatusPagadoGlobal( $request['cliente_id']); // valido si todas las facturas y ajusto en caso de que se le deba al cliente
-
-            validarReactivacionCliente($request['user_id'],$request['cliente_id'],$factura->id, $clientesInactivos);
+            validarReactivacionCliente($request['user_id'], $request['cliente_id'], $factura->id, $clientesInactivos);
 
             DB::commit();
+            // DB::rollback();
             return response()->json([
                 "factura_id" => $factura->id,
-                "status" => $factura_Detalle,
+                "status" => true,
             ], 201);
         } catch (\Exception $e) {
             DB::rollback();
-            // dd($e);
+            dd($e);
             return response()->json(["mensaje" => "Error al insertar el pedido"], 400);
         }
     }
@@ -227,17 +292,17 @@ class FacturaController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id,Request $request)
+    public function show($id, Request $request)
     {
         $response = [];
         $status = 400;
         $facturaEstado = 1; // Activo
 
-        if(is_numeric($id)){
+        if (is_numeric($id)) {
 
             // if($request->input("estado") != null) $facturaEstado = $request->input("estado");
             // dd($productoEstado);
-            $factura =  Factura::with('cliente','user')->where([
+            $factura =  Factura::with('cliente', 'user')->where([
                 ['id', '=', $id],
                 // ['estado', '=', $facturaEstado],
             ])->first();
@@ -250,7 +315,7 @@ class FacturaController extends Controller
                 ['debitado', '=', 1] // 0 = en proceso | 1 = Finalizado,
             ])->get();
 
-            if(count($factura->factura_detalle)>0){
+            if (count($factura->factura_detalle) > 0) {
                 foreach ($factura->factura_detalle as $key => $productoDetalle) {
                     $producto = Producto::find($productoDetalle["producto_id"]);
 
@@ -261,6 +326,7 @@ class FacturaController extends Controller
                     $productoDetalle["linea"]       = $producto->linea;
                     $productoDetalle["descripcion"] = $producto->descripcion;
                     // $productoDetalle["estado"]      = $producto->estado;
+
                 }
             }
 
@@ -275,15 +341,13 @@ class FacturaController extends Controller
 
 
 
-            if($factura){
+            if ($factura) {
                 $response = $factura;
                 $status = 200;
-
-            }else{
+            } else {
                 $response[] = "La factura no existe o fue eliminado.";
             }
-
-        }else{
+        } else {
             $response[] = "El Valor de Id debe ser numerico.";
         }
 
@@ -313,11 +377,11 @@ class FacturaController extends Controller
         $response = [];
         $status = 400;
 
-        if(is_numeric($id)){
+        if (is_numeric($id)) {
             $cliente =  Factura::find($id);
             // dd($cliente->estado);
-            if($cliente){
-                $validation = Validator::make($request->all() ,[
+            if ($cliente) {
+                $validation = Validator::make($request->all(), [
                     'user_id' => 'required|numeric',
                     'cliente_id' => 'required|numeric',
                     'monto' => 'required|numeric',
@@ -328,7 +392,7 @@ class FacturaController extends Controller
                     'estado' => 'required|numeric|max:1',
                 ]);
 
-                if($validation->fails()) {
+                if ($validation->fails()) {
                     $response[] = $validation->errors();
                 } else {
 
@@ -345,21 +409,17 @@ class FacturaController extends Controller
                     ]);
 
 
-                    if($clienteUpdate){
+                    if ($clienteUpdate) {
                         $response[] = 'La factura fue modificada con exito.';
                         $status = 200;
-
-                    }else{
+                    } else {
                         $response[] = 'Error al modificar los datos.';
                     }
-
                 }
-
-            }else{
+            } else {
                 $response[] = "La factura no existe.";
             }
-
-        }else{
+        } else {
             $response[] = "El Valor de Id debe ser numerico.";
         }
 
@@ -377,23 +437,23 @@ class FacturaController extends Controller
         $response = [];
         $status = 400;
 
-        if(is_numeric($id)){
+        if (is_numeric($id)) {
             $factura =  Factura::find($id);
 
-            if($factura){
-                if($factura->saldo_restante == $factura->monto){
+            if ($factura) {
+                if ($factura->saldo_restante == $factura->monto) {
                     $facturaDelete = $factura->update([
                         'status' => 0,
                     ]);
 
-                    if($facturaDelete){
+                    if ($facturaDelete) {
 
                         $factura->factura_detalle;
                         // print_r(json_encode($factura));
                         foreach ($factura->factura_detalle as $key => $productoDetalle) {
                             $producto =  Producto::find($productoDetalle["producto_id"]);
                             // print_r(json_encode($producto));
-                            if($producto){
+                            if ($producto) {
                                 $producto->stock += $productoDetalle["cantidad"];
                                 $producto->update();
                             }
@@ -404,20 +464,16 @@ class FacturaController extends Controller
 
                         $response[] = 'La factura fue eliminada con exito.';
                         $status = 200;
-
-                    }else{
+                    } else {
                         $response[] = 'Error al eliminar la factura.';
                     }
-
-                }else{
+                } else {
                     $response[] = 'La factura ya debitó un abono';
                 }
-
-            }else{
+            } else {
                 $response[] = "La factura no existe.";
             }
-
-        }else{
+        } else {
             $response[] = "El Valor de Id debe ser numerico.";
         }
 
@@ -425,31 +481,29 @@ class FacturaController extends Controller
     }
 
 
-    public function despachar($id,Request $request)
+    public function despachar($id, Request $request)
     {
         $response = [];
         $status = 400;
 
-        if(is_numeric($id)){
+        if (is_numeric($id)) {
             $factura =  Factura::find($id);
 
-            if($factura){
-                if(!is_null($request['despachado'])) $factura->despachado = $request['despachado'];
+            if ($factura) {
+                if (!is_null($request['despachado'])) $factura->despachado = $request['despachado'];
 
                 $factura->update();
                 $status = 200;
 
-                if($request['despachado'] == 1){
+                if ($request['despachado'] == 1) {
                     $response[] = 'La factura fue despachada con exito.';
-                }else{
+                } else {
                     $response[] = 'La factura ha sido devuelta a la sección de facturas despachadas.';
                 }
-
-            }else{
+            } else {
                 $response[] = "La factura no existe.";
             }
-
-        }else{
+        } else {
             $response[] = "El Valor de Id debe ser numerico.";
         }
 
@@ -461,22 +515,20 @@ class FacturaController extends Controller
         $response = [];
         $status = 400;
 
-        if(is_numeric($id)){
+        if (is_numeric($id)) {
             $factura =  Factura::find($id);
             // print_r($factura);
-            if($factura){
+            if ($factura) {
                 $factura->entregado = 1;
                 $factura->save();
 
                 // print_r($factura);
                 $status = 200;
                 $response[] = 'La factura fue marcada como entregada.';
-
-            }else{
+            } else {
                 $response[] = "La factura no existe.";
             }
-
-        }else{
+        } else {
             $response[] = "El Valor de Id debe ser numerico.";
         }
 

@@ -21,6 +21,7 @@ class PdfController extends Controller
     public function facturaPago($id, Request $request)
     {
         $response = [];
+        $regaloList = [];
         $status = 400;
         $facturaEstado = 1; // Activo
 
@@ -54,7 +55,19 @@ class PdfController extends Controller
                     $productoDetalle["linea"]       = $producto->linea;
                     $productoDetalle["descripcion"] = $producto->descripcion;
                     // $productoDetalle["estado"]      = $producto->estado;
+
+                    foreach ($productoDetalle->regaloFacturado as $regaloF) {
+                        $regaloF->regalo;
+                        $regaloF->detalle_regalo =  Producto::where([
+                            ['id', '=', $regaloF->regalo->id_producto_regalo],
+                        ])->first();
+
+                    }
+                    array_push($regaloList,...$productoDetalle->regaloFacturado);
+
                 }
+
+                // dd(json_encode($regaloList));
             }
 
             $taza = TazaCambioFactura::where("factura_id",$factura->id)->first();
@@ -104,7 +117,8 @@ class PdfController extends Controller
 
 
         $data = [
-            'data' => $response
+            'data' => $response,
+            'regalos' => $regaloList
         ];
 
         $archivo = PDF::loadView('pdf', $data);

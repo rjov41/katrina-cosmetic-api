@@ -154,6 +154,13 @@
                         <td>{{ bcdiv($producto->precio, 1, 2) }} C$</td>
                     </tr>
                     @endforeach
+                    @foreach($regalos as $regalo)
+                    <tr>
+                        <td>{{ $regalo->detalle_regalo->descripcion }}</td>
+                        <td>{{ ($regalo->cantidad_regalada > 1) ? $regalo->cantidad_regalada.' Uds' : $regalo->cantidad_regalada.' Ud' }}</td>
+                        <td>Regalo</td>
+                    </tr>
+                    @endforeach
                     {{-- <tr>
                         <td colspan="2">Total</td>
                         <td>{{ $data->monto }}.00 C$</td>

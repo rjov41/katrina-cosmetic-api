@@ -36,4 +36,9 @@ class Factura_Detalle extends Model
         return $this->belongsTo(Factura::class);
     }
 
+    public function regaloFacturado()
+    {
+        return $this->hasMany(RegalosFacturados::class,"factura_detalle_id");
+    }
+
 }
