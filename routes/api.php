@@ -86,6 +86,7 @@ Route::group(['middleware' => ['auth:sanctum', 'role:administrador|vendedor|supe
     Route::post('logistica/mora-60-90', [LogisticaController::class, 'Mora60A90']);
     Route::post('logistica/cliente-new', [LogisticaController::class, 'clienteDate']);
     Route::post('logistica/incentivo', [LogisticaController::class, 'incentivo']);
+    Route::post('logistica/incentivo-supervisor', [LogisticaController::class, 'incentivoSupervisor']);
     Route::post('logistica/cliente-inactivo', [LogisticaController::class, 'clienteInactivo']);
     Route::post('logistica/estado-de-cuenta', [LogisticaController::class, 'estadoCuenta']);
     Route::get('logistica/producto-logistica', [LogisticaController::class, 'productoLogistica']);
