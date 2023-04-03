@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Recibo;
+use App\Models\ReciboHistorial;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -30,7 +31,12 @@ class UsuarioController extends Controller
         if(count($usuarios) > 0){
             foreach ($usuarios as $usuario) {
                 $usuario->factura;
-                $usuario->recibo;
+                if($usuario->recibo != null ){
+                    $usuario->ultimo_recibo = ReciboHistorial::where([
+                        ["recibo_id", $usuario->recibo->id],
+                    ]
+                    )->orderBy('created_at', 'desc')->first();
+                }
                 $usuario->meta;
 
                 $role_id = DB::table('model_has_roles')->where('model_id', $usuario->id)->first();

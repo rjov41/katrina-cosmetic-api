@@ -80,7 +80,7 @@
         position: absolute;
         float: left;
         display: block;
-        width: 70px;
+        width: 90px;
         height: 70px;
     }
     .total{
@@ -112,7 +112,7 @@
     <img class="logo" src="lib/img/logo_png.png" alt="">
     <div class="content-titulo">
         {{-- <h5>IMPORTACIONES CLIO NICARAGUA <br> ALTAMIRA DE DONDE FUE EL BDF 1C A LAGO 1C ARRIBA CONTIGUO A ETIRROL <br> 81562409784214465</h5> --}}
-        <h5>M&R Cosmetics <br> ALTAMIRA DE DONDE FUE EL BDF 1C A LAGO 1C ARRIBA CONTIGUO A ETIRROL <br> Teléfonos: 84220028-88071569-81562408</h5>
+        <h5>M&R Profesional <br> ALTAMIRA DE DONDE FUE EL BDF 1C A LAGO 1C ARRIBA CONTIGUO A ETIRROL <br> Teléfonos: 84220028-88071569-81562408</h5>
     </div>
     <div class="border">
         <div class="seccion_supeior">
