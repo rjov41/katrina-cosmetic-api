@@ -50,16 +50,17 @@ class MetaRecuperacionCron extends Command
         $users = User::where([
             ["estado", "=", 1]
         ])->get();
-
+        
+        $inicioMesActual =  Carbon::now()->firstOfMonth()->toDateString();
+        $finMesActual =  Carbon::now()->lastOfMonth()->toDateString();
+        
         foreach ($users as $user) {
-            $meta_recuperacion = getMetaMensual($user->id);
+            $meta_recuperacion = getMetaMensual($user->id,$inicioMesActual,$finMesActual);
 
             if (!$meta_recuperacion) {
                 crearMetaMensual();
                 $insertoNuevaMeta = true;
 
-                $inicioMesActual =  Carbon::now()->firstOfMonth()->toDateString();
-                $finMesActual =  Carbon::now()->lastOfMonth()->toDateString();
 
                 $meta_recuperacion = MetaRecuperacion::where('estado', 1)
                     ->whereBetween('created_at', [$inicioMesActual . " 00:00:00",  $finMesActual . " 23:59:59"]);

@@ -618,7 +618,7 @@ function ventasMetaQuery($request)
     return $response;
 }
 
-function newrecuperacionQuery($user)
+function newrecuperacionQuery($user,$dateini,$dateFin)
 {
     $userId = $user->id;
     $response = [
@@ -631,16 +631,19 @@ function newrecuperacionQuery($user)
 
     ];
 
-    $inicioMesActual =  Carbon::now()->firstOfMonth()->toDateString();
-    $finMesActual =  Carbon::now()->lastOfMonth()->toDateString();
+    $inicioMesActual =  Carbon::parse($dateini)->firstOfMonth()->toDateString();
+    $finMesActual =  Carbon::parse($dateFin)->lastOfMonth()->toDateString();
+    // $inicioMesActual =  Carbon::now()->firstOfMonth()->toDateString();
+    // $finMesActual =  Carbon::now()->lastOfMonth()->toDateString();
+    // dd([$inicioMesActual,$finMesActual]);
 
-    $meta_recuperacion = getMetaMensual($userId);
+    $meta_recuperacion = getMetaMensual($userId,$inicioMesActual,$finMesActual);
 
     if ($meta_recuperacion) {
         $response["recuperacionTotal"] = (float) number_format((float) $meta_recuperacion->monto_meta, 2, ".", "");
     } else {
         crearMetaMensual();
-        $metaCreada = getMetaMensual($userId);
+        $metaCreada = getMetaMensual($userId,$inicioMesActual,$finMesActual);
         $response["recuperacionTotal"] = (float) number_format((float) $metaCreada, 2, ".", ""); // meta
     }
 
@@ -767,6 +770,7 @@ function crearMetaMensual()
 {
 
     $inicioMesActual =  Carbon::now()->firstOfMonth()->toDateString();
+    $finMesActual =  Carbon::now()->lastOfMonth()->toDateString();
     // DB::enableQueryLog();
 
     $users = User::where([
@@ -794,18 +798,23 @@ function crearMetaMensual()
         $resultado = $total  * 0.85;
         $monto_meta = (float) number_format((float) $resultado, 2, ".", ""); // meta
 
-        MetaRecuperacion::create([
-            'user_id' => $user->id,
-            'monto_meta' => $monto_meta,
-            'estado' => 1,
-        ]);
+        $existeUsuarioMesActual = !!getMetaMensual($user->id,$inicioMesActual,$finMesActual);
+
+        if(!$existeUsuarioMesActual){
+            MetaRecuperacion::create([
+                'user_id' => $user->id,
+                'monto_meta' => $monto_meta,
+                'estado' => 1,
+            ]);
+        }
+        
     }
 }
 
-function getMetaMensual($user_id)
+function getMetaMensual($user_id,$inicioMesActual,$finMesActual)
 {
-    $inicioMesActual =  Carbon::now()->firstOfMonth()->toDateString();
-    $finMesActual =  Carbon::now()->lastOfMonth()->toDateString();
+    // $inicioMesActual =  Carbon::now()->firstOfMonth()->toDateString();
+    // $finMesActual =  Carbon::now()->lastOfMonth()->toDateString();
 
     $meta_recuperacion = MetaRecuperacion::where('user_id', $user_id)
         ->whereBetween('created_at', [$inicioMesActual . " 00:00:00",  $finMesActual . " 23:59:59"])

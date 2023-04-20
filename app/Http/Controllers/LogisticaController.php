@@ -799,11 +799,11 @@ class LogisticaController extends Controller
             ["estado", "=", 1]
         ])->get();
 
+        // dd([$request->dateIni,$request->dateFin]);
         foreach ($users as $user) {
-            // dd($user->id);
             // $user->meta;
             // $responsequery = recuperacionQuery($user);
-            $responsequery = newrecuperacionQuery($user);
+            $responsequery = newrecuperacionQuery($user,$request->dateIni,$request->dateFin);
 
             array_push($response, $responsequery);
         }
