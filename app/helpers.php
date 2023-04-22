@@ -235,6 +235,7 @@ function ActualizarPrecioFactura($factura_id)
 
         // desactibo la factura para que no se tome en cuenta
         $factura->status = 0;
+        validarFacturaClienteReactivado($factura_id);
     }
 
     // print_r (json_encode($factura));
@@ -243,6 +244,16 @@ function ActualizarPrecioFactura($factura_id)
 
     validarStatusPagadoGlobal($factura->cliente_id);
 }
+
+function validarFacturaClienteReactivado($factura_id)
+{
+    ClientesReactivados::where([
+        ['estado', '=', 1],
+        ['factura_id', '=', $factura_id],
+    ])->update(['estado' => 0]);
+}
+
+
 
 function AsignarPrecioPorUnidadGlobal()
 {
@@ -283,7 +294,7 @@ function devolverStockProducto($detalle_id, $cantidad)
         $producto->estado = 1;
         $producto->update();
 
-        if(count($detalle->regaloFacturado) >0){
+        if (count($detalle->regaloFacturado) > 0) {
             foreach ($detalle->regaloFacturado as $regaloF) {
                 // agrego la relacion con la tabla producto para regalo
                 $regaloF->regalo;
@@ -291,12 +302,12 @@ function devolverStockProducto($detalle_id, $cantidad)
                 // producto para regalo
                 $regalo = Producto::where("id", $regaloF->regalo->id_producto_regalo)->first();
                 // print_r(json_encode($producto));
-                $regalo->stock = $regalo->stock + ( $regaloF->regalo->cantidad * $cantidad);
+                $regalo->stock = $regalo->stock + ($regaloF->regalo->cantidad * $cantidad);
                 $regalo->estado = 1;
                 $regalo->update();
 
                 // regalo facturado 
-                $regaloF->cantidad_regalada = $regaloF->cantidad_regalada - ( $regaloF->regalo->cantidad * $cantidad);
+                $regaloF->cantidad_regalada = $regaloF->cantidad_regalada - ($regaloF->regalo->cantidad * $cantidad);
                 $regaloF->update();
             }
         }
@@ -618,7 +629,7 @@ function ventasMetaQuery($request)
     return $response;
 }
 
-function newrecuperacionQuery($user,$dateini,$dateFin)
+function newrecuperacionQuery($user, $dateini, $dateFin)
 {
     $userId = $user->id;
     $response = [
@@ -637,13 +648,13 @@ function newrecuperacionQuery($user,$dateini,$dateFin)
     // $finMesActual =  Carbon::now()->lastOfMonth()->toDateString();
     // dd([$inicioMesActual,$finMesActual]);
 
-    $meta_recuperacion = getMetaMensual($userId,$inicioMesActual,$finMesActual);
+    $meta_recuperacion = getMetaMensual($userId, $inicioMesActual, $finMesActual);
 
     if ($meta_recuperacion) {
         $response["recuperacionTotal"] = (float) number_format((float) $meta_recuperacion->monto_meta, 2, ".", "");
     } else {
         crearMetaMensual();
-        $metaCreada = getMetaMensual($userId,$inicioMesActual,$finMesActual);
+        $metaCreada = getMetaMensual($userId, $inicioMesActual, $finMesActual);
         $response["recuperacionTotal"] = (float) number_format((float) $metaCreada, 2, ".", ""); // meta
     }
 
@@ -798,20 +809,19 @@ function crearMetaMensual()
         $resultado = $total  * 0.85;
         $monto_meta = (float) number_format((float) $resultado, 2, ".", ""); // meta
 
-        $existeUsuarioMesActual = !!getMetaMensual($user->id,$inicioMesActual,$finMesActual);
+        $existeUsuarioMesActual = !!getMetaMensual($user->id, $inicioMesActual, $finMesActual);
 
-        if(!$existeUsuarioMesActual){
+        if (!$existeUsuarioMesActual) {
             MetaRecuperacion::create([
                 'user_id' => $user->id,
                 'monto_meta' => $monto_meta,
                 'estado' => 1,
             ]);
         }
-        
     }
 }
 
-function getMetaMensual($user_id,$inicioMesActual,$finMesActual)
+function getMetaMensual($user_id, $inicioMesActual, $finMesActual)
 {
     // $inicioMesActual =  Carbon::now()->firstOfMonth()->toDateString();
     // $finMesActual =  Carbon::now()->lastOfMonth()->toDateString();
@@ -828,7 +838,7 @@ function getMetaMensual($user_id,$inicioMesActual,$finMesActual)
 function convertTazaCambio($monto)
 {
     $result = number_format((float) (0), 2, ".", "");
-    
+
     $tazacambio = TazaCambio::where('estado', 1)->first();
     $taza = number_format((float) ($tazacambio->monto), 2, ".", "");
     $montoCambio = number_format((float) ($monto), 2, ".", "");
