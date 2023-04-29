@@ -6,6 +6,7 @@ use App\Models\Factura;
 use App\Models\Factura_Detalle;
 use App\Models\FacturaHistorial;
 use App\Models\Meta;
+use App\Models\MetaHistorial;
 use App\Models\MetaRecuperacion;
 use App\Models\Producto;
 use App\Models\TazaCambio;
@@ -13,6 +14,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
+use function PHPUnit\Framework\isNull;
 
 function validarStatusPagadoGlobal($clienteID)
 {
@@ -547,6 +549,8 @@ function ventasMetaQuery($request)
         $dateFin = Carbon::parse($request->dateFin);
     }
 
+    $dateIni =  Carbon::parse($dateIni)->firstOfMonth();
+    $dateFin =  Carbon::parse($dateFin)->lastOfMonth();
 
 
     $facturasStorage = Factura::select("*")
@@ -588,17 +592,20 @@ function ventasMetaQuery($request)
     }
 
     // $meta = Meta::where('user_id', $userId)->first();
-
-    $meta = Meta::select("*")
-        ->where('user_id', $userId)
-        ->first();
+    // DB::enableQueryLog();
+    $meta = getMetaPorUsuario($userId, $dateIni->toDateString() . " 00:00:00", $dateFin->toDateString() . " 23:59:59");
+    // dd(DB::getQueryLog());
+    // $meta = Meta::select("*")
+    //     ->where('user_id', $userId)
+    //     ->first();
     // print_r(json_encode($meta));
     // (453 * 100)/1500
 
-
+    // dd(json_encode([$userId, $dateIni->toDateString() . " 00:00:00", $dateFin->toDateString() . " 23:59:59"]));
+    // dd(json_encode($meta));
     if ($meta) {
-        $metaValue = $meta->monto;
-        $response["meta_monto"] = $meta->monto;
+        $metaValue = $meta->monto_meta;
+        $response["meta_monto"] = $meta->monto_meta;
         // print_r(json_encode($metaValue));
         $averageMeta = ($response["total"] / $metaValue) * 100;
         $response["meta"] = (float) number_format((float) ($averageMeta), 2, ".", "");
@@ -619,7 +626,13 @@ function ventasMetaQuery($request)
 
         $abonos = $abonosStore->get();
         $response["recuperacion_monto"] = sumaRecuperacion($abonos);
-        $recuperacion = ($response["recuperacion_monto"] * 100) / $response["meta_monto"];
+
+        if ($response["meta_monto"] == 0) {
+            $recuperacion = 0;
+        } else {
+            $recuperacion = ($response["recuperacion_monto"] * 100) / $response["meta_monto"];
+        }
+
         $response["recuperacion"] = (float) number_format((float) $recuperacion, 2, ".", "");
         $response["abonos"] = $abonos;
 
@@ -648,13 +661,13 @@ function newrecuperacionQuery($user, $dateini, $dateFin)
     // $finMesActual =  Carbon::now()->lastOfMonth()->toDateString();
     // dd([$inicioMesActual,$finMesActual]);
 
-    $meta_recuperacion = getMetaMensual($userId, $inicioMesActual, $finMesActual);
+    $meta_recuperacion = getMetaRecuperacionMensual($userId, $inicioMesActual, $finMesActual);
 
     if ($meta_recuperacion) {
         $response["recuperacionTotal"] = (float) number_format((float) $meta_recuperacion->monto_meta, 2, ".", "");
     } else {
-        crearMetaMensual();
-        $metaCreada = getMetaMensual($userId, $inicioMesActual, $finMesActual);
+        crearMetaRecuperacionMensual();
+        $metaCreada = getMetaRecuperacionMensual($userId, $inicioMesActual, $finMesActual);
         $response["recuperacionTotal"] = (float) number_format((float) $metaCreada, 2, ".", ""); // meta
     }
 
@@ -777,9 +790,9 @@ function productosVendidos($user, $request)
 }
 
 
-function crearMetaMensual()
+function crearMetaRecuperacionMensual()
 {
-
+    // La meta de recuperacion no es lo mismo que META. Es solo para la seccion de recuperacion
     $inicioMesActual =  Carbon::now()->firstOfMonth()->toDateString();
     $finMesActual =  Carbon::now()->lastOfMonth()->toDateString();
     // DB::enableQueryLog();
@@ -809,7 +822,7 @@ function crearMetaMensual()
         $resultado = $total  * 0.85;
         $monto_meta = (float) number_format((float) $resultado, 2, ".", ""); // meta
 
-        $existeUsuarioMesActual = !!getMetaMensual($user->id, $inicioMesActual, $finMesActual);
+        $existeUsuarioMesActual = !!getMetaRecuperacionMensual($user->id, $inicioMesActual, $finMesActual);
 
         if (!$existeUsuarioMesActual) {
             MetaRecuperacion::create([
@@ -821,7 +834,56 @@ function crearMetaMensual()
     }
 }
 
-function getMetaMensual($user_id, $inicioMesActual, $finMesActual)
+function crearMetaMensual($mes = "")
+{
+    // Para crear la meta mensual solo tomamos el valor de la tabla meta, ese es el valor por defecto
+    $mensajes = [];
+
+    $response[] = 'La meta fue eliminado con exito.';
+
+    if ($mes == "") {
+        $inicioMesActual =  Carbon::now()->firstOfMonth()->toDateString();
+        $finMesActual =  Carbon::now()->lastOfMonth()->toDateString();
+    } else {
+        $inicioMesActual =  Carbon::parse($mes)->firstOfMonth()->toDateString();
+        $finMesActual =  Carbon::parse($mes)->lastOfMonth()->toDateString();
+    }
+    // DB::enableQueryLog();
+
+    $users = User::where([
+        ["estado", "=", 1]
+    ])->get();
+
+    foreach ($users as $user) {
+        $meta = Meta::where('user_id', $user->id)->first(); // Meta default
+
+        if (is_null($meta)) { // agrego meta por no existir
+            Meta::create([
+                'user_id' => $user->id,
+                'monto' => 0,
+                'estado' => 1,
+            ]);
+
+            $meta = Meta::where('user_id', $user->id)->first(); // Meta default
+            // dd(json_encode($meta ));
+        }
+
+        $existeUsuarioMesActual = getMetaPorUsuario($user->id, $inicioMesActual . " 00:00:00", $finMesActual . " 23:59:59");
+        if (!$existeUsuarioMesActual) {
+            // dd([$user->id, $inicioMesActual . " 00:00:00", $finMesActual . " 23:59:59"] );
+            $fechaActual = Carbon::now();
+
+            MetaHistorial::create([
+                'user_id' => $user->id,
+                'monto_meta' => $meta->monto,
+                'fecha_asignacion' => ($mes == "") ? $fechaActual->toDateTimeString() : $inicioMesActual . " 00:00:00",
+                'estado' => 1,
+            ]);
+        }
+    }
+}
+
+function getMetaRecuperacionMensual($user_id, $inicioMesActual, $finMesActual)
 {
     // $inicioMesActual =  Carbon::now()->firstOfMonth()->toDateString();
     // $finMesActual =  Carbon::now()->lastOfMonth()->toDateString();
@@ -832,6 +894,21 @@ function getMetaMensual($user_id, $inicioMesActual, $finMesActual)
         ->first();
 
     return ($meta_recuperacion) ? $meta_recuperacion : false;
+}
+
+function getMetaPorUsuario($user_id, $fechaInicio = "", $fechaFin = "")
+{
+    $meta_recuperacion = MetaHistorial::where('user_id', $user_id)
+        ->where('estado', 1);
+
+
+    $meta_recuperacion->when($fechaInicio != "", function ($q) use ($fechaInicio, $fechaFin) {
+        return $q->whereBetween('fecha_asignacion', [$fechaInicio,  $fechaFin]);
+    });
+
+    // $meta_recuperacion->first();
+
+    return ($meta_recuperacion) ? $meta_recuperacion->first() : false;
 }
 
 

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Meta;
+use App\Models\MetaHistorial;
+use App\Models\MetaRecuperacion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -142,9 +144,9 @@ class MetasController extends Controller
         $status = 400;
 
         if (is_numeric($id)) {
-            $cliente =  Meta::find($id);
+            $meta =  Meta::find($id);
 
-            if ($cliente) {
+            if ($meta) {
                 $validation = Validator::make($request->all(), [
                     'user_id'        => 'required|numeric',
                     'monto'          => 'numeric|required',
@@ -156,14 +158,14 @@ class MetasController extends Controller
                 } else {
 
                     // dd($request->all());
-                    $cliente->update([
+                    $meta->update([
                         'user_id' => $request['user_id'],
                         'monto' => $request['monto'],
                         'estado' => $request['estado'],
 
                     ]);
 
-                    $response = $cliente;
+                    $response = $meta;
                     $status = 200;
                 }
             } else {
@@ -185,5 +187,91 @@ class MetasController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+
+    public function editarMetaHistorial(Request $request,$id)
+    {
+        $response = [];
+        $status = 400;
+
+        if(is_numeric($id)){
+            $metaHistorial =  MetaHistorial::find($id);
+
+            if($metaHistorial){
+                $validation = Validator::make($request->all() ,[
+                    'fecha_asignacion'        => 'required|string',
+                    'monto_meta'            => 'numeric|required',
+                ]);
+
+
+                if($validation->fails()) {
+                    $response[] = $validation->errors();
+                } else {
+                    $metaHistorialUpdate = $metaHistorial->update([
+                        'monto_meta' => $request['monto_meta'],
+                        'fecha_asignacion' => $request['fecha_asignacion'],
+                    ]);
+
+                    if($metaHistorialUpdate){
+                        $response = $metaHistorialUpdate;
+                        $status = 200;
+
+                    }else{
+                        $response[] = 'Error al modificar los datos.';
+                    }
+                }
+
+            }else{
+                $response[] = "La meta no existe.";
+            }
+
+        }else{
+            $response[] = "El Valor de Id debe ser numerico.";
+        }
+
+        return response()->json($response, $status);
+    }
+
+    public function eliminarMetaHistorial($id){
+        $response = [];
+        $status = 400;
+
+        if(is_numeric($id)){
+            $metaHistorial =  MetaHistorial::find($id);
+
+            if($metaHistorial){
+                $metaHistorialDelete = $metaHistorial->update([
+                    'estado' => 0,
+                ]);
+
+                if($metaHistorialDelete){
+                    $response[] = 'La meta fue eliminado con exito.';
+                    $status = 200;
+
+                }else{
+                    $response[] = 'Error al eliminar el usuario.';
+                }
+
+            }else{
+                $response[] = "La meta no existe.";
+            }
+
+        }else{
+            $response[] = "El Valor de Id debe ser numerico.";
+        }
+
+        return response()->json($response, $status);
+    }
+
+    public function crearMetaHistorial(Request $request){
+        $response = [];
+        $status = 400;
+        // dd($request["mes"]);
+        crearMetaMensual($request["mes"]);
+        $response[] = 'La meta fue eliminado con exito.';
+        $status = 200;
+
+        return response()->json($response, $status);
     }
 }

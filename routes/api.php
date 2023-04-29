@@ -12,6 +12,7 @@ use App\Http\Controllers\FacturaController;
 use App\Http\Controllers\FacturaDetallesController;
 use App\Http\Controllers\FacturaHistorial;
 use App\Http\Controllers\FrecuenciaController;
+use App\Http\Controllers\ListadosPaginasController;
 use App\Http\Controllers\LogisticaController;
 use App\Http\Controllers\MetasController;
 use App\Http\Controllers\PdfController;
@@ -130,6 +131,9 @@ Route::group(['middleware' => ['auth:sanctum', 'role:administrador|vendedor|supe
     Route::get('recibos/number/{id}', [ReciboController::class, 'getNumeroRecibo']);
     
     Route::resource('metas', MetasController::class);
+    Route::put('metas-historial/{id}', [MetasController::class,'editarMetaHistorial']);
+    Route::delete('metas-historial/{id}', [MetasController::class,'eliminarMetaHistorial']);
+    Route::post('metas-historial/new', [MetasController::class,'crearMetaHistorial']);
     
     Route::get('regalos/detalle/{id}', [RegalosController::class, 'regaloXdetalle']);
     Route::get('regalos/factura/{id}', [RegalosController::class, 'regalosXFactura']);
@@ -145,6 +149,9 @@ Route::group(['middleware' => ['auth:sanctum', 'role:administrador|vendedor|supe
     Route::get('configuracion/taza-cambio/factura/{id}', [ConfiguracionController::class, 'getTazaCambioFactura']);
 });
 
+
+Route::get('list/facturas', [ListadosPaginasController::class, 'facturasList']);
+Route::get('list/metas', [ListadosPaginasController::class, 'metasHistoricoList']);
 
 
 

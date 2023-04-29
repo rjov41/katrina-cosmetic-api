@@ -55,10 +55,10 @@ class MetaRecuperacionCron extends Command
         $finMesActual =  Carbon::now()->lastOfMonth()->toDateString();
         
         foreach ($users as $user) {
-            $meta_recuperacion = getMetaMensual($user->id,$inicioMesActual,$finMesActual);
+            $meta_recuperacion = getMetaRecuperacionMensual($user->id,$inicioMesActual,$finMesActual);
 
             if (!$meta_recuperacion) {
-                crearMetaMensual();
+                crearMetaRecuperacionMensual();
                 $insertoNuevaMeta = true;
 
 
@@ -73,5 +73,9 @@ class MetaRecuperacionCron extends Command
 
         }
         Log::info('Finalizar Creacion de Meta Recuperacion');
+
+        crearMetaMensual(); // Tambien aprovecho el cron de recuperacion para validar la creacion de Metas
+
+        
     }
 }

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateMetaRecuperacionsTable extends Migration
+class CreateMetaHistorialsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreateMetaRecuperacionsTable extends Migration
      */
     public function up()
     {
-        Schema::create('meta_recuperacions', function (Blueprint $table) {
+        Schema::create('meta_historials', function (Blueprint $table) {
             $table->id();
 
             // usuarios
@@ -22,7 +22,7 @@ class CreateMetaRecuperacionsTable extends Migration
 
             $table->double('monto_meta', 7, 2);
 
-            // $table->timestamp("fecha_asignacion")->nullable(); // lo saqueporque me confundi y pense que era la meta. Pero es la recuperacion
+            $table->timestamp("fecha_asignacion")->nullable();
 
             $table->integer("estado")->length(1);
 
@@ -37,6 +37,6 @@ class CreateMetaRecuperacionsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('meta_recuperacions');
+        Schema::dropIfExists('meta_historials');
     }
 }
