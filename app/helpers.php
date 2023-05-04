@@ -819,7 +819,8 @@ function crearMetaRecuperacionMensual()
             }
         }
 
-        $resultado = $total  * 0.85;
+        // $resultado = $total  * 0.85;
+        $resultado = $total  * 1;
         $monto_meta = (float) number_format((float) $resultado, 2, ".", ""); // meta
 
         $existeUsuarioMesActual = !!getMetaRecuperacionMensual($user->id, $inicioMesActual, $finMesActual);

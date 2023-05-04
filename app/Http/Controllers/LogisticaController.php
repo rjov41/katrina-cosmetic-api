@@ -797,14 +797,13 @@ class LogisticaController extends Controller
         $response = [];
         $users = User::where([
             ["estado", "=", 1]
-        ])->get();
+        ])->whereNotIn('id', [32])->get();
 
         // dd([$request->dateIni,$request->dateFin]);
         foreach ($users as $user) {
             // $user->meta;
             // $responsequery = recuperacionQuery($user);
             $responsequery = newrecuperacionQuery($user,$request->dateIni,$request->dateFin);
-
             array_push($response, $responsequery);
         }
         return response()->json($response, 200);
