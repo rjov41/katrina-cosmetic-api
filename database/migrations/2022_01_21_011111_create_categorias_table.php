@@ -17,13 +17,18 @@ class CreateCategoriasTable extends Migration
             $table->id();
             $table->string("tipo",20);
             $table->string("descripcion",80);
-            $table->integer("valor_dias");
+            $table->double('monto', 7, 2);
+            // $table->integer("valor_dias");
             $table->integer("estado")->length(1);
-            
             $table->timestamps();
         });
     }
-    // CAtegorias A B C  C(300 dolares)
+
+    // C=$300
+    // B=$500
+    // A=$800
+    // AA=$801 a más
+    // Lista negra: Los clientes que caigan en mora de 60-90 días == 0
     
     /**
      * Reverse the migrations.

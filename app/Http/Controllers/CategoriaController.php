@@ -55,7 +55,8 @@ class CategoriaController extends Controller
         $validation = Validator::make($request->all() ,[
             'tipo' => 'required|string|unique:categorias,tipo',
             'descripcion' => 'required|string',
-            'valor_dias' => 'required|numeric',
+            // 'valor_dias' => 'required|numeric',
+            'monto' => 'required|numeric',
             'estado' => 'required|numeric|max:1',
         ]);
         // dd($request->all());
@@ -67,7 +68,8 @@ class CategoriaController extends Controller
             $categoria = Categoria::create([
                 'tipo' => $request['tipo'],
                 'descripcion' => $request['descripcion'],
-                'valor_dias' => $request['valor_dias'],
+                // 'valor_dias' => $request['valor_dias'],
+                'monto' => $request['monto'],
                 'estado' => $request['estado'],
             ]);
 
@@ -146,7 +148,8 @@ class CategoriaController extends Controller
                 $validation = Validator::make($request->all() ,[
                     'tipo' => 'required|string|unique:categorias,tipo,'.$id,
                     'descripcion' => 'required|string',
-                    'valor_dias' => 'required|numeric',
+                    'monto' => 'required|numeric',
+                    // 'valor_dias' => 'required|numeric',
                     'estado' => 'required|numeric|max:1',
                 ]);
 
@@ -158,7 +161,8 @@ class CategoriaController extends Controller
                     $categoriaUpdate = $categoria->update([
                         'tipo' => $request['tipo'],
                         'descripcion' => $request['descripcion'],
-                        'valor_dias' => $request['valor_dias'],
+                        // 'valor_dias' => $request['valor_dias'],
+                        'monto' => $request['monto'],
                         'estado' => $request['estado'],
                     ]);
 

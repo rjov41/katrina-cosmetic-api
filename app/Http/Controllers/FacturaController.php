@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Categoria;
+use App\Models\Cliente;
 use App\Models\ClientesReactivados;
 use App\Models\Factura;
 use App\Models\Factura_Detalle;
@@ -114,8 +116,6 @@ class FacturaController extends Controller
             return response()->json($validation->errors(), 400);
         }
 
-
-        DB::beginTransaction();
         try {
             $facturaInsert = [
                 'user_id'           => $request['user_id'],
@@ -129,6 +129,59 @@ class FacturaController extends Controller
                 'despachado'        => $request['despachado'],
                 'status'            => $request['estado'],
             ];
+
+            // obtener el saldo del cliente
+            $FacturasxClientexSinPagar = Factura::where([
+                ['cliente_id', '=', $request['cliente_id']],
+                ['status_pagado', '=', 0], // 0 = sin pagar
+                ['status', '=', 1],
+            ])->sum('saldo_restante');
+            // dd(json_encode($FacturasxClientexSinPagar));
+
+            // calculo si tiene un recibo en mora de 60 - 90
+            $fechaHoy = Carbon::now();
+            $facturasMora60_90 = Factura::select("*")
+                ->where('status_pagado', 0)
+                ->where('cliente_id', $request['cliente_id'])
+                ->where('status', 1)
+                ->get();
+
+            // obtener data del cliente
+            $cliente =  Cliente::where([
+                ['id', '=',  $request['cliente_id']],
+                ['estado', '=', 1]
+            ])->first();
+
+            // verifico si el cliente esta en lista negra
+            if ($cliente->categoria->tipo == "LN") { 
+                return response()->json(["mensaje" => "El credito de " . $cliente->nombreCompleto . " esta fuera de los rangos. "], 400);
+            }
+
+            if (count($facturasMora60_90) > 0) {
+                foreach ($facturasMora60_90 as $facturaMora60_90) { // valido todas sus facturas, para ver si tiene una en mora
+                    $fechaPasado60DiasVencimiento = Carbon::parse($facturaMora60_90->created_at)->addDays(60)->toDateTimeString();
+
+                    if (Carbon::parse($fechaPasado60DiasVencimiento)->diffInDays($fechaHoy) >= 60) {
+                        $categoriaListaNegra =  Categoria::where([
+                            ['tipo', '=', "LN"],
+                            ['estado', '=', 1]
+                        ])->first();
+
+                        $cliente->categoria_id = $categoriaListaNegra->id; // agrego a lista negra por estas en mora de 60 dias o mas
+                        $cliente->save();
+
+                        return response()->json(["mensaje" => "Este cliente posee alguna factura en mora de 60-90 dias", "cliente" => $cliente], 400);
+                    }
+                }
+            }
+
+            $montoSaldoPorAcumular = $request['monto'] + $FacturasxClientexSinPagar;
+            if ($montoSaldoPorAcumular >= $cliente->categoria->monto) { // en este se evalua la deuda y el monto de la factura por guardar
+                return response()->json(["mensaje" => "El credito de " . $cliente->nombreCompleto . " esta fuera de los rangos"], 400);
+            }
+            // dd(json_encode($cliente));
+
+            DB::beginTransaction(); // inicio los transaccitions luego de acabar las validaciones al cliente
 
             $query = "SELECT
             c.*,
@@ -155,7 +208,6 @@ class FacturaController extends Controller
             $clientesInactivos = DB::select($query);
 
             $factura = Factura::create($facturaInsert); // inserto factura
-
 
             $tazacambio = TazaCambio::where('estado', 1)->first();
             TazaCambioFactura::create([
@@ -252,18 +304,6 @@ class FacturaController extends Controller
                         }
                     }
                 }
-
-
-                // $fDetalles[] = [
-                //     'producto_id'       => $productoDetalle['producto_id'],
-                //     'factura_id'        => $factura->id,
-                //     'cantidad'          => $productoDetalle['cantidad'],
-                //     'precio'            => $productoDetalle['precio'],
-                //     'precio_unidad'     => $productoDetalle['precio_unidad'],
-                //     'created_at'        => $currentDate,
-                //     'updated_at'        => $currentDate,
-                //     'estado'            => $productoDetalle['estado']
-                // ];
             }
 
 
@@ -281,7 +321,7 @@ class FacturaController extends Controller
             ], 201);
         } catch (\Exception $e) {
             DB::rollback();
-            dd($e);
+            // dd($e);
             return response()->json(["mensaje" => "Error al insertar el pedido"], 400);
         }
     }

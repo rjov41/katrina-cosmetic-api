@@ -236,7 +236,8 @@ class LogisticaController extends Controller
                 $fechaPasado60DiasVencimiento = Carbon::parse($factura->created_at)->addDays(60)->toDateTimeString();
                 $fechaPasado90DiasVencimiento = Carbon::parse($factura->created_at)->addDays(90)->toDateTimeString();
 
-                if ($fechaActual->gte($fechaPasado60DiasVencimiento) && $fechaActual->lte($fechaPasado90DiasVencimiento)) {
+                // if ($fechaActual->gte($fechaPasado60DiasVencimiento) && $fechaActual->lte($fechaPasado90DiasVencimiento)) {
+                if (Carbon::parse($fechaPasado60DiasVencimiento)->diffInDays($fechaActual) >= 60) {
                     $factura->user;
                     $factura->cliente;
                     $factura->vencimiento60  = $fechaPasado60DiasVencimiento;
