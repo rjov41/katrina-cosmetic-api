@@ -153,7 +153,7 @@ class FacturaController extends Controller
             ])->first();
 
             // verifico si el cliente esta en lista negra
-            if ($cliente->categoria->tipo == "LN") { 
+            if ($cliente->categoria->tipo == "LN") {
                 return response()->json(["mensaje" => "El credito de " . $cliente->nombreCompleto . " esta fuera de los rangos. "], 400);
             }
 
@@ -176,9 +176,42 @@ class FacturaController extends Controller
             }
 
             $montoSaldoPorAcumular = $request['monto'] + $FacturasxClientexSinPagar;
-            if ($montoSaldoPorAcumular >= $cliente->categoria->monto) { // en este se evalua la deuda y el monto de la factura por guardar
-                return response()->json(["mensaje" => "El credito de " . $cliente->nombreCompleto . " esta fuera de los rangos"], 400);
+            if ($cliente->categoria->condicion == 1) { // mayor que
+                if (!($montoSaldoPorAcumular > $cliente->categoria->monto_maximo)) { // si el saldo acumulado no es mayor que el monto de la categoria
+                    return response()->json(["mensaje" => "El credito de " . $cliente->nombreCompleto . " esta fuera de los rangos."], 400);
+                }
             }
+
+            if ($cliente->categoria->condicion == 2) { // menor que
+                if (!($montoSaldoPorAcumular < $cliente->categoria->monto_menor)) { // si el saldo acumulado no es menor que el monto de la categoria
+                    return response()->json(["mensaje" => "El credito de " . $cliente->nombreCompleto . " esta fuera de los rangos."], 400);
+                }
+            }
+
+            if ($cliente->categoria->condicion == 3) { // menor o igual que
+                if (!($montoSaldoPorAcumular <= $cliente->categoria->monto_menor)) { // si el saldo acumulado no es menor o igual que el monto de la categoria
+                    return response()->json(["mensaje" => "El credito de " . $cliente->nombreCompleto . " esta fuera de los rangos."], 400);
+                }
+            }
+
+            if ($cliente->categoria->condicion == 4) { // mayor o igual que
+                if (!($montoSaldoPorAcumular >= $cliente->categoria->monto_maximo)) { // si el saldo acumulado no es mayor o igual que el monto de la categoria
+                    return response()->json(["mensaje" => "El credito de " . $cliente->nombreCompleto . " esta fuera de los rangos."], 400);
+                }
+            }
+
+            if ($cliente->categoria->condicion == 5) { // entre
+                if (
+                    !($montoSaldoPorAcumular >= $cliente->categoria->monto_menor &&
+                        $montoSaldoPorAcumular <= $cliente->categoria->monto_maximo)
+                ) { // si el saldo acumulado no esta entre el monto menor y mayor de la categoria
+                    return response()->json(["mensaje" => "El credito de " . $cliente->nombreCompleto . " esta fuera de los rangos."], 400);
+                }
+            }
+
+            // if ($montoSaldoPorAcumular >= $cliente->categoria->monto) { // en este se evalua la deuda y el monto de la factura por guardar
+            //     return response()->json(["mensaje" => "El credito de " . $cliente->nombreCompleto . " esta fuera de los rangos"], 400);
+            // }
             // dd(json_encode($cliente));
 
             DB::beginTransaction(); // inicio los transaccitions luego de acabar las validaciones al cliente

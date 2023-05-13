@@ -56,7 +56,9 @@ class CategoriaController extends Controller
             'tipo' => 'required|string|unique:categorias,tipo',
             'descripcion' => 'required|string',
             // 'valor_dias' => 'required|numeric',
-            'monto' => 'required|numeric',
+            'monto_menor' => 'required|numeric',
+            'monto_maximo' => 'required|numeric',
+            'condicion' => 'required|numeric',
             'estado' => 'required|numeric|max:1',
         ]);
         // dd($request->all());
@@ -69,7 +71,9 @@ class CategoriaController extends Controller
                 'tipo' => $request['tipo'],
                 'descripcion' => $request['descripcion'],
                 // 'valor_dias' => $request['valor_dias'],
-                'monto' => $request['monto'],
+                'monto_menor' => $request['monto_menor'],
+                'monto_maximo' => $request['monto_maximo'],
+                'condicion' => $request['condicion'],
                 'estado' => $request['estado'],
             ]);
 
@@ -148,7 +152,9 @@ class CategoriaController extends Controller
                 $validation = Validator::make($request->all() ,[
                     'tipo' => 'required|string|unique:categorias,tipo,'.$id,
                     'descripcion' => 'required|string',
-                    'monto' => 'required|numeric',
+                    'monto_menor' => 'required|numeric',
+                    'monto_maximo' => 'required|numeric',
+                    'condicion' => 'required|numeric',
                     // 'valor_dias' => 'required|numeric',
                     'estado' => 'required|numeric|max:1',
                 ]);
@@ -162,7 +168,9 @@ class CategoriaController extends Controller
                         'tipo' => $request['tipo'],
                         'descripcion' => $request['descripcion'],
                         // 'valor_dias' => $request['valor_dias'],
-                        'monto' => $request['monto'],
+                        'monto_menor' => $request['monto_menor'],
+                        'monto_maximo' => $request['monto_maximo'],
+                        'condicion' => $request['condicion'],
                         'estado' => $request['estado'],
                     ]);
 

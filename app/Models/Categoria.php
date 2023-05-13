@@ -12,7 +12,9 @@ class Categoria extends Model
     protected $fillable = [
         'tipo',
         'descripcion',
-        'monto',
+        'monto_menor', 
+        'monto_maximo',
+        'condicion', 
         'estado',
     ];
     
