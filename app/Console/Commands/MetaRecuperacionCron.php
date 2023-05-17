@@ -44,18 +44,18 @@ class MetaRecuperacionCron extends Command
     public function handle()
     {
         Log::info('Iniciar Creacion de Meta Recuperacion');
-        
+
         $insertoNuevaMeta = false;
 
         $users = User::where([
             ["estado", "=", 1]
         ])->get();
-        
+
         $inicioMesActual =  Carbon::now()->firstOfMonth()->toDateString();
         $finMesActual =  Carbon::now()->lastOfMonth()->toDateString();
-        
+
         foreach ($users as $user) {
-            $meta_recuperacion = getMetaRecuperacionMensual($user->id,$inicioMesActual,$finMesActual);
+            $meta_recuperacion = getMetaRecuperacionMensual($user->id, $inicioMesActual, $finMesActual);
 
             if (!$meta_recuperacion) {
                 crearMetaRecuperacionMensual();
@@ -67,15 +67,14 @@ class MetaRecuperacionCron extends Command
             }
         }
 
-        if($insertoNuevaMeta){
+        if ($insertoNuevaMeta) {
             Log::info("[Nueva Meta Recuperacion Agregada]");
             Log::info(json_encode($meta_recuperacion));
-
         }
         Log::info('Finalizar Creacion de Meta Recuperacion');
 
         crearMetaMensual(); // Tambien aprovecho el cron de recuperacion para validar la creacion de Metas
+        cambiarClientesAListaNegraFacturasMora60_90();  // Tambien aprovecho el cron de recuperacion para validar los clientes en mora y los coloco en lista negra
 
-        
     }
 }

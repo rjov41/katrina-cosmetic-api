@@ -12,6 +12,7 @@ use App\Http\Controllers\FacturaController;
 use App\Http\Controllers\FacturaDetallesController;
 use App\Http\Controllers\FacturaHistorial;
 use App\Http\Controllers\FrecuenciaController;
+use App\Http\Controllers\FrecuenciasFacturasController;
 use App\Http\Controllers\ListadosPaginasController;
 use App\Http\Controllers\LogisticaController;
 use App\Http\Controllers\MetasController;
@@ -114,6 +115,7 @@ Route::group(['middleware' => ['auth:sanctum', 'role:administrador|vendedor|supe
     Route::resource('categorias', CategoriaController::class);
     
     Route::resource('frecuencias', FrecuenciaController::class);
+    Route::resource('frecuencias-factura', FrecuenciasFacturasController::class);
     
     Route::resource('productos', ProductosController::class);
     
@@ -157,7 +159,7 @@ Route::get('list/metas', [ListadosPaginasController::class, 'metasHistoricoList'
 
 
 Route::get('configuracion/crons', function () {
-    // Artisan::call('schedule:list');
+    // Artisan::call('meta:recuperacion');
     // echo Artisan::output();
 });
 Route::get('configuracion/clear-cache', function () {

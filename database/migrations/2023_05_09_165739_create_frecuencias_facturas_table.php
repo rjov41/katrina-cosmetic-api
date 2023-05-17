@@ -15,8 +15,8 @@ class CreateFrecuenciasFacturasTable extends Migration
     {
         Schema::create('frecuencias_facturas', function (Blueprint $table) {
             $table->id();
-            $table->string("descripcion",80);
             $table->integer("dias")->length(3);
+            $table->string("descripcion",80);
             $table->integer("estado")->length(1);
             $table->timestamps();
         });

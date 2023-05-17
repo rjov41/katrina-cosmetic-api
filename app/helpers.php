@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Categoria;
 use App\Models\Cliente;
 use App\Models\ClientesReactivados;
 use App\Models\Factura;
@@ -911,6 +912,51 @@ function getMetaPorUsuario($user_id, $fechaInicio = "", $fechaFin = "")
 
     return ($meta_recuperacion) ? $meta_recuperacion->first() : false;
 }
+
+function cambiarClientesAListaNegraFacturasMora60_90()
+{
+    // calculo si tiene un recibo en mora de 60 - 90
+    $fechaHoy = Carbon::now();
+
+    $categoriaListaNegra =  Categoria::where([
+        ['tipo', '=', "LN"],
+        ['estado', '=', 1]
+    ])->first();
+
+    $clientes = Cliente::select("*")
+        ->where('categoria_id', $categoriaListaNegra->id)
+        ->where('estado', 1)
+        ->get();
+
+    $idClientesConListaNegra = [];
+
+    foreach ($clientes as $cliente) {
+        $idClientesConListaNegra[] = $cliente->id;
+    }
+
+    $facturas = Factura::where('status_pagado', 0)
+        ->where('status', 1);
+
+    $facturas->when(count($idClientesConListaNegra) > 0, function ($q) use ($idClientesConListaNegra) {
+        return $q->whereNotIn('cliente_id', $idClientesConListaNegra);
+    });
+
+    $facturas = $facturas->get();
+    // dd(json_encode($facturas->get()));
+
+    if (count($facturas) > 0) {
+        foreach ($facturas as $factura) { // valido todas sus facturas, para ver si tiene una en mora
+            $fechaPasado60DiasVencimiento = Carbon::parse($factura->created_at)->addDays(60)->toDateTimeString();
+
+            if (Carbon::parse($fechaPasado60DiasVencimiento)->diffInDays($fechaHoy) >= 60) {
+                $clienteEnMora = Cliente::find($factura->cliente_id);
+                $clienteEnMora->categoria_id = $categoriaListaNegra->id; // agrego a lista negra por estas en mora de 60 dias o mas
+                $clienteEnMora->save();
+            }
+        }
+    }
+}
+
 
 
 function convertTazaCambio($monto)
