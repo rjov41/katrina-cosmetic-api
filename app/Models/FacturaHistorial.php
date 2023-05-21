@@ -28,6 +28,11 @@ class FacturaHistorial extends Model
         return $this->belongsTo(Cliente::class);
     }
 
+    public function usuario()
+    {
+        return $this->belongsTo(User::class,"user_id","id");
+    }
+
     public function recibo_historial()
     {
         return $this->hasOne(ReciboHistorial::class);

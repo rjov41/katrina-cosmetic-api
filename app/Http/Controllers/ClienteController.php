@@ -62,7 +62,7 @@ class ClienteController extends Controller
     {
         $validation = Validator::make($request->all(), [
             'categoria_id' => 'required|numeric',
-            'frecuencia_id' => 'required|numeric',
+            // 'frecuencia_id' => 'required|numeric',
             'user_id' => 'nullable|numeric',
             'nombreCompleto' => 'required|string|max:80|unique:clientes,nombreCompleto',
             'nombreEmpresa' => 'required|string|max:80',
@@ -87,7 +87,8 @@ class ClienteController extends Controller
             // DB::enableQueryLog();
             $user = Cliente::create([
                 'categoria_id' => $request['categoria_id'],
-                'frecuencia_id' => $request['frecuencia_id'],
+                // 'frecuencia_id' => $request['frecuencia_id'],
+                'frecuencia_id' => null,
                 'nombreCompleto' => $request['nombreCompleto'],
                 'nombreEmpresa' => $request['nombreEmpresa'],
                 'celular' => $request['celular'],
@@ -191,7 +192,7 @@ class ClienteController extends Controller
             if ($cliente) {
                 $validation = Validator::make($request->all(), [
                     'categoria_id' => 'required|numeric',
-                    'frecuencia_id' => 'required|numeric',
+                    // 'frecuencia_id' => 'required|numeric',
                     'user_id' => 'nullable|numeric',
                     // 'nombreCompleto' => 'required|string|max:80',
                     'nombreCompleto' => 'required|string|max:80|unique:clientes,nombreCompleto,' . $id,
@@ -215,7 +216,7 @@ class ClienteController extends Controller
                     // dd($request->all());
                     $clienteUpdate = $cliente->update([
                         'categoria_id' => $request['categoria_id'],
-                        'frecuencia_id' => $request['frecuencia_id'],
+                        'frecuencia_id' => null,
                         'nombreCompleto' => $request['nombreCompleto'],
                         'nombreEmpresa' => $request['nombreEmpresa'],
                         'celular' => $request['celular'],

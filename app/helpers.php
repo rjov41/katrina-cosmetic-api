@@ -550,8 +550,8 @@ function ventasMetaQuery($request)
         $dateFin = Carbon::parse($request->dateFin);
     }
 
-    $dateIni =  Carbon::parse($dateIni)->firstOfMonth();
-    $dateFin =  Carbon::parse($dateFin)->lastOfMonth();
+    $dateIni =  Carbon::parse($dateIni);
+    $dateFin =  Carbon::parse($dateFin);
 
 
     $facturasStorage = Factura::select("*")

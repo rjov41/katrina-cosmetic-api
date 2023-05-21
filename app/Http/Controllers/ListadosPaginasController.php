@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Categoria;
 use App\Models\Cliente;
 use App\Models\Factura;
+use App\Models\FacturaHistorial;
 use App\Models\MetaHistorial;
-use App\Models\MetaRecuperacion;
+use App\Models\Recibo;
+use App\Models\ReciboHistorial;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -88,7 +92,7 @@ class ListadosPaginasController extends Controller
         $response = [];
         $status = 200;
         // $facturaEstado = 1; // Activo
-        $parametros = [["estado",1]];
+        $parametros = [["estado", 1]];
 
 
         // if ($request['estado']) $parametros[] = ["estado", $request['estado']];
@@ -120,7 +124,7 @@ class ListadosPaginasController extends Controller
         });
 
         // dd(json_encode($facturas));
-        $metas = $metas->orderBy('fecha_asignacion','desc')->paginate(15);
+        $metas = $metas->orderBy('fecha_asignacion', 'desc')->paginate(15);
         // dd(DB::getQueryLog());
 
         if (count($metas) > 0) {
@@ -130,6 +134,399 @@ class ListadosPaginasController extends Controller
         }
 
         $response = $metas;
+
+
+        return response()->json($response, $status);
+    }
+
+    public function recibosCreditosList(Request $request)
+    {
+        $response = [];
+        $status = 200;
+        // $facturaEstado = 1; // Activo
+        $parametros = [["estado", 1]];
+
+        if (empty($request->dateIni)) {
+            $dateIni = Carbon::now();
+        } else {
+            $dateIni = Carbon::parse($request->dateIni);
+        }
+
+        if (empty($request->dateFin)) {
+            $dateFin = Carbon::now();
+        } else {
+            $dateFin = Carbon::parse($request->dateFin);
+        }
+
+        // DB::enableQueryLog();
+
+        $recibos =  ReciboHistorial::where($parametros);
+
+        // ** Filtrado por rango de fechas 
+        $recibos->when($request->allDates && $request->allDates == "false", function ($q) use ($dateIni, $dateFin) {
+            return $q->whereBetween('created_at', [$dateIni->toDateString() . " 00:00:00",  $dateFin->toDateString() . " 23:59:59"]);
+        });
+
+        // ** Filtrado por userID
+        $recibos->when($request->userId && $request->userId != 0, function ($q) use ($request) {
+            $query = $q;
+            // vendedor
+            // supervisor
+            // administrador
+
+            $user = User::select("*")
+                ->where('estado', 1)
+                ->where('id', $request->userId)
+                ->first();
+
+            if (!$user) {
+                return $query;
+            }
+
+            $recibo = Recibo::select("*")
+                ->where('estado', 1)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if (!$recibo) {
+                return $query;
+            } else {
+                return $query->where('recibo_id', $recibo->id);
+            }
+        });
+
+        // ** Filtrado por rango de fechas 
+        $recibos->when($request->allDates && $request->allDates == "false", function ($q) use ($dateIni, $dateFin) {
+            return $q->whereBetween('created_at', [$dateIni->toDateString() . " 00:00:00",  $dateFin->toDateString() . " 23:59:59"]);
+        });
+
+        // ** Filtrado por numero de recibo
+        $recibos->when($request->numeroRecibo, function ($q) use ($request) {
+            return $q->where('numero', 'LIKE', '%' . $request->numeroRecibo . '%');
+        });
+
+        // filtrados para campos numericos
+        $recibos->when($request->filter && is_numeric($request->filter), function ($q) use ($request) {
+            $query = $q;
+            // id de recibos 
+            $filterSinNumeral = str_replace("#", "", $request->filter);
+            $query = $query->where('id', 'LIKE', '%' . $filterSinNumeral . '%');
+
+            // precio y id de abonos 
+            $abonosId = [];
+            $abonos = FacturaHistorial::select("*")
+                ->where('estado', 1)
+                ->where('id', 'LIKE', '%' . $filterSinNumeral . '%')
+                ->where('precio', 'LIKE', '%' . $filterSinNumeral . '%')
+                ->get();
+
+            if (count($abonos) > 0) {
+                foreach ($abonos as $abono) {
+                    $abonosId[] = $abono->id;
+                }
+
+                $query = $query->wherein('factura_historial_id', $abonosId, "or");
+            }
+
+            return $query;
+        }); // Fin Filtrado
+
+
+        // ** Filtrado para string
+        $recibos->when($request->filter && !is_numeric($request->filter), function ($q) use ($request) {
+            $query = $q;
+
+            // nombre cliente
+            $clientesId = [];
+            $clientes = Cliente::select("*")
+                ->where('estado', 1)
+                ->where('nombreCompleto', 'LIKE', '%' . $request->filter . '%')
+                ->get();
+
+            if (count($clientes) > 0) {
+                foreach ($clientes as $cliente) {
+                    $clientesId[] = $cliente->id;
+                }
+
+                $abonosId = [];
+                $abonos = FacturaHistorial::select("*")
+                    ->where('estado', 1)
+                    ->wherein('cliente_id', $clientesId)
+                    ->get();
+
+                if (count($abonos) > 0) {
+                    foreach ($abonos as $abono) {
+                        $abonosId[] = $abono->id;
+                    }
+
+                    $query = $query->wherein('factura_historial_id', $abonosId);
+                }
+            }
+
+            return $query;
+        }); // Fin Filtrado por cliente
+
+
+        // dd($condicionesNumericas);
+        // ['factura_historial','cliente','nombreCompleto'],
+        // ['recibo','user','name'],
+        // ['recibo','user','apellido'],
+
+        // dd(json_encode($facturas));
+
+        $recibos = $recibos->orderBy('created_at', 'desc')->paginate(15);
+        // dd(DB::getQueryLog());
+        // dd(DB::getQueryLog());
+
+        if (count($recibos) > 0) {
+            foreach ($recibos as $recibo) {
+                $recibo->recibo->user;
+                $recibo->factura_historial->cliente;
+            }
+        }
+
+        $response = $recibos;
+
+
+        return response()->json($response, $status);
+    }
+
+    public function abonosCreditosList(Request $request)
+    {
+        $response = [];
+        $status = 200;
+        // $facturaEstado = 1; // Activo
+        $parametros = [["estado", 1]];
+
+        if (empty($request->dateIni)) {
+            $dateIni = Carbon::now();
+        } else {
+            $dateIni = Carbon::parse($request->dateIni);
+        }
+
+        if (empty($request->dateFin)) {
+            $dateFin = Carbon::now();
+        } else {
+            $dateFin = Carbon::parse($request->dateFin);
+        }
+
+        // DB::enableQueryLog();
+
+        $abonos =  FacturaHistorial::where($parametros);
+
+        // ** Filtrado por rango de fechas 
+        $abonos->when($request->allDates && $request->allDates == "false", function ($q) use ($dateIni, $dateFin) {
+            return $q->whereBetween('created_at', [$dateIni->toDateString() . " 00:00:00",  $dateFin->toDateString() . " 23:59:59"]);
+        });
+
+        // ** Filtrado por userID
+        $abonos->when($request->userId && $request->userId != 0, function ($q) use ($request) {
+            $query = $q;
+            // vendedor
+            // supervisor
+            // administrador
+
+            $user = User::select("*")
+                ->where('estado', 1)
+                ->where('id', $request->userId)
+                ->first();
+
+            if (!$user) {
+                return $query;
+            }
+
+            return $query->where('user_id', $user->id);
+        });
+
+        // ** Filtrado por rango de fechas 
+        $abonos->when($request->allDates && $request->allDates == "false", function ($q) use ($dateIni, $dateFin) {
+            return $q->whereBetween('created_at', [$dateIni->toDateString() . " 00:00:00",  $dateFin->toDateString() . " 23:59:59"]);
+        });
+
+        // filtrados para campos numericos
+        $abonos->when($request->filter && is_numeric($request->filter), function ($q) use ($request) {
+            $query = $q;
+            // id de recibos 
+            $filterSinNumeral = str_replace("#", "", $request->filter);
+
+            $query = $query->where('id', 'LIKE', '%' . $filterSinNumeral . '%')
+                ->where('precio', 'LIKE', '%' . $filterSinNumeral . '%', "or");
+
+
+            $factura_historial_ids = [];
+            $recibos = ReciboHistorial::select("*")
+                ->where('estado', 1)
+                ->where('numero', 'LIKE', '%' . $filterSinNumeral . '%')
+                ->get();
+
+            // dd(json_encode($recibos));
+            if (count($recibos) > 0) {
+                foreach ($recibos as $recibo) {
+                    $factura_historial_ids[] = $recibo->factura_historial_id;
+                }
+
+                $query = $query->wherein('id', $factura_historial_ids, "or");
+            }
+
+            return $query;
+        }); // Fin Filtrado
+
+
+        // ** Filtrado para string
+        $abonos->when($request->filter && !is_numeric($request->filter), function ($q) use ($request) {
+            $query = $q;
+
+            // nombre cliente
+            $clientesId = [];
+            $clientes = Cliente::select("*")
+                ->where('estado', 1)
+                ->where('nombreCompleto', 'LIKE', '%' . $request->filter . '%')
+                ->get();
+
+            if (count($clientes) > 0) {
+                foreach ($clientes as $cliente) {
+                    $clientesId[] = $cliente->id;
+                }
+            }
+
+            return $query->wherein('cliente_id', $clientesId);
+        }); // Fin Filtrado por cliente
+
+        $abonos = $abonos->orderBy('created_at', 'desc')->paginate(15);
+
+        if (count($abonos) > 0) {
+            foreach ($abonos as $abono) {
+                $abono->factura;
+                $abono->recibo_historial;
+                $abono->cliente;
+                $abono->usuario;
+
+                $abono->metodo_pago;
+                if ($abono->metodo_pago) {
+                    $abono->metodo_pago->tipoPago = $abono->metodo_pago->getTipoPago();
+                }
+
+                // $cliente = Cliente::find($abono->cliente_id);
+                // $abono->cliente = $cliente;
+
+                // $usuario = User::find($abono->user_id);
+                // $abono->usuario = $usuario;
+            }
+        }
+
+        $response = $abonos;
+
+
+        return response()->json($response, $status);
+    }
+
+    public function clientesList(Request $request)
+    {
+        $response = [];
+        $status = 200;
+        // $facturaEstado = 1; // Activo
+        $parametros = [["estado", 1]];
+
+        if (empty($request->dateIni)) {
+            $dateIni = Carbon::now();
+        } else {
+            $dateIni = Carbon::parse($request->dateIni);
+        }
+
+        if (empty($request->dateFin)) {
+            $dateFin = Carbon::now();
+        } else {
+            $dateFin = Carbon::parse($request->dateFin);
+        }
+
+        // DB::enableQueryLog();
+
+        $clientes =  Cliente::where($parametros);
+
+        // ** Filtrado por rango de fechas 
+        $clientes->when($request->allDates && $request->allDates == "false", function ($q) use ($dateIni, $dateFin) {
+            return $q->whereBetween('created_at', [$dateIni->toDateString() . " 00:00:00",  $dateFin->toDateString() . " 23:59:59"]);
+        });
+
+        // ** Filtrado por userID
+        $clientes->when($request->userId && $request->userId != 0, function ($q) use ($request) {
+            $query = $q;
+            // vendedor
+            // supervisor
+            // administrador
+
+            $user = User::select("*")
+                // ->where('estado', 1)
+                ->where('id', $request->userId)
+                ->first();
+
+            if (!$user) {
+                return $query;
+            }
+
+            return $query->where('user_id', $user->id);
+        });
+
+        $clientes->when($request->categoriaId && $request->categoriaId != 0, function ($q) use ($request) {
+            $query = $q;
+
+            $categoria = Categoria::select("*")
+                ->where('estado', 1)
+                ->where('id', $request->categoriaId)
+                ->first();
+
+            if (!$categoria) {
+                return $query;
+            }
+
+            return $query->where('categoria_id', $categoria->id);
+        });
+
+        // ** Filtrado por rango de fechas 
+        // $clientes->when($request->allDates && $request->allDates == "false", function ($q) use ($dateIni, $dateFin) {
+        //     return $q->whereBetween('created_at', [$dateIni->toDateString() . " 00:00:00",  $dateFin->toDateString() . " 23:59:59"]);
+        // });
+
+        // filtrados para campos numericos
+        $clientes->when($request->filter && is_numeric($request->filter), function ($q) use ($request) {
+            $query = $q;
+            // id de recibos 
+            $filterSinNumeral = str_replace("#", "", $request->filter);
+
+            $query = $query->where('id', 'LIKE', '%' . $filterSinNumeral . '%');
+
+            return $query;
+        }); // Fin Filtrado
+
+
+        // ** Filtrado para string
+        $clientes->when($request->filter && !is_numeric($request->filter), function ($q) use ($request) {
+            $query = $q;
+
+            // nombre cliente y empresa
+            $query = $query->Where('nombreCompleto', 'LIKE', '%' . $request->filter . '%')
+                ->orWhere('nombreEmpresa', 'LIKE', '%' . $request->filter . '%')
+                ->orWhere('direccion_casa', 'LIKE', '%' . $request->filter . '%');
+
+
+            return $query;
+        }); // Fin Filtrado por cliente
+
+        $clientes = $clientes->orderBy('created_at', 'desc')->paginate(15);
+
+        if (count($clientes) > 0) {
+            foreach ($clientes as $cliente) {
+                // dd($cliente->frecuencias);
+                // validarStatusPagadoGlobal($cliente->id);
+                $clientes->frecuencia = $cliente->frecuencia;
+                $clientes->categoria = $cliente->categoria;
+                $clientes->facturas = $cliente->facturas;
+            }
+
+            $response[] = $clientes;
+        }
+
+        $response = $clientes;
 
 
         return response()->json($response, $status);

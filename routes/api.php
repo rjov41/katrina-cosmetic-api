@@ -154,9 +154,9 @@ Route::group(['middleware' => ['auth:sanctum', 'role:administrador|vendedor|supe
 
 Route::get('list/facturas', [ListadosPaginasController::class, 'facturasList']);
 Route::get('list/metas', [ListadosPaginasController::class, 'metasHistoricoList']);
-
-
-
+Route::get('list/recibos', [ListadosPaginasController::class, 'recibosCreditosList']);
+Route::get('list/abonos', [ListadosPaginasController::class, 'abonosCreditosList']);
+Route::get('list/clientes', [ListadosPaginasController::class, 'clientesList']);
 
 Route::get('configuracion/crons', function () {
     // Artisan::call('meta:recuperacion');

@@ -22,7 +22,7 @@ class CreateClientesTable extends Migration
             $table->unsignedBigInteger("categoria_id");
             $table->foreign("categoria_id")->references("id")->on("categorias");
             
-            $table->unsignedBigInteger("frecuencia_id");
+            $table->unsignedBigInteger("frecuencia_id")->nullable();
             $table->foreign("frecuencia_id")->references("id")->on("frecuencias");
             
             $table->unsignedBigInteger("user_id")->nullable();
