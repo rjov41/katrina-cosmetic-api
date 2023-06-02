@@ -52,6 +52,6 @@ class Cliente extends Model
     // one to many inversa
     public function usuario()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class,"user_id","id");
     }
 }

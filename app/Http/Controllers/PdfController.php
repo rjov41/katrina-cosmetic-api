@@ -6,18 +6,18 @@ use App\Models\Factura;
 use App\Models\Producto;
 use App\Models\User;
 use App\Models\Cliente;
-use Barryvdh\DomPDF\Facade\Pdf as PDF;
-use Illuminate\Http\Request;
-use App\Mail\PdfMail;
 use App\Models\Factura_Detalle;
 use App\Models\TazaCambioFactura;
-use Illuminate\Support\Facades\Mail;
+use App\Models\Categoria;
+use App\Models\FacturaHistorial;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class PdfController extends Controller
 {
-
-
     public function facturaPago($id, Request $request)
     {
         $response = [];
@@ -61,46 +61,42 @@ class PdfController extends Controller
                         $regaloF->detalle_regalo =  Producto::where([
                             ['id', '=', $regaloF->regalo->id_producto_regalo],
                         ])->first();
-
                     }
-                    array_push($regaloList,...$productoDetalle->regaloFacturado);
-
+                    array_push($regaloList, ...$productoDetalle->regaloFacturado);
                 }
 
                 // dd(json_encode($regaloList));
             }
 
-            $taza = TazaCambioFactura::where("factura_id",$factura->id)->first();
-            if(!is_null($taza)){ // si la factura tiene taza de cambio utilizo esa taza para convertir los montos
-                
+            $taza = TazaCambioFactura::where("factura_id", $factura->id)->first();
+            if (!is_null($taza)) { // si la factura tiene taza de cambio utilizo esa taza para convertir los montos
+
                 // dd("1");
                 $factura->monto = decimal($factura->monto) * decimal($taza->monto);
                 $factura->saldo_restante = decimal($factura->saldo_restante) * decimal($taza->monto);
-                
+
                 $detalleFactura = [];
                 foreach ($factura_detalle  as $detalle) {
                     $detalle->precio = decimal($detalle->precio) * decimal($taza->monto);
                     $detalle->precio_unidad = decimal($detalle->precio_unidad) * decimal($taza->monto);
-    
-                    array_push($detalleFactura,$detalle);
+
+                    array_push($detalleFactura, $detalle);
                 }
                 $factura->factura_detalle = $detalleFactura;
-
-            }else{
+            } else {
                 // dd(json_encode($factura_detalle));
                 // dd(convertTazaCambio(1));
                 $factura->monto = convertTazaCambio($factura->monto);
                 $factura->saldo_restante = convertTazaCambio($factura->saldo_restante);
-                
+
                 $detalleFactura = [];
                 foreach ($factura_detalle  as $detalle) {
                     $detalle->precio = convertTazaCambio($detalle->precio);
                     $detalle->precio_unidad = convertTazaCambio($detalle->precio_unidad);
-    
-                    array_push($detalleFactura,$detalle);
+
+                    array_push($detalleFactura, $detalle);
                 }
                 $factura->factura_detalle = $detalleFactura;
-
             }
 
             // print_r(json_encode($factura));
@@ -222,7 +218,7 @@ class PdfController extends Controller
 
         /*  Mail::to('rjov41@gmail.com')->send($correo); */
 
-        Mail::to('rjov41@gmail.com')->queue(new PdfMail($msg));
+        // Mail::to('rjov41@gmail.com')->queue(new PdfMail($msg));
 
         return 'Mail enviado';
     }
@@ -235,6 +231,8 @@ class PdfController extends Controller
 
     function cartera(Request $request)
     {
+        dd([$request->dateFin, $request->allDates, $request->roleName]);
+
         $fullName = 'Todos';
         $data = carteraQuery($request);
 
@@ -270,12 +268,11 @@ class PdfController extends Controller
 
         $data["productos"] = Producto::where([
             ['estado', '=', 1],
-
         ])->get();
 
         $data['productos'] = array_chunk(json_decode(json_encode($data['productos'])), 34);
-        
-        
+
+
         $data = [
             'data' => $data['productos'],
             'total' => count($data['productos'])
@@ -290,5 +287,214 @@ class PdfController extends Controller
 
 
         return $archivo->download('inventario_producto.pdf');
+    }
+
+    public function registro_cliente(Request $request)
+    {
+
+        $response = $this->registroClienteQuery($request);
+
+        // print_r(json_encode($response));
+        // $response['data'] =
+        $data = [
+            'data' =>  array_chunk(json_decode(json_encode($response)), 25),
+            'cantidad' => count($response),
+        ];
+
+        // dd(json_encode($data));
+
+        $archivo = PDF::loadView('registro_clientes', $data);
+        $pdf = $archivo->output();
+
+        Storage::disk('public')->put('registro_clientes.blade.pdf', $pdf);
+
+        return $archivo->download('registro_clientes_' . $request->id . '.pdf');
+    }
+
+    public function registro_cliente_csv(Request $request)
+    {
+        $dataCSV = [];
+        $fileName = "registro_clientes_".Carbon::now('utc')->toDateTimeString().".csv";
+        $headers = array(
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        );
+        $columns = array(
+            'Codigo_Cliente',
+            'Nombre_Completo',
+            'Dirección',
+            'Celular',
+            'Saldo_Actual',
+            'Ultima_Fecha_de_Pago',
+            'Dias de Cobro',
+        );
+
+        $response = $this->registroClienteQuery($request, false);
+        foreach ($response as $cliente) {
+
+            // $diasCobro = explode(",", $cliente->dias_cobro);
+
+            // $strCobrosHtml = "";
+            // foreach ($diasCobro as $dia) {
+            //     $strCobrosHtml .= "- " . ucwords($dia) . "<br>";
+            // }
+            // $cliente->dias_cobro = $strCobrosHtml;
+
+
+            $dataCSV[] = array(
+                'Codigo_Cliente' => $cliente->id,
+                'Nombre_Completo' => $cliente->nombreCompleto,
+                'Dirección' => $cliente->direccion_casa,
+                'Celular' => $cliente->celular,
+                'Saldo_Actual' => $cliente->saldo,
+                'Ultima_Fecha_de_Pago' => ($cliente->ultimoAbono) ? Carbon::parse($cliente->ultimoAbono->created_at)->format('j-m-Y') : "No posee abonos",
+                'Dias_de_Cobro' => $cliente->dias_cobro,
+            );
+        }
+
+        $callback = function () use ($dataCSV, $columns) {
+            $file = fopen('php://output', 'w');
+            //si no quieren que el csv muestre el titulo de columnas omitan la siguiente línea.
+            fputcsv($file, $columns);
+            foreach ($dataCSV as $item) {
+                fputcsv($file, $item);
+            }
+            fclose($file);
+        };
+
+        //Esto hace que Laravel exponga el archivo como descarga
+        return response()->stream($callback, 200, $headers);
+    }
+
+    private function registroClienteQuery($request, $formatDiasCobro = true)
+    {
+        $parametros = [["estado", 1]];
+
+        // DB::enableQueryLog();
+
+        $clientes =  Cliente::where($parametros);
+
+        // ** Filtrado por userID
+        $clientes->when($request->userId && $request->userId != 0, function ($q) use ($request) {
+            $query = $q;
+            // vendedor
+            // supervisor
+            // administrador
+
+            $user = User::select("*")
+                // ->where('estado', 1)
+                ->where('id', $request->userId)
+                ->first();
+
+            if (!$user) {
+                return $query;
+            }
+
+            return $query->where('user_id', $user->id);
+        });
+
+        $clientes->when($request->diasCobros, function ($q) use ($request) {
+            $query = $q;
+            $dias = explode(",", $request->diasCobros);
+            $condicionDiasCobro = [];
+            foreach ($dias as $dia) {
+                array_push($condicionDiasCobro, ['dias_cobro', 'LIKE', '%' . $dia . '%', "or"]);
+            }
+            return $query->where($condicionDiasCobro);
+        });
+
+        $clientes->when($request->categoriaId && $request->categoriaId != 0, function ($q) use ($request) {
+            $query = $q;
+
+            $categoria = Categoria::select("*")
+                ->where('estado', 1)
+                ->where('id', $request->categoriaId)
+                ->first();
+
+            if (!$categoria) {
+                return $query;
+            }
+
+            return $query->where('categoria_id', $categoria->id);
+        });
+
+        // filtrados para campos numericos
+        $clientes->when($request->filter && is_numeric($request->filter), function ($q) use ($request) {
+            $query = $q;
+            // id de recibos 
+            $filterSinNumeral = str_replace("#", "", $request->filter);
+
+            $query = $query->where('id', 'LIKE', '%' . $filterSinNumeral . '%');
+
+            return $query;
+        }); // Fin Filtrado
+
+
+        // ** Filtrado para string
+        $clientes->when($request->filter && !is_numeric($request->filter), function ($q) use ($request) {
+            $query = $q;
+
+            // nombre cliente y empresa
+            $query = $query->Where('nombreCompleto', 'LIKE', '%' . $request->filter . '%')
+                ->orWhere('nombreEmpresa', 'LIKE', '%' . $request->filter . '%')
+                ->orWhere('direccion_casa', 'LIKE', '%' . $request->filter . '%');
+
+            return $query;
+        }); // Fin Filtrado por cliente
+
+        $clientes = $clientes->get();
+
+        // dd(DB::getQueryLog());
+
+
+        if (count($clientes) > 0) {
+            foreach ($clientes as $cliente) {
+                // dd($cliente->frecuencias);
+                // validarStatusPagadoGlobal($cliente->id);
+                $cliente->frecuencia = $cliente->frecuencia;
+                $cliente->categoria = $cliente->categoria;
+                $cliente->facturas = $cliente->facturas;
+                $cliente->usuario = $cliente->usuario;
+                // $cliente->saldo = calcularDeudaFacturasGlobal($cliente->id);
+
+                $saldoCliente = calcularDeudaFacturasGlobal($cliente->id);
+
+                if ($saldoCliente > 0) {
+                    $cliente->saldo = number_format(-(float) $saldoCliente, 2);
+                }
+
+                if ($saldoCliente == 0) {
+                    $cliente->saldo = $saldoCliente;
+                }
+
+                if ($saldoCliente < 0) {
+                    $cliente->saldo = number_format((float) str_replace("-", "", $saldoCliente), 2);
+                }
+
+                if ($formatDiasCobro) {
+                    $diasCobro = explode(",", $cliente->dias_cobro);
+
+                    $strCobrosHtml = "";
+                    foreach ($diasCobro as $dia) {
+                        $strCobrosHtml .= "- " . ucwords($dia) . "<br>";
+                    }
+                    $cliente->dias_cobro = $strCobrosHtml;
+                }
+
+                $cliente->ultimoAbono = FacturaHistorial::where(
+                    [
+                        ["cliente_id", $cliente->id],
+                    ]
+                )->orderBy('created_at', 'desc')->first();
+            }
+            // dd(json_encode($clientes));
+
+            // $response[] = $clientes;
+        }
+
+        return $clientes;
     }
 }

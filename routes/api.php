@@ -66,6 +66,8 @@ Route::group(['middleware' => ['auth:sanctum', 'role:administrador|vendedor|supe
 
 
 
+Route::get('csv/registroclientes', [PdfController::class, 'registro_cliente_csv']);
+Route::get('pdf/registroclientes', [PdfController::class, 'registro_cliente']);
 Route::get('pdf/{id}', [PdfController::class, 'facturaPago']);
 Route::get('pdf/estado_cuenta/{id}', [PdfController::class, 'estadoCuenta']);
 Route::post('pdf/cartera', [PdfController::class, 'cartera']);

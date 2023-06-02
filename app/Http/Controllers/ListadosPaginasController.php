@@ -467,6 +467,16 @@ class ListadosPaginasController extends Controller
             return $query->where('user_id', $user->id);
         });
 
+        $clientes->when($request->diasCobros, function ($q) use ($request) {
+            $query = $q;
+            $dias = explode(",", $request->diasCobros);
+            $condicionDiasCobro = [];
+            foreach ($dias as $dia) {
+                array_push($condicionDiasCobro,['dias_cobro', 'LIKE', '%' . $dia . '%',"or"]);
+            }
+            return $query->where($condicionDiasCobro);
+        });
+
         $clientes->when($request->categoriaId && $request->categoriaId != 0, function ($q) use ($request) {
             $query = $q;
 
@@ -512,7 +522,13 @@ class ListadosPaginasController extends Controller
             return $query;
         }); // Fin Filtrado por cliente
 
-        $clientes = $clientes->orderBy('created_at', 'desc')->paginate(15);
+        if ($request->disablePaginate == 0) {
+            $clientes = $clientes->orderBy('created_at', 'desc')->paginate(15);
+        } else {
+            $clientes = $clientes->get();
+        }
+        // dd(DB::getQueryLog());
+
 
         if (count($clientes) > 0) {
             foreach ($clientes as $cliente) {
@@ -521,6 +537,21 @@ class ListadosPaginasController extends Controller
                 $clientes->frecuencia = $cliente->frecuencia;
                 $clientes->categoria = $cliente->categoria;
                 $clientes->facturas = $cliente->facturas;
+                $clientes->usuario = $cliente->usuario;
+
+                $saldoCliente = calcularDeudaFacturasGlobal($cliente->id);
+
+                if ($saldoCliente > 0) {
+                    $cliente->saldo = number_format(-(float) $saldoCliente, 2);
+                }
+
+                if ($saldoCliente == 0) {
+                    $cliente->saldo = $saldoCliente;
+                }
+
+                if ($saldoCliente < 0) {
+                    $cliente->saldo = number_format((float) str_replace("-", "", $saldoCliente), 2);
+                }
             }
 
             $response[] = $clientes;
