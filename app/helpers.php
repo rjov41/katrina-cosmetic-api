@@ -707,7 +707,7 @@ function newrecuperacionQuery($user, $dateini, $dateFin)
     return $response;
 }
 
-function productosVendidos($user, $request)
+function productosVendidosPorUsuario($user, $request)
 {
     $id = $user->id;
     $response = [
@@ -957,8 +957,6 @@ function cambiarClientesAListaNegraFacturasMora60_90()
     }
 }
 
-
-
 function convertTazaCambio($monto)
 {
     $result = number_format((float) (0), 2, ".", "");
@@ -975,4 +973,76 @@ function convertTazaCambio($monto)
 function decimal($monto)
 {
     return number_format((float) ($monto), 2, ".", "");
+}
+
+function productosVendidos($request)
+{
+    // $id = $user->id;
+    $response = [
+        'totalProductos' => 0,
+        'productos' => [],
+        // 'user' => $user,
+    ];
+    $contadorProductos = 0;
+    $idProductos = [];
+
+    if (empty($request->dateIni)) {
+        $dateIni = Carbon::now();
+    } else {
+        $dateIni = Carbon::parse($request->dateIni);
+    }
+
+    if (empty($request->dateFin)) {
+        $dateFin = Carbon::now();
+    } else {
+        $dateFin = Carbon::parse($request->dateFin);
+    }
+
+    $facturasStorage = Factura::select("*")->where('status', 1);
+    
+    $facturasStorage->when($request->allDates && $request->allDates == "false", function ($q) use ($dateIni, $dateFin) {
+        return $q->whereBetween('created_at', [$dateIni->toDateString() . " 00:00:00",  $dateFin->toDateString() . " 23:59:59"]);
+    });
+    // if (!$request->allDates) {
+    //     $facturasStorage = $facturasStorage->whereBetween('created_at', [$dateIni->toDateString() . " 00:00:00",  $dateFin->toDateString() . " 23:59:59"]);
+    // }
+
+    // $facturasStorage = $facturasStorage->where('user_id', $id);
+
+    $facturas = $facturasStorage->get();
+    foreach ($facturas as $factura) {
+        $factura->factura_detalle = $factura->factura_detalle()->where([
+            ['estado', '=', 1],
+        ])->get();
+
+        if (count($factura->factura_detalle) > 0) {
+            foreach ($factura->factura_detalle as $factura_detalle) {
+                array_push($idProductos, $factura_detalle->id);
+                $contadorProductos = $contadorProductos + $factura_detalle->cantidad;
+            }
+        }
+    }
+
+    if (count($idProductos) > 0) {
+
+        $query = "SELECT 
+            SUM(fd.cantidad) AS cantidad,
+            p.*
+        FROM factura_detalles fd
+        INNER JOIN productos p ON p.id = fd.producto_id
+        WHERE fd.id IN(" . implode(",", $idProductos) . ")
+        GROUP BY fd.producto_id";
+
+        $productos = DB::select($query);
+
+        if (count($productos) > 0) {
+            $response["productos"] = $productos;
+        }
+    }
+
+    // $response = $facturas;
+    $response["totalProductos"] = $contadorProductos;
+    // $response["id"] = $idProductos;
+
+    return $response;
 }

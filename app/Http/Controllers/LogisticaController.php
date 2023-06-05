@@ -824,7 +824,7 @@ class LogisticaController extends Controller
             // dd($user->id);
             // $user->meta;
             // $responsequery = recuperacionQuery($user);
-            $responsequery = productosVendidos($user, $request);
+            $responsequery = productosVendidosPorUsuario($user, $request);
 
             array_push($response, $responsequery);
         }

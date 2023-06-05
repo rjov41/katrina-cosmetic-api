@@ -288,6 +288,30 @@ class PdfController extends Controller
 
         return $archivo->download('inventario_producto.pdf');
     }
+    
+    public function productosVendidos(Request $request)
+    {
+
+        $dataQuery = productosVendidos($request);
+
+        $data['productos'] = array_chunk(json_decode(json_encode($dataQuery['productos'])), 34);
+
+
+        $data = [
+            'data' => $data['productos'],
+            'total' => $dataQuery['totalProductos']
+        ];
+        // dd(json_encode($data));
+
+
+        $archivo = PDF::loadView('productos_vendidos', $data);
+        $pdf = PDF::loadView('productos_vendidos', $data)->output();
+
+        Storage::disk('public')->put('productos_vendidos.pdf', $pdf);
+
+
+        return $archivo->download('inventario_producto.pdf');
+    }
 
     public function registro_cliente(Request $request)
     {
