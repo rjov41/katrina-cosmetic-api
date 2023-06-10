@@ -28,18 +28,18 @@ class FacturaHistorial extends Controller
         $status = 200;
         $facturaEstado = 1; // Activo
 
-        if(!is_null($request['estado'])) $facturaEstado = $request['estado'];
+        if (!is_null($request['estado'])) $facturaEstado = $request['estado'];
 
         // dd($facturaEstado);
-        $facturasHistorial =  Factura_Historial::where('estado',$facturaEstado)->orderBy('id',"desc")->get();
+        $facturasHistorial =  Factura_Historial::where('estado', $facturaEstado)->orderBy('id', "desc")->get();
 
-        if(count($facturasHistorial) > 0){
+        if (count($facturasHistorial) > 0) {
             foreach ($facturasHistorial as $key => $facturaHistorial) {
                 $facturaHistorial->factura;
                 $facturaHistorial->recibo_historial;
 
                 $facturaHistorial->metodo_pago;
-                if($facturaHistorial->metodo_pago){
+                if ($facturaHistorial->metodo_pago) {
                     $facturaHistorial->metodo_pago->tipoPago = $facturaHistorial->metodo_pago->getTipoPago();
                 }
 
@@ -75,7 +75,7 @@ class FacturaHistorial extends Controller
      */
     public function store(Request $request)
     {
-        $validation = Validator::make($request->all() ,[
+        $validation = Validator::make($request->all(), [
             'cliente_id' => 'required|numeric',
             'user_id' => 'required|numeric',
             'precio' => 'required|numeric',
@@ -92,11 +92,11 @@ class FacturaHistorial extends Controller
             'recibo_id'           => 'numeric|required',
             // 'factura_historial_id'           => 'numeric|required',
             'rango'             => 'required|string',
-        ],[
+        ], [
             'numero.unique' => 'El número de recibo ya existe en nuestra base de datos.',
         ]);
 
-        if($validation->fails()) {
+        if ($validation->fails()) {
             return response()->json([$validation->errors()], 400);
         } else {
             // DB::enableQueryLog();
@@ -141,8 +141,6 @@ class FacturaHistorial extends Controller
 
                 return response()->json(["mensaje" => $e], 400);
             }
-
-
         }
     }
 
@@ -152,15 +150,15 @@ class FacturaHistorial extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id,Request $request)
+    public function show($id, Request $request)
     {
         $response = [];
         $status = 400;
         $clienteEstado = 1; // Activo
 
-        if(is_numeric($id)){
+        if (is_numeric($id)) {
 
-            if(!is_null($request['estado'])) $clienteEstado = $request['estado'];
+            if (!is_null($request['estado'])) $clienteEstado = $request['estado'];
 
             // dd($request['estado']);
             $abono =  Factura_Historial::where([
@@ -170,18 +168,16 @@ class FacturaHistorial extends Controller
 
             // $cliente =  Cliente::find($id);
             // dd($abono);
-            if($abono){
+            if ($abono) {
                 // $abono->frecuencia = $cliente->frecuencia;
                 // $abono->categoria = $cliente->categoria;
                 // $abono->facturas = $cliente->facturas;
                 $response = $abono;
                 $status = 200;
-
-            }else{
+            } else {
                 $response[] = "El Abono no existe o fue eliminado.";
             }
-
-        }else{
+        } else {
             $response[] = "El Valor de Id debe ser numerico.";
         }
 
@@ -211,48 +207,38 @@ class FacturaHistorial extends Controller
         $response = [];
         $status = 400;
 
-        if(is_numeric($id)){
-            $abono =  Factura_Historial::find($id);
+        if (is_numeric($id)) {
+            $abono =  MetodoPago::where("factura_historial_id", $id)->first();
 
-            if($abono){
-                $validation = Validator::make($request->all() ,[
-                    'factura_id' => 'required|numeric',
-                    'user_id' => 'required|numeric',
-                    'precio' => 'required|numeric',
-                    'debitado' => 'required|numeric|max:1',
-                    'estado' => 'required|numeric|max:1',
+            if ($abono) {
+                $validation = Validator::make($request->all(), [
+                    'metodoPagoEditar' => 'required|numeric',
+                    'detallePagoEditar' => 'required|string',
                 ]);
 
-                if($validation->fails()) {
+                if ($validation->fails()) {
                     $response[] = $validation->errors();
                 } else {
 
                     // dd($request->all());
                     $abonoUpdate = $abono->update([
-                        'factura_id' => $request['factura_id'],
-                        'user_id' => $request['user_id'],
-                        'precio' => $request['precio'],
-                        'debitado' => $request['debitado'],
-                        'estado' => $request['estado'],
+                        'tipo' => $request['metodoPagoEditar'],
+                        'detalle' => $request['detallePagoEditar'],
                     ]);
 
                     // $this->validarStatusPagado($id,$request['factura_id']);
 
-                    if($abonoUpdate){
+                    if ($abonoUpdate) {
                         $response[] = 'Abono modificado con exito.';
                         $status = 200;
-
-                    }else{
+                    } else {
                         $response[] = 'Error al modificar los datos.';
                     }
-
                 }
-
-            }else{
+            } else {
                 $response[] = "El abono no existe.";
             }
-
-        }else{
+        } else {
             $response[] = "El Valor de Id debe ser numerico.";
         }
 
@@ -270,20 +256,20 @@ class FacturaHistorial extends Controller
         $response = [];
         $status = 400;
 
-        if(is_numeric($id)){
+        if (is_numeric($id)) {
 
             DB::beginTransaction();
-            try{
+            try {
                 $abono =  Factura_Historial::find($id);
 
-                if($abono){
+                if ($abono) {
                     $abonoDelete = $abono->update([
                         'estado' => 0,
                     ]);
 
                     $recibo =  ReciboHistorial::find($abono->id);
 
-                    if($recibo){
+                    if ($recibo) {
                         $recibo->update([
                             'estado' => 0,
                         ]);
@@ -291,15 +277,13 @@ class FacturaHistorial extends Controller
                     validarStatusPagadoGlobal($abono->cliente_id);
                     // $this->validarStatusPagado($id);
 
-                    if($abonoDelete){
+                    if ($abonoDelete) {
                         $response[] = 'El abono fue eliminado con exito.';
                         $status = 200;
-
-                    }else{
+                    } else {
                         $response[] = 'Error al eliminar el abono.';
                     }
-
-                }else{
+                } else {
                     $response[] = "El abono no existe.";
                 }
                 // DB::commit();
@@ -309,10 +293,7 @@ class FacturaHistorial extends Controller
 
                 return response()->json(["mensaje" => "Error al insertar el abono"], 400);
             }
-
-
-
-        }else{
+        } else {
             $response[] = "El Valor de Id debe ser numerico.";
         }
 

@@ -231,7 +231,7 @@ class PdfController extends Controller
 
     function cartera(Request $request)
     {
-        dd([$request->dateFin, $request->allDates, $request->roleName]);
+        // dd([$request->dateFin, $request->allDates, $request->roleName]);
 
         $fullName = 'Todos';
         $data = carteraQuery($request);

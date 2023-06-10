@@ -91,6 +91,21 @@ class LogisticaController extends Controller
                     $recibo_historial->factura_historial->cliente;
                     $recibo_historial->factura_historial->metodo_pago;
 
+                    $recibo_historial->factura_historial->precio_cambio = convertTazaCambio($recibo_historial->factura_historial->precio);;
+                    $saldoCliente = calcularDeudaFacturasGlobal($recibo_historial->factura_historial->cliente->id);
+
+                    if ($saldoCliente > 0) {
+                        $recibo_historial->saldo_cliente = number_format(-(float) $saldoCliente, 2);
+                    }
+
+                    if ($saldoCliente == 0) {
+                        $recibo_historial->saldo_cliente = $saldoCliente;
+                    }
+
+                    if ($saldoCliente < 0) {
+                        $recibo_historial->saldo_cliente = number_format((float) str_replace("-", "", $saldoCliente), 2);
+                    }
+
                     if ($recibo_historial->factura_historial->metodo_pago) {
                         $recibo_historial->factura_historial->metodo_pago->tipoPago = $recibo_historial->factura_historial->metodo_pago->getTipoPago();
                     }
@@ -529,7 +544,7 @@ class LogisticaController extends Controller
             // 31 => "José Heriberto"
             // 32 => "Kevin Francisco"
 
-            if (!in_array($user->id, [20, 21, 23, 25,32])) {
+            if (!in_array($user->id, [20, 21, 23, 25, 32])) {
                 $responsequery = $this->CalcularIncentivo($request, $user->id);
                 $sumaRecuperacion += (float) $responsequery['porcentaje5'];
 
@@ -559,7 +574,7 @@ class LogisticaController extends Controller
 
                     $dataVendedor["totalFacturaVendedor"]  = (float) number_format($totalFacturas, 2, ".", "");
                     $sumaFactura += $dataVendedor["totalFacturaVendedor"];
-                }else{
+                } else {
                     $dataVendedor["totalFacturaVendedor"]  = 0;
                 }
                 array_push($response["dataVendedores"], $dataVendedor);
@@ -804,7 +819,7 @@ class LogisticaController extends Controller
         foreach ($users as $user) {
             // $user->meta;
             // $responsequery = recuperacionQuery($user);
-            $responsequery = newrecuperacionQuery($user,$request->dateIni,$request->dateFin);
+            $responsequery = newrecuperacionQuery($user, $request->dateIni, $request->dateFin);
             array_push($response, $responsequery);
         }
         return response()->json($response, 200);

@@ -608,7 +608,13 @@ function ventasMetaQuery($request)
         $metaValue = $meta->monto_meta;
         $response["meta_monto"] = $meta->monto_meta;
         // print_r(json_encode($metaValue));
-        $averageMeta = ($response["total"] / $metaValue) * 100;
+        if($metaValue == 0){
+            $averageMeta = 0;
+            
+        }else{
+            $averageMeta = ($response["total"] / $metaValue) * 100;
+        }
+        
         $response["meta"] = (float) number_format((float) ($averageMeta), 2, ".", "");
     }
 
