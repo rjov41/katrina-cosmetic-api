@@ -118,8 +118,8 @@
 
     @foreach($data['estado_cuenta'] as $key => $historico)
     <h6 style="float: right">Pagina {{ $key + 1 }} de {{ count($data['estado_cuenta']) }} </h6>
-    <img class="logo" src="lib/img/logo_png.png" style="{{ $key > 0 ?  'margin-top: 15px' : '' }}" alt="">
-    <h5 style="{{ $key > 0 ?  'margin-left: 100px' : '' }}">M&R Profesional <br> ALTAMIRA DE DONDE FUE EL BDF 1C A LAGO 1C ARRIBA CONTIGUO A ETIRROL <br> Teléfonos: 84220028-88071569-81562408</h5>
+    <img class="logo" src="lib/img/logo_png.png" alt="">
+    <h5 style="text-align: center;">M&R Profesional <br> ALTAMIRA DE DONDE FUE EL BDF 1C A LAGO 1C ARRIBA CONTIGUO A ETIRROL <br> Teléfonos: 84220028-88071569-81562408</h5>
     </div>
     <div class="border">
         <div class="seccion_supeior">
