@@ -128,6 +128,7 @@ class FacturaController extends Controller
                 'status_pagado'     => $request['status_pagado'],
                 'despachado'        => $request['despachado'],
                 'status'            => $request['estado'],
+                'status_pagado_at'  => null,
             ];
 
             // obtener el saldo del cliente
@@ -220,6 +221,7 @@ class FacturaController extends Controller
             c.*,
             q.cantidad_factura,
             q.cantidad_finalizadas,
+            q.last_date_finalizada,
             if(q.cantidad_factura = q.cantidad_finalizadas, 1, 0) AS cliente_inactivo
             FROM clientes c
             INNER JOIN (
@@ -227,7 +229,8 @@ class FacturaController extends Controller
                     c.id AS cliente_id,
                     c.user_id AS user_id,
                     COUNT(c.id) AS cantidad_factura,
-                    SUM(if(f.status_pagado = 1, 1, 0)) AS cantidad_finalizadas
+                    SUM(if(f.status_pagado = 1, 1, 0)) AS cantidad_finalizadas,
+                    MAX(f.status_pagado_at) AS last_date_finalizada
                 FROM clientes c
                 INNER JOIN facturas f ON c.id = f.cliente_id
                 WHERE  f.`status` = 1
@@ -236,6 +239,7 @@ class FacturaController extends Controller
             )q ON c.id = q.cliente_id
             WHERE
                 q.cantidad_factura = q.cantidad_finalizadas AND
+                TIMESTAMPDIFF(MONTH,last_date_finalizada, NOW()) >= 1 AND
                 c.id = " . $request['cliente_id']; // Valido que el cliente este en la lista de clientes inactivos
 
             $clientesInactivos = DB::select($query);
@@ -355,7 +359,7 @@ class FacturaController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
             // dd($e);
-            return response()->json(["mensaje" => "Error al insertar el pedido"], 400);
+            return response()->json(["mensaje" =>  $e], 400);
         }
     }
 

@@ -103,7 +103,11 @@ class LogisticaController extends Controller
                     }
 
                     if ($saldoCliente < 0) {
-                        $recibo_historial->saldo_cliente = number_format((float) str_replace("-", "", $saldoCliente), 2);
+                        // $recibo_historial->saldo_cliente = number_format((float) str_replace("-", "", $saldoCliente), 2);
+                            
+                        $saldo_sin_guion = str_replace("-", "", $saldoCliente);
+                        $recibo_historial->saldo_cliente = decimal(filter_var($saldo_sin_guion, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION));
+                        
                     }
 
                     if ($recibo_historial->factura_historial->metodo_pago) {
@@ -339,6 +343,7 @@ class LogisticaController extends Controller
             c.*,
             q.cantidad_factura,
             q.cantidad_finalizadas,
+            q.last_date_finalizada,
             if(q.cantidad_factura = q.cantidad_finalizadas, 1, 0) AS cliente_inactivo
             FROM clientes c
             INNER JOIN (
@@ -346,6 +351,7 @@ class LogisticaController extends Controller
                     c.id AS cliente_id,
                     c.user_id AS user_id,
                     COUNT(c.id) AS cantidad_factura,
+                    MAX(f.status_pagado_at) AS last_date_finalizada,
                     SUM(if(f.status_pagado = 1, 1, 0)) AS cantidad_finalizadas
                 FROM clientes c
                 INNER JOIN facturas f ON c.id = f.cliente_id
@@ -354,7 +360,8 @@ class LogisticaController extends Controller
                 ORDER BY c.id ASC
             )q ON c.id = q.cliente_id
             WHERE
-                q.cantidad_factura = q.cantidad_finalizadas
+                q.cantidad_factura = q.cantidad_finalizadas AND
+                TIMESTAMPDIFF(MONTH,last_date_finalizada, NOW()) >= 1
         ";
 
         if ($request->userId != 0) {

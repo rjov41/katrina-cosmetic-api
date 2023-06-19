@@ -22,6 +22,7 @@ class Factura extends Model
         'status_pagado',
         'saldo_restante',
         'status',
+        "status_pagado_at"
     ];
 
 

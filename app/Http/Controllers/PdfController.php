@@ -495,7 +495,10 @@ class PdfController extends Controller
                 }
 
                 if ($saldoCliente < 0) {
-                    $cliente->saldo = number_format((float) str_replace("-", "", $saldoCliente), 2);
+                    // $cliente->saldo = number_format((float) str_replace("-", "", $saldoCliente), 2);
+                    $saldo_sin_guion = str_replace("-", "", $saldoCliente);
+                    $cliente->saldo = decimal(filter_var($saldo_sin_guion, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION));
+                    
                 }
 
                 if ($formatDiasCobro) {

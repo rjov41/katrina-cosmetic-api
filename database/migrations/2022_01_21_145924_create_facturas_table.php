@@ -37,7 +37,7 @@ class CreateFacturasTable extends Migration
             $table->integer("entregado")->length(1)->default(0); // valida si elvendedor le entrego la factura al administrador
             $table->integer("status")->length(1);  // define si la factura esta activa o no (eliminada o no) 0 = eliminada, 1= activa
             $table->timestamps();
-
+            $table->timestamp('status_pagado_at')->default(null)->nullable(); // Fecha de cierre factura
 
             // $table->string("nombre_cliente",20);
             // $table->string("credito",5);

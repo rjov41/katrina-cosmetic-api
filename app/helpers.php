@@ -15,8 +15,6 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
-use function PHPUnit\Framework\isNull;
-
 function validarStatusPagadoGlobal($clienteID)
 {
 
@@ -47,6 +45,8 @@ function validarStatusPagadoGlobal($clienteID)
         $tieneSaldo = TRUE; // Bandera para saber cuando debo de dejar ajustar el calculo de saldo restante de las facturas
 
         foreach ($cliente->factura as $factura) {
+            $fechaPago = is_null($factura["status_pagado_at"]) ? Carbon::now() : $factura["status_pagado_at"];
+
             if ($tieneSaldo) {
                 // print_r (json_encode( ["monto" => $factura["monto"], "totalAbonos"=>$totalAbonos ]));
                 $totalAbonos =  $totalAbonos - $factura["monto"];
@@ -55,13 +55,16 @@ function validarStatusPagadoGlobal($clienteID)
                     $tieneSaldo = FALSE;
                     $factura["status_pagado"] = 0;
                     $factura["saldo_restante"] = abs($totalAbonos);
+                    $factura["status_pagado_at"] = null;
                 } else { // cierro la factura y el saldo restante lo dejo 0
-                    $factura["saldo_restante"] = 0;
                     $factura["status_pagado"] = 1;
+                    $factura["saldo_restante"] = 0;
+                    $factura["status_pagado_at"] = $fechaPago;
                 }
             } else { // si no tiene saldo reinicio la factura
                 $factura["saldo_restante"] = $factura["monto"];
                 $factura["status_pagado"] = 0;
+                $factura["status_pagado_at"] = null;
             }
 
             $factura->update();
@@ -103,6 +106,7 @@ function debitarAbonosClientes($clienteID)
         $tieneSaldo = TRUE; // Bandera para saber cuando debo de dejar ajustar el calculo de saldo restante de las facturas
 
         foreach ($cliente->factura as $factura) {
+            $fechaPago = is_null($factura["status_pagado_at"]) ? Carbon::now() : $factura["status_pagado_at"];
             if ($tieneSaldo) {
                 // 200 - 500 = -300 ajusta el restante
                 // 500 - 500 = 0  cierra factura y ajusta restante
@@ -114,6 +118,7 @@ function debitarAbonosClientes($clienteID)
                 } else { // cierro la factura y el saldo restante lo dejo 0
                     $factura["saldo_restante"] = 0;
                     $factura["status_pagado"] = 1;
+                    $factura["status_pagado_at"] = $fechaPago;
                 }
             }
 
@@ -386,11 +391,11 @@ function queryEstadoCuenta($cliente_id)
     return $response;
 }
 
-function validarReactivacionCliente($user_id, $cliente_id, $factura_id, $listaInactivos)
+function validarReactivacionCliente($user_id, $cliente_id, $factura_id, $dataClienteInactivo)
 {
 
     // print_r($listaInactivos);
-    if (count($listaInactivos) > 0) { // si existe en la lista de clientes inactivos registro el dia que se reactivo
+    if (count($dataClienteInactivo) > 0) { // si existe en la lista de clientes inactivos registro el dia que se reactivo
 
         ClientesReactivados::create([
             'user_id'         => $user_id,
@@ -608,13 +613,12 @@ function ventasMetaQuery($request)
         $metaValue = $meta->monto_meta;
         $response["meta_monto"] = $meta->monto_meta;
         // print_r(json_encode($metaValue));
-        if($metaValue == 0){
+        if ($metaValue == 0) {
             $averageMeta = 0;
-            
-        }else{
+        } else {
             $averageMeta = ($response["total"] / $metaValue) * 100;
         }
-        
+
         $response["meta"] = (float) number_format((float) ($averageMeta), 2, ".", "");
     }
 
@@ -1005,7 +1009,7 @@ function productosVendidos($request)
     }
 
     $facturasStorage = Factura::select("*")->where('status', 1);
-    
+
     $facturasStorage->when($request->allDates && $request->allDates == "false", function ($q) use ($dateIni, $dateFin) {
         return $q->whereBetween('created_at', [$dateIni->toDateString() . " 00:00:00",  $dateFin->toDateString() . " 23:59:59"]);
     });
