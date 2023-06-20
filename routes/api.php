@@ -85,7 +85,7 @@ Route::get('script/AsignarPrecioPorUnidadGlobal', [ScriptController::class, 'Asi
 Route::get('script/validarStatusPagadoGlobal', [ScriptController::class, 'validarStatusPagadoGlobal']);
 Route::get('script/actualizarPrecioFactura/{id}', [ScriptController::class, 'ActualizarPrecioFactura']);
 
-Route::group(['middleware' => ['auth:sanctum', 'role:administrador|vendedor|supervisor']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'role:administrador|vendedor|supervisor','cierre']], function () {
     Route::post('logistica/cartera-date', [LogisticaController::class, 'carteraDate']);
     Route::post('logistica/recibo-date', [LogisticaController::class, 'reciboDate']);
     Route::post('logistica/mora-30-60', [LogisticaController::class, 'Mora30A60']);
@@ -148,6 +148,8 @@ Route::group(['middleware' => ['auth:sanctum', 'role:administrador|vendedor|supe
     Route::post('configuracion/migracion', [ConfiguracionController::class, 'migracion']);
     Route::post('configuracion/taza-cambio', [ConfiguracionController::class, 'saveTazaCambio']);
     Route::get('configuracion/taza-cambio', [ConfiguracionController::class, 'getTazaCambio']);
+    Route::get('configuracion/cierre', [ConfiguracionController::class, 'getCierraConfig']);
+    Route::patch('configuracion/cierre', [ConfiguracionController::class, 'updateCierraConfig']);
     
     Route::patch('configuracion/taza-cambio/factura', [ConfiguracionController::class, 'updateTazaCambioFactura']);
     Route::post('configuracion/taza-cambio/factura', [ConfiguracionController::class, 'saveTazaCambioFactura']);

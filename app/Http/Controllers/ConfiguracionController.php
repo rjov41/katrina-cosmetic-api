@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Cliente;
 use App\Models\ClientesReactivados;
+use App\Models\ConfigurationApp;
 use App\Models\DevolucionFactura;
 use App\Models\DevolucionProducto;
 use App\Models\Factura;
@@ -271,6 +272,27 @@ class ConfiguracionController extends Controller
 
         return response()->json([
             'data' => $taza,
+        ], 200);
+    }
+
+    public function getCierraConfig()
+    {
+        $cierre = ConfigurationApp::first();
+
+        return response()->json([
+            'data' => $cierre,
+        ], 200);
+    }
+
+    public function updateCierraConfig()
+    {
+        $dataCierre = ConfigurationApp::first();
+
+        $dataCierre->cierre = $dataCierre->cierre == 1?0:1;
+        $dataCierre->save();
+
+        return response()->json([
+            'data' => $dataCierre,
         ], 200);
     }
 }

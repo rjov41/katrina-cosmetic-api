@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ConfigurationApp;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -50,7 +51,7 @@ class AuthenticationController extends Controller
 
         if (!Auth::attempt($attr)) {
             // return $this->error('Credentials not match', 401);
-            return response()->json(['error' => "problemas con las credenciales"], 401);
+            return response()->json(['mensaje' => "usuario o contraseña incorrectos"], 401);
         }
         
         $user = Auth::user();
@@ -59,6 +60,13 @@ class AuthenticationController extends Controller
             // return $this->success([
             //     'token' => $user->createToken($request->device_name)->plainTextToken,
             // ]);
+
+            $dataCierre = ConfigurationApp::first();
+
+            if ($dataCierre->cierre == 1) {
+                if (!$user->hasAnyRole(["administrador", "supervisor"])) return response()->json(['mensaje' => "La app tiene el cierre activo"], 401);
+            } 
+
             $token = $user->createToken('tokens')->plainTextToken;
             $newUser = DB::table('users')
                 ->select('users.id as userId', 'users.name as nombre', 'users.apellido as apellido', 'users.cargo as cargo', 'users.email as email', 'users.email_verified_at as email_verified_at', 'users.estado as user_estado', 'users.created_at as user_created_at', 'users.updated_at as user_updated_at','roles.id as roleId','roles.name as roleName')
@@ -81,7 +89,7 @@ class AuthenticationController extends Controller
         } else {
             // return $this->error('Error', 401);
             // return ['error' => "problemas"];
-            return response()->json(['error' => "problemas auth"], 401);
+            return response()->json(['mensaje' => "problemas auth"], 401);
         }
         
 
