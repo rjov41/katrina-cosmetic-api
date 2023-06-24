@@ -66,6 +66,7 @@ Route::group(['middleware' => ['auth:sanctum', 'role:administrador|vendedor|supe
 
 
 
+Route::get('xlsx/registroclientes', [PdfController::class, 'registro_cliente_excell']);
 Route::get('csv/registroclientes', [PdfController::class, 'registro_cliente_csv']);
 Route::get('pdf/registroclientes', [PdfController::class, 'registro_cliente']);
 Route::get('pdf/productos_vendidos', [PdfController::class, 'productosVendidos']);

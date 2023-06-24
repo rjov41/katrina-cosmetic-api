@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ClientExport;
 use App\Models\Factura;
 use App\Models\Producto;
 use App\Models\User;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PdfController extends Controller
 {
@@ -288,7 +290,7 @@ class PdfController extends Controller
 
         return $archivo->download('inventario_producto.pdf');
     }
-    
+
     public function productosVendidos(Request $request)
     {
 
@@ -338,7 +340,7 @@ class PdfController extends Controller
     public function registro_cliente_csv(Request $request)
     {
         $dataCSV = [];
-        $fileName = "registro_clientes_".Carbon::now('utc')->toDateTimeString().".csv";
+        $fileName = "registro_clientes_" . Carbon::now('utc')->toDateTimeString() . ".csv";
         $headers = array(
             "Content-type"        => "text/csv",
             "Content-Disposition" => "attachment; filename=$fileName",
@@ -391,6 +393,43 @@ class PdfController extends Controller
 
         //Esto hace que Laravel exponga el archivo como descarga
         return response()->stream($callback, 200, $headers);
+    }
+
+    public function registro_cliente_excell(Request $request)
+    {
+        $fileName = "registro_clientes_" . Carbon::now('utc')->toDateTimeString() . ".xlsx";
+
+        $columns = array(
+            'Codigo_Cliente',
+            'Nombre_Completo',
+            'Dirección',
+            'Celular',
+            'Saldo_Actual',
+            'Ultima_Fecha_de_Pago',
+            'Dias_de_Cobro',
+        );
+
+        $response = $this->registroClienteQuery($request, false);
+        $dataExcell = [
+            $columns
+        ];
+        foreach ($response as $cliente) {
+            $dataExcell[] = array(
+                $cliente->id,
+                $cliente->nombreCompleto,
+                $cliente->direccion_casa,
+                $cliente->celular,
+                $cliente->saldo,
+                ($cliente->ultimoAbono) ? Carbon::parse($cliente->ultimoAbono->created_at)->format('j-m-Y') : "No posee abonos",
+                $cliente->dias_cobro,
+            );
+        }
+
+        $export = new ClientExport([
+            $dataExcell
+        ]);
+
+        return Excel::download($export, $fileName);
     }
 
     private function registroClienteQuery($request, $formatDiasCobro = true)
@@ -498,7 +537,6 @@ class PdfController extends Controller
                     // $cliente->saldo = number_format((float) str_replace("-", "", $saldoCliente), 2);
                     $saldo_sin_guion = str_replace("-", "", $saldoCliente);
                     $cliente->saldo = decimal(filter_var($saldo_sin_guion, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION));
-                    
                 }
 
                 if ($formatDiasCobro) {
