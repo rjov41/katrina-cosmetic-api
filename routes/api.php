@@ -163,6 +163,7 @@ Route::get('list/metas', [ListadosPaginasController::class, 'metasHistoricoList'
 Route::get('list/recibos', [ListadosPaginasController::class, 'recibosCreditosList']);
 Route::get('list/abonos', [ListadosPaginasController::class, 'abonosCreditosList']);
 Route::get('list/clientes', [ListadosPaginasController::class, 'clientesList']);
+Route::get('list/productos-clientes', [ListadosPaginasController::class, 'FacturaDetailClientList']);
 
 Route::get('configuracion/crons', function () {
     // Artisan::call('meta:recuperacion');

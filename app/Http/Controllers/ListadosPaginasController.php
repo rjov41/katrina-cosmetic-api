@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Categoria;
 use App\Models\Cliente;
 use App\Models\Factura;
+use App\Models\Factura_Detalle;
 use App\Models\FacturaHistorial;
 use App\Models\MetaHistorial;
 use App\Models\Recibo;
@@ -314,10 +315,10 @@ class ListadosPaginasController extends Controller
 
         $abonos =  FacturaHistorial::where($parametros);
 
-        // ** Filtrado por rango de fechas 
-        $abonos->when($request->allDates && $request->allDates == "false", function ($q) use ($dateIni, $dateFin) {
-            return $q->whereBetween('created_at', [$dateIni->toDateString() . " 00:00:00",  $dateFin->toDateString() . " 23:59:59"]);
-        });
+        // // ** Filtrado por rango de fechas 
+        // $abonos->when($request->allDates && $request->allDates == "false", function ($q) use ($dateIni, $dateFin) {
+        //     return $q->whereBetween('created_at', [$dateIni->toDateString() . " 00:00:00",  $dateFin->toDateString() . " 23:59:59"]);
+        // });
 
         // ** Filtrado por userID
         $abonos->when($request->userId && $request->userId != 0, function ($q) use ($request) {
@@ -415,6 +416,69 @@ class ListadosPaginasController extends Controller
         }
 
         $response = $abonos;
+
+
+        return response()->json($response, $status);
+    }
+
+    public function FacturaDetailClientList(Request $request)
+    {
+        $response = [];
+        $status = 200;
+        // $facturaEstado = 1; // Activo
+        $parametros = [["estado", 1]];
+
+        if (empty($request->dateIni)) {
+            $dateIni = Carbon::now();
+        } else {
+            $dateIni = Carbon::parse($request->dateIni);
+        }
+
+        if (empty($request->dateFin)) {
+            $dateFin = Carbon::now();
+        } else {
+            $dateFin = Carbon::parse($request->dateFin);
+        }
+
+        // DB::enableQueryLog();
+
+        $facturaDetalle =  Factura_Detalle::where($parametros);
+
+        // ** Filtrado por rango de fechas 
+        $facturaDetalle->when($request->allDates && $request->allDates == "false", function ($q) use ($dateIni, $dateFin) {
+            return $q->whereBetween('created_at', [$dateIni->toDateString() . " 00:00:00",  $dateFin->toDateString() . " 23:59:59"]);
+        });
+
+        //** facturas del cliente
+        $facturaDetalle->when($request->clienteId, function ($q) use ($request) {
+            $query = $q;
+
+            // nombre cliente
+            $facturaId = [];
+            $facturas = Factura::select("*")
+                ->where('status', 1)
+                ->where('cliente_id', $request->clienteId)
+                ->get();
+
+            if (count($facturas) > 0) {
+                foreach ($facturas as $factura) {
+                    $facturaId[] = $factura->id;
+                }
+            }
+
+            return $query->wherein('factura_id', $facturaId);
+        }); // Fin Filtrado por cliente
+
+        $facturaDetalle = $facturaDetalle->orderBy('created_at', 'desc')->paginate(15);
+
+        if (count($facturaDetalle) > 0) {
+            foreach ($facturaDetalle as $productoVendido) {
+                $productoVendido->factura->cliente;
+                $productoVendido->producto;
+            }
+        }
+
+        $response = $facturaDetalle;
 
 
         return response()->json($response, $status);
