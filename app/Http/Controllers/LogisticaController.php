@@ -551,7 +551,7 @@ class LogisticaController extends Controller
             // 31 => "José Heriberto"
             // 32 => "Kevin Francisco"
 
-            if (!in_array($user->id, [20, 21, 23, 25, 32])) {
+            if (!in_array($user->id, [0])) {
                 $responsequery = $this->CalcularIncentivo($request, $user->id);
                 $sumaRecuperacion += (float) $responsequery['porcentaje5'];
 

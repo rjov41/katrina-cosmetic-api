@@ -85,12 +85,13 @@
         display: block;
         font-size: 15px
     }
-    .logo{
-        position: absolute;
+    .logo {
+        /* position: absolute; */
         float: left;
         display: block;
-        width: 90px;
-        height: 70px;
+        width: 80px;
+        height: 56px;
+        z-index: 9999;
     }
     .total{
         display: block;
@@ -124,7 +125,7 @@
     @foreach($data as $key =>  $item)
     <h6 style="float: right">Pagina {{ $key + 1 }} de {{ count($data) }} </h6>
         <img class="logo" src="lib/img/logo_png.png" style="margin-top: 5px"  alt="">
-        <h5 style="margin-left: 100px;text-align: center;">M&R Profesional <br> ALTAMIRA DE DONDE FUE EL BDF 1C A LAGO 1C ARRIBA CONTIGUO A ETIRROL <br> Teléfonos: 84220028-88071569-81562408</h5>
+        <h5 style="margin-left: 100px;text-align: center;">KATRINA VARIEDADES <br> Delicias del Volga, 1c. Abajo, 1&#189;C. al Sur, casa #403 <br> Teléfonos: 84220028-88071569-81562408</h5>
         </div>
         <div class="border">
             <div class="seccion_supeior">

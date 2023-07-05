@@ -108,8 +108,8 @@
         /* position: absolute; */
         float: left;
         display: block;
-        width: 70px;
-        height: 70px;
+        width: 80px;
+        height: 56px;
         z-index: 9999;
     }
 
