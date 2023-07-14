@@ -8,6 +8,7 @@ use App\Models\Factura;
 use App\Models\Factura_Detalle;
 use App\Models\FacturaHistorial;
 use App\Models\MetaHistorial;
+use App\Models\Producto;
 use App\Models\Recibo;
 use App\Models\ReciboHistorial;
 use App\Models\User;
@@ -536,7 +537,7 @@ class ListadosPaginasController extends Controller
             $dias = explode(",", $request->diasCobros);
             $condicionDiasCobro = [];
             foreach ($dias as $dia) {
-                array_push($condicionDiasCobro,['dias_cobro', 'LIKE', '%' . $dia . '%',"or"]);
+                array_push($condicionDiasCobro, ['dias_cobro', 'LIKE', '%' . $dia . '%', "or"]);
             }
             return $query->where($condicionDiasCobro);
         });
@@ -608,11 +609,11 @@ class ListadosPaginasController extends Controller
                 if ($saldoCliente > 0) {
                     $cliente->saldo = number_format(-(float) $saldoCliente, 2);
                 }
-                
+
                 if ($saldoCliente == 0) {
                     $cliente->saldo = $saldoCliente;
                 }
-                
+
                 if ($saldoCliente < 0) {
                     // $cliente->saldo = number_format((float) str_replace("-", "", $saldoCliente), 2);
                     $saldo_sin_guion = str_replace("-", "", $saldoCliente);
@@ -625,6 +626,79 @@ class ListadosPaginasController extends Controller
         }
 
         $response = $clientes;
+
+
+        return response()->json($response, $status);
+    }
+
+    public function ProductosVendedorList(Request $request)
+    {
+        $response = [];
+        $status = 200;
+        // $facturaEstado = 1; // Activo
+        $parametros = [["facturas.status", 1]];
+
+        if (empty($request->dateIni)) {
+            $dateIni = Carbon::now();
+        } else {
+            $dateIni = Carbon::parse($request->dateIni);
+        }
+
+        if (empty($request->dateFin)) {
+            $dateFin = Carbon::now();
+        } else {
+            $dateFin = Carbon::parse($request->dateFin);
+        }
+
+        // DB::enableQueryLog();
+
+        $Facturas =  Factura::where($parametros);
+
+        // ** Filtrado por rango de fechas Meta 
+        $Facturas->when($request->allDates && $request->allDates == "false", function ($q) use ($dateIni, $dateFin) {
+            return $q->whereBetween('facturas.created_at', [$dateIni->toDateString() . " 00:00:00",  $dateFin->toDateString() . " 23:59:59"]);
+        });
+        
+
+        // ** Stado Pagado Factura 
+        $Facturas->when($request->status_pagado && $request->status_pagado != "false", function ($q) use ($request) {
+            return $q->where('facturas.status_pagado', $request->status_pagado);
+        });
+        
+        // ** userId por Factura 
+        $Facturas->when($request->userId && $request->userId != 0, function ($q) use ($request) {
+            return $q->where('facturas.user_id', $request->userId);
+        });
+
+        $Facturas->select(DB::raw('COUNT(factura_detalles.cantidad) AS cantidad_total, facturas.cliente_id,factura_detalles.producto_id, facturas.user_id'))
+            ->join('factura_detalles', 'factura_detalles.factura_id', '=', 'facturas.id')
+            ->groupBy("facturas.cliente_id", "factura_detalles.producto_id","facturas.user_id");
+        $Facturas =  $Facturas->get();
+
+        // dd(DB::getQueryLog());
+        // dd(json_encode($Facturas));
+
+
+        // SELECT COUNT(factura_detalles.cantidad), facturas.cliente_id,factura_detalles.producto_id, facturas.user_id
+        // FROM facturas
+        // INNER JOIN factura_detalles ON factura_detalles.factura_id = facturas.id
+        // WHERE facturas.created_at BETWEEN DATE("2023-04-05 19:26:17") AND DATE("2023-08-05 19:26:17")
+        // GROUP BY facturas.cliente_id, factura_detalles.producto_id, facturas.user_id
+
+
+
+
+        if (count($Facturas) > 0) {
+            foreach ($Facturas as $Factura) {
+                $Factura->cliente = Cliente::find($Factura->cliente_id);  
+                $Factura->usuario = User::find($Factura->user_id); 
+                $Factura->producto = Producto::find($Factura->producto_id); 
+            }
+
+            // $response[] = $ProductosFacturados;
+        }
+
+        $response = $Facturas;
 
 
         return response()->json($response, $status);

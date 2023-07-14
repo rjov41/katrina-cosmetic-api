@@ -164,6 +164,7 @@ Route::get('list/recibos', [ListadosPaginasController::class, 'recibosCreditosLi
 Route::get('list/abonos', [ListadosPaginasController::class, 'abonosCreditosList']);
 Route::get('list/clientes', [ListadosPaginasController::class, 'clientesList']);
 Route::get('list/productos-clientes', [ListadosPaginasController::class, 'FacturaDetailClientList']);
+Route::get('list/producto-vendedor', [ListadosPaginasController::class, 'ProductosVendedorList']);
 
 Route::get('configuracion/crons', function () {
     // Artisan::call('meta:recuperacion');
