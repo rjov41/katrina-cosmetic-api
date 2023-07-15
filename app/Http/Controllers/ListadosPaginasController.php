@@ -661,7 +661,7 @@ class ListadosPaginasController extends Controller
         
 
         // ** Stado Pagado Factura 
-        $Facturas->when($request->status_pagado && $request->status_pagado != "false", function ($q) use ($request) {
+        $Facturas->when($request->status_pagado && $request->status_pagado != "3", function ($q) use ($request) { // si es 3 no agrega el where
             return $q->where('facturas.status_pagado', $request->status_pagado);
         });
         
@@ -673,7 +673,9 @@ class ListadosPaginasController extends Controller
         $Facturas->select(DB::raw('COUNT(factura_detalles.cantidad) AS cantidad_total, facturas.cliente_id,factura_detalles.producto_id, facturas.user_id'))
             ->join('factura_detalles', 'factura_detalles.factura_id', '=', 'facturas.id')
             ->groupBy("facturas.cliente_id", "factura_detalles.producto_id","facturas.user_id");
-        $Facturas =  $Facturas->get();
+        
+        // $Facturas =  $Facturas->get();
+        $Facturas = $Facturas->paginate(15);
 
         // dd(DB::getQueryLog());
         // dd(json_encode($Facturas));
