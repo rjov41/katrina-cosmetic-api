@@ -670,9 +670,9 @@ class ListadosPaginasController extends Controller
             return $q->where('facturas.user_id', $request->userId);
         });
 
-        $Facturas->select(DB::raw('COUNT(factura_detalles.cantidad) AS cantidad_total, facturas.cliente_id,factura_detalles.producto_id, facturas.user_id'))
+        $Facturas->select(DB::raw('COUNT(factura_detalles.cantidad) AS cantidad_total,facturas.id, facturas.cliente_id,factura_detalles.producto_id, facturas.user_id'))
             ->join('factura_detalles', 'factura_detalles.factura_id', '=', 'facturas.id')
-            ->groupBy("facturas.cliente_id", "factura_detalles.producto_id","facturas.user_id");
+            ->groupBy("facturas.cliente_id", "factura_detalles.producto_id","facturas.user_id","facturas.id");
         
         // $Facturas =  $Facturas->get();
         $Facturas = $Facturas->paginate(15);
