@@ -621,7 +621,7 @@ class PdfController extends Controller
         
 
         // ** Stado Pagado Factura 
-        $Facturas->when($request->status_pagado && $request->status_pagado != "false", function ($q) use ($request) {
+        $Facturas->when($request->status_pagado && $request->status_pagado != "3", function ($q) use ($request) {
             return $q->where('facturas.status_pagado', $request->status_pagado);
         });
         
