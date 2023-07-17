@@ -70,10 +70,11 @@ Route::get('xlsx/registroclientes', [PdfController::class, 'registro_cliente_exc
 Route::get('csv/registroclientes', [PdfController::class, 'registro_cliente_csv']);
 Route::get('pdf/registroclientes', [PdfController::class, 'registro_cliente']);
 Route::get('pdf/productos_vendidos', [PdfController::class, 'productosVendidos']);
-Route::get('pdf/{id}', [PdfController::class, 'facturaPago']);
 Route::get('pdf/estado_cuenta/{id}', [PdfController::class, 'estadoCuenta']);
 Route::post('pdf/cartera', [PdfController::class, 'cartera']);
 Route::get('pdf/productos/inventario', [PdfController::class, 'inventario']);
+Route::get('pdf/productos_vendedor', [PdfController::class, 'productos_vendedor']);
+Route::get('pdf/{id}', [PdfController::class, 'facturaPago']);
 // Route::post('pdf', [PdfController::class,'generar']);
 
 

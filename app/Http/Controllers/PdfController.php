@@ -562,4 +562,89 @@ class PdfController extends Controller
 
         return $clientes;
     }
+
+    public function productos_vendedor(Request $request)
+    {
+        $response = $this->productosVendedorQuery($request);
+
+        $data = [
+            'data' =>  array_chunk(json_decode(json_encode($response->{'original'})), 16),
+            'cantidad' => count(json_decode(json_encode($response->{'original'}))),
+        ];
+        
+
+        $archivo = PDF::loadView('productos_vendedor', $data);
+        $pdf = $archivo->output();
+
+        Storage::disk('public')->put('productos_vendedor.blade.pdf', $pdf);
+
+        return $archivo->download('productos_vendedor_' . $request->userId . '.pdf');
+    }
+
+    public function productosVendedorQuery(Request $request)
+    {
+        
+        $response = [];
+        $status = 200;
+        // $facturaEstado = 1; // Activo
+        $parametros = [["facturas.status", 1]];
+
+        if (empty($request->dateIni)) {
+            $dateIni = Carbon::now();
+        } else {
+            $dateIni = Carbon::parse($request->dateIni);
+        }
+
+        if (empty($request->dateFin)) {
+            $dateFin = Carbon::now();
+        } else {
+            $dateFin = Carbon::parse($request->dateFin);
+        }
+
+        // DB::enableQueryLog();
+
+        $Facturas =  Factura::where($parametros);
+
+        // ** Filtrado por rango de fechas Meta 
+        $Facturas->when($request->allDates && $request->allDates == "false", function ($q) use ($dateIni, $dateFin) {
+            return $q->whereBetween('facturas.created_at', [$dateIni->toDateString() . " 00:00:00",  $dateFin->toDateString() . " 23:59:59"]);
+        });
+        
+
+        // ** Stado Pagado Factura 
+        $Facturas->when($request->status_pagado && $request->status_pagado != "false", function ($q) use ($request) {
+            return $q->where('facturas.status_pagado', $request->status_pagado);
+        });
+        
+        // ** userId por Factura 
+        $Facturas->when($request->userId && $request->userId != 0, function ($q) use ($request) {
+            return $q->where('facturas.user_id', $request->userId);
+        });
+
+        $Facturas->select(DB::raw('COUNT(factura_detalles.cantidad) AS cantidad_total, facturas.cliente_id,factura_detalles.producto_id, facturas.user_id'))
+            ->join('factura_detalles', 'factura_detalles.factura_id', '=', 'facturas.id')
+            ->groupBy("facturas.cliente_id", "factura_detalles.producto_id","facturas.user_id");
+        $Facturas =  $Facturas->get();
+
+        // SELECT COUNT(factura_detalles.cantidad), facturas.cliente_id,factura_detalles.producto_id, facturas.user_id
+        // FROM facturas
+        // INNER JOIN factura_detalles ON factura_detalles.factura_id = facturas.id
+        // WHERE facturas.created_at BETWEEN DATE("2023-04-05 19:26:17") AND DATE("2023-08-05 19:26:17")
+        // GROUP BY facturas.cliente_id, factura_detalles.producto_id, facturas.user_id
+
+        if (count($Facturas) > 0) {
+            foreach ($Facturas as $Factura) {
+                $Factura->cliente = Cliente::find($Factura->cliente_id);  
+                $Factura->usuario = User::find($Factura->user_id); 
+                $Factura->producto = Producto::find($Factura->producto_id); 
+            }
+
+            // $response[] = $ProductosFacturados;
+        }
+
+        $response = $Facturas;
+
+
+        return response()->json($response, $status);
+    }
 }
