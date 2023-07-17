@@ -566,10 +566,19 @@ class PdfController extends Controller
     public function productos_vendedor(Request $request)
     {
         $response = $this->productosVendedorQuery($request);
-
+        if($request->userId == 0){
+            $username = 'Todos';
+            
+        }else{
+            $usertemp = User::find($request->userId);
+            
+            $username = $usertemp->name .' '. $usertemp->apellido;
+        }
+        //dd(json_decode(json_encode($response->{'original'})));
         $data = [
-            'data' =>  array_chunk(json_decode(json_encode($response->{'original'})), 16),
+            'data' =>  array_chunk(json_decode(json_encode($response->{'original'})), 10),
             'cantidad' => count(json_decode(json_encode($response->{'original'}))),
+            'usuario' => $username
         ];
         
 
@@ -621,9 +630,9 @@ class PdfController extends Controller
             return $q->where('facturas.user_id', $request->userId);
         });
 
-        $Facturas->select(DB::raw('COUNT(factura_detalles.cantidad) AS cantidad_total, facturas.cliente_id,factura_detalles.producto_id, facturas.user_id'))
+        $Facturas->select(DB::raw('COUNT(factura_detalles.cantidad) AS cantidad_total,facturas.id, facturas.cliente_id,factura_detalles.producto_id, facturas.user_id'))
             ->join('factura_detalles', 'factura_detalles.factura_id', '=', 'facturas.id')
-            ->groupBy("facturas.cliente_id", "factura_detalles.producto_id","facturas.user_id");
+            ->groupBy("facturas.cliente_id", "factura_detalles.producto_id","facturas.user_id","facturas.id");
         $Facturas =  $Facturas->get();
 
         // SELECT COUNT(factura_detalles.cantidad), facturas.cliente_id,factura_detalles.producto_id, facturas.user_id

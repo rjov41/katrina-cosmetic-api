@@ -30,7 +30,7 @@
         border: 2px solid #000;
         border-top-left-radius: 30px;
         border-top-right-radius: 30px;
-        padding: 10px;
+        padding: 5px 10px;
 
     }
 
@@ -69,7 +69,8 @@
 
     .detail table th {
         text-align: left;
-        border-bottom: 1px solid
+        border-bottom: 1px solid;
+        font-size: 12px;
         
     }
 
@@ -145,7 +146,7 @@
     @foreach($data as $key => $page)
     <h6 style="float: right">Pagina {{ $key + 1 }} de {{ count($data) }} <br>Total {{ $cantidad }} </h6>
     <img class="logo" src="lib/img/logo_png.png" style="margin-top: 15px" alt="">
-    <h5 style="text-align: center;">KATRINA VARIEDADES <br> Delicias del Volga, 1c. Abajo, 1&#189;C. al Sur, casa #403 <br> Teléfonos: 8765-5719 / 8422-0032</h5>
+    <h5 style="text-align: center;">KATRINA VARIEDADES <br> Delicias del Volga, 1c. Abajo, 1&#189;C. al Sur, casa #403 <br> Teléfonos: 8765-5719 / 8422-0032 <br> Usuario: {{$usuario}} </h5>
     </div>
     <div class="border">
 
@@ -154,20 +155,21 @@
             <table style="width: 100%">
                 <thead>
                     <tr>
-                        <!-- <th>Código cliente</th> -->
-                        <th>ID PRODUCTO</th>
+                        <th>#FACTURA</th>
+                        <th>#PRODUCTO</th>
                         <th>MARCA</th>
                         <th>MODELO</th>
                         <th>LINEA</th>
                         <th>DESCRIPCIÓN</th>
                         <th>CANTIDAD</th>
-                        <th>CLEINTE</th>
+                        <th>CLINTE</th>
                     </tr>
                 </thead>
                 <tbody>
 
                     @foreach($data[$key] as $factura)
                     <tr>
+                        <td>{{ $factura->id }}</td>
                         <td>{{ $factura->producto->id }}</td>
                         <td>{{ $factura->producto->marca }}</td>
                         <td>{{ $factura->producto->modelo }}</td>
